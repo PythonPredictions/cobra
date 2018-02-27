@@ -51,11 +51,14 @@ class ModelSelection(object):
         ##Perform forward selection
         df_fsel = self._forwardSelection(df_unisel, forced_vars, excluded_vars)
         
+        ##Find optimal number of variables and add it into df_fsel
+        self._optimalModelCriterion(df_fsel)
+        
         ##Cumulative respone/gain and adds it into df_fsel
-        #self._cumulatives(df_fsel)
+        self._cumulatives(df_fsel)
         
         ##Calclates importance and adds it into df_fsel
-        #self._calcImportance(df_fsel)
+        self._calcImportance(df_fsel)
         
         ##Give name
         df_fsel.name = name
@@ -139,7 +142,7 @@ class ModelSelection(object):
         for i in range(1,n_steps+1):
             try:
                 result = self.__forward(current_predictors=predictors,
-                                        pool_predictors=selected_variables[:i],
+                                        pool_predictors=selected_variables,
                                         positive_only=True)
                 df_best_models.loc[i] = result
                 predictors = df_best_models.loc[i].predictor_names
@@ -149,10 +152,84 @@ class ModelSelection(object):
                     pass
                 else:
                     break
-                
-        df_best_models.reset_index(inplace=True, drop=True)
                  
         return df_best_models
+    
+    def _optimalModelCriterion(self, df):
+        '''
+        Method finds optimal number of variables in given model
+        Returns nothing, sets attribute self._optimal_nvars and add a column to the input DF
+        ----------------------------------------------------
+        df: df with best models 
+        ---------------------------------------------------- 
+        Here I kept all the functions inside, since they are shorter
+        '''    
+        
+        def comparefit(p,g=2):
+            # We fit a second degree (g=2) polyline through our auccurve 
+            # This serves as a starting base for finding our optimal stopping point
+            z = np.polyfit(p.index, p, g)
+            f = np.poly1d(z)
+            y_new = f(p.index)
+            return pd.Series(y_new,index=p.index)
+        
+        def slopepoint(p,p_fit,thresh_ratio=0.2):
+            # We take the polyline from comparefit and look for the point of which the slope lies just below some percentage of the max. slope
+            slopes = [p_fit[i+1]-p_fit[i] for i in range(1,len(p_fit))]
+            slopes = pd.Series(slopes, index=range(1,len(p_fit)))
+            thresh = slopes.max()*thresh_ratio
+            p_best_index = (slopes[slopes>thresh])[-1:].index
+            p_best = p.loc[p_best_index]
+            return p_best
+        
+        def moveright(p,p_fit,p_best,n_steps=5,dampening=0.01):
+            # We look nsteps right on the polyline (starting from the slopepoint) and take the point with largest difference with real line
+            # We move to that point if that difference is larger than some multiplication of the difference at the slopepoint
+            # That multiplication gets larger as current the current difference gets smaller with a certain amount of dampening. 
+            # The rationale behind this is as follows: 
+            #  if the current difference is already large than the larger difference will definitely be noteworthy
+            #  if however the current difference is near zero than there needs to be much larger difference to be noteworthy
+            in_index = p_best.index.values[0]
+            lower = (in_index-1)
+            upper = (in_index+n_steps-1)
+            p_diff = p[lower:upper]-p_fit[lower:upper]
+            out_index = p_diff.idxmax() 
+            factor = 1/abs(p_diff[in_index])
+            if (p_diff[out_index]>p_diff[in_index]+(abs(p_diff[in_index])*factor*dampening)):
+                p_best_new = pd.Series(p[out_index],index=[out_index])
+            else:
+                p_best_new = p_best
+            return p_best_new
+        
+        def moveleft(p,p_fit,p_best,rangeloss=0.1, diffshare=0.8): #diff_min=0.005):
+            # Starting from whatever point we end up with (either the slopepoint or a move to the right)
+            # We look left on the polyline and take the point for which the real line is largest (current point included)
+            # We move left if we stay within [a specific % loss of range] AND [a minimum % of current difference]
+            # i.e. we don't won't to go to low compared to the overall real line
+            #      and we don't won't to move to a point that does not make a significant increase in AUC (i.e. difference between polyline and real line)
+            p_left = p[:p_best.index.values[0]]
+            p_best = p_left[p_left==p_left.max()]
+            p_diff = p-p_fit
+            p_range = p.max()-p.min()
+            s = p[(p >= p_best.values[0]-(rangeloss*p_range)) 
+                  & (p.index <= p_best.index.values[0]) 
+                  & (p_diff>=diffshare*p_diff[p_left.index[-1]])
+                 ]
+            p_best_new = s[s.index == s.index.values.min()]
+            return p_best_new
+        
+        points = df['auc_selection']
+        points_fit = comparefit(p=points, g=2)
+        points_slope = slopepoint(p=points, p_fit=points_fit, thresh_ratio=0.2)
+        points_right = moveright(p=points, p_fit=points_fit, p_best=points_slope, n_steps=5, dampening=0.01)
+        points_left = moveleft(p=points, p_fit=points_fit, p_best=points_right, rangeloss=0.1, diffshare=0.8)
+        
+        #Set the variable
+        self._optimal_nvars = points_left.index.values[0]
+        
+        #Add it to the models dataframe
+        df['opt_var'] = False
+        df.loc[df.index == self._optimal_nvars, 'opt_var'] = True
         
     def _cumulatives(self, df):
         '''
@@ -176,12 +253,7 @@ class ModelSelection(object):
         
         cresp_all = [None]
         cgains_all = [None]
-        
-        print(df)
-        
         for i in range(1,len(df)+1):
-            print(i)
-
             out = cumulatives(y=self._partition_dict['y_selection'],
                               yhat=df['pred_selection'][i][:,0],
                               perc_as_int=True,
@@ -309,13 +381,13 @@ class ModelSelection(object):
                 
             #Choose model with best performance and only positive coefficients
             best_model = df_results.loc[df_results[all_positive==1].auc.idxmax()]
-            df_best_model = self.__calculateAUC(best_model)
+            best_model = self.__calculateAUC(best_model)
             
         # If we don't require all coefficients to be positive...   
         else:
             #Choose model with best performance
             best_model = df_results.loc[df_results.auc.idxmax()]
-            df_best_model = self.__calculateAUC(best_model)
+            best_model = self.__calculateAUC(best_model)
         
-        return df_best_model
+        return best_model
     

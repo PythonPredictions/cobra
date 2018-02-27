@@ -30,9 +30,6 @@ class COBRA(object):
     :sampling_0:                Size of sampling of non-target class
     :discret_nbins:             ???
     :regroup_sign:              Significance level for regrouping categorical variables
-    
-    ***ATTRIBUTES***
-    :_partition_dict:           Dict with partitioned DFs X/Y train/selection/validation
     ----------------------------------------------------
     __init__: contains variables which are established with the object. 
               If some of them is changed, then the whole process must be redone(call the class again),
@@ -124,8 +121,6 @@ class COBRA(object):
                                forced_vars=forced_vars,
                                excluded_vars=excluded_vars,
                                name=name)
-        
-        self._partition_dict = modsel._partition_dict
         
         return df_models
     
@@ -258,8 +253,9 @@ class COBRA(object):
         #----------------------------------
         #------  Prepare the data  --------
         #----------------------------------
-        df_plt = df[['predictor_lastadd','auc_train','auc_selection','auc_validation']]
-        df_plt.columns = ['variable name', 'AUC train','AUC selection','AUC validation']
+        df_plt = df[['predictor_lastadd','auc_train','auc_selection','auc_validation','opt_var']]
+        df_plt.columns = ['variable name', 'AUC train','AUC selection','AUC validation', 'selected variables']
+        sel_val = df_plt['selected variables'][df_plt['selected variables'] == True].index[0]
         
         #----------------------------------
         #--------  Plot the AUC  ----------
@@ -269,6 +265,7 @@ class COBRA(object):
         plt.plot(df_plt['AUC train'], marker=".", markersize=20, linewidth=3, label='AUC train')
         plt.plot(df_plt['AUC selection'], marker=".", markersize=20, linewidth=3, label='AUC selection')
         plt.plot(df_plt['AUC validation'], marker=".", markersize=20, linewidth=3, label='AUC validation')
+        plt.vlines(x=sel_val, linewidth=3, color='black', ymin=min(df_plt['AUC train']), ymax=max(df_plt['AUC train']), label='selected variables')
         #Set xticks
         ax.set_xticks(np.arange(len(df_plt['variable name'])+1))
         ax.set_xticklabels([''] + df_plt['variable name'].tolist(), rotation = 40, ha='right')
@@ -279,13 +276,12 @@ class COBRA(object):
         plt.show()
     
     @staticmethod
-    def plotVariableImportance(df, model_row, dim=(12,8)):
+    def plotVariableImportance(df, dim=(12,8)):
         '''
         Method plots variable importance for given model
         Returns plot
         ----------------------------------------------------
         df: dataframe with models performance
-        model_row: for which model the importance will be shown
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
         Importance on optimal number of vars
@@ -295,7 +291,7 @@ class COBRA(object):
         #----------------------------------
         #------  Prepare the data  --------
         #----------------------------------
-        dict_plt = df['importance'].iloc[model_row]
+        dict_plt = df['importance'][df['opt_var'] == True].iloc[0]
         df_plt = pd.DataFrame.from_dict(dict_plt, orient='index')
         df_plt.reset_index(level=0, inplace=True)
         df_plt.columns = ['variable name','importance']
