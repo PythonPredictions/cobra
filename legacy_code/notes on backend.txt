@@ -1,0 +1,4 @@
+The notebooks are written so they can be transformed to a script (that goes in the WAMP local folder) without any reworking necessary
+In jupyter notebook: File > Download as > .py file
+or
+Via cmd line: jupyter nbconvert --to Python univariate.ipynb
