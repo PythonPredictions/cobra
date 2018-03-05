@@ -21,33 +21,3 @@ If you wish to modify the code, the best is to fork the repository or create ano
   `PS C:\Local\pers\Documents\GitHub\cobra> python setup.py install`
   * Restart kernel and you are ready to go
   * For example of use, see the Jupyter Notebook in `examples` folder
-  
-# NOTES
-## Enhancements
-  * improve CSV import with C library
-  * input checks and data description (number of missing, basic stats etc.)
-  * Parameter sample_1/sample_0 into one
-  * methods not to return anything, but modify one self.DF? Now mixed
-  * cobra.cobra import sucks
-  * vectorized the functions
-  
-## Bugs
-  * forward selection sometimes throws an error when there is no positive coef - it happens when we force two weak variables (like scont1 and scont2) and they give negative coefs. Somehow fix it. It happens randomly - find the cause!
-  * binning differs in this current version from the original (email to Guillaume)
-
-## Refactoring
-  * eqfreq and inc_replacement functions - messy and slow
-  * forward selection can be faster
-  * design of the program
-  
-## Others
-  * test for speed - where are the biggest bottlenecks
-  * speed - we keepn lots of DFs or the main one with both bined and incidence columns - inefficient. Drop as much as possible
-  * take into account other proposed changes in the Google Spreadsheet when refactoring/improving the design
-
-
-
-
-
-
-
