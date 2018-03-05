@@ -21,6 +21,8 @@ TO-DO
 -sometimes error - no variables with positive coef. Even if error is thrown, return stuff!
 -the functions can be applied in a vectorized way
 -further improve the forward selection
+
+TEST
 '''
 
 
