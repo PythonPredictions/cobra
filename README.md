@@ -22,38 +22,31 @@ If you wish to modify the code, the best is to fork the repository or create ano
   * Restart kernel and you are ready to go
   * For example of use, see the Jupyter Notebook in `examples` folder
   
+# NOTES
+## Enhancements
+  * improve CSV import with C library
+  * input checks and data description (number of missing, basic stats etc.)
+  * Parameter sample_1/sample_0 into one
+  * methods not to return anything, but modify one self.DF? Now mixed
+  * cobra.cobra import sucks
   
-## Questions
-### BUSINESS
-  * Do we want to sort the output of univariate selection? If yes, based on what?
-  * What does forcing a variable in the model means? I can force the variable to be used in the forward selection, even if it failed the other criterias, but still the forward selection does not have to pick it up.
-  * Do we really need the process to find the optimal number of variables?
-### TECHNICAL
-**Data Preparation**
-  * When importing the .csv, isn't better to use C engine in pandas and give explici info about the separator? Since parsing .csv is slow in Python, it can help speed up the process a bit
-  * There should be input checks - how many missing, are the required columns present, partitioning params must equal to 1
-  * The parametes sample_1/sample_0 feels confusing. I assume we always take all 1's, isn't better simply specify the ration amongst 1 and 0? Like 10 would mean take 10xmore 0's in respect to 1's
-  * I rewrote the .csv loading, `getattr` was raising error when imported (its a global variable which when using in other scripts, behaves strangely)
-  * The eqfreq and regroup functions are still a bit mistery, so I only copy-pasted them.
-  
-**Univariate Selection**
+## Bugs
+  * forward selection sometimes throws an error when there is no positive coef - it happens when we force two weak variables (like scont1 and scont2) and they give negative coefs. Somehow fix it. It happens randomly - find the cause!
+  * binning differs in this current version from the original (email to Guillaume)
 
-**Model Selection**
-  * The whole forward selection is really hard to read and I dont I still fully understand it.
-  * Whats the parameter positive only? And why it is a parameter if it can never be False?
-  * How does it force variables? I could not find it in the code?
-  * The procedure to choose best number of variables thorws an error. I am not brave enough to go into it.
+## Refactoring
+  * eqfreq and inc_replacement functions - messy and slow
+  * forward selection can be faster
+  * design of the program
   
-**Design + Other**
-  * Would it make sense to have the input/output DF's self? So the exchange between classes/procedure can be more smooth and more OOP? Sometimes I modify input DF and thats not the way we should go (data_preparation.py - addPartitionColumn())
-  * Do you prefer to have extra library with auxiliary functions, or have those functions with double underscores in the classes (this is now the case). Or have them as static methods? But thats not always feasible
-  * What do you think about the overall design - 3 classes wrapped into one main?
-  * And how about the idea returning DFs?
-  * Did we test the speed? I assume its gonna explode with bigger datasets.
-  * It would be nice if someone checks the comments withing the functions. I had to guess a bit sometimes what each param means.
-  * Sometimes inside the classes I return the DF, sometimes and modify it. Not consistent. Any idea how to make it better?
-  * What do you think about the visualization?
-  * How to improve import so I don't have to do cobra.cobra?
-  
+## Others
+  * test for speed - where are the biggest bottlenecks
+  * speed - we keepn lots of DFs or the main one with both bined and incidence columns - inefficient. Drop as much as possible
+  * take into account other proposed changes in the Google Spreadsheet when refactoring/improving the design
+
+
+
+
+
 
 
