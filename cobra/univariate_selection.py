@@ -74,7 +74,7 @@ class UnivariateSelection(object):
                 auc_value = getauc(var=df[header]
                                    ,target=df['TARGET']
                                    ,partition=df['PARTITION']==part)
-                auc_list_var.append(auc_value.round(2)) 
+                auc_list_var.append(auc_value.round(3)) 
                 
             auc_list_all.append(auc_list_var)
              

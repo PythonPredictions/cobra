@@ -27,6 +27,7 @@ class DataPreparation(object):
     :sampling_0:                Size of sampling of non-target class
     :discret_nbins:             ???
     :regroup_sign:              Significance level for regrouping categorical variables
+    :rseed:                     Random seed for reproducibility (partitioning). None or a number
     
     ***ATTRIBUTES***
     :_headers_dict:             Dict of 4 lists with header names (object, numeric, bool, other)
@@ -35,7 +36,7 @@ class DataPreparation(object):
     ---------------------------------------------------- 
     '''
     def __init__(self, data_path, data_types_path, partition_train, partition_select, partition_valid,
-                 sampling_1, sampling_0, discret_nbins, regroup_sign):
+                 sampling_1, sampling_0, discret_nbins, regroup_sign, rseed):
         ''' ***PARAMETERS*** '''
         self.data_path = data_path
         self.data_types_path = data_types_path
@@ -46,6 +47,7 @@ class DataPreparation(object):
         self.sampling_0 = sampling_0
         self.discret_nbins = discret_nbins
         self.regroup_sign = regroup_sign
+        self.rseed = rseed
         ''' ***ATTRIBUTES*** '''
         # Instance attributes = Each instance has its own version self.XY
         # Not everyone is initialized here
@@ -56,6 +58,11 @@ class DataPreparation(object):
                                                   'validation':self.partition_valid}
         DataPreparation._sampling_settings = {1:self.sampling_1, 
                                               0:self.sampling_0}
+        
+        #Set seed for testing
+        #partitioning will be affected
+        if rseed:
+            np.random.seed(rseed)
         
 
         

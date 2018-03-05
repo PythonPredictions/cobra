@@ -30,6 +30,10 @@ class COBRA(object):
     :sampling_0:                Size of sampling of non-target class
     :discret_nbins:             ???
     :regroup_sign:              Significance level for regrouping categorical variables
+    :rseed:                     Random seed for reproducibility (partitioning). None or a number
+    
+    ***ATTRIBUTES***
+    :_partition_dict:           Dict with partitioned DFs X/Y train/selection/validation
     ----------------------------------------------------
     __init__: contains variables which are established with the object. 
               If some of them is changed, then the whole process must be redone(call the class again),
@@ -49,7 +53,8 @@ class COBRA(object):
                  sampling_1=1, 
                  sampling_0=1, 
                  discret_nbins=5, 
-                 regroup_sign=0.001):
+                 regroup_sign=0.001,
+                 rseed=None):
         
         ''' ***PARAMETERS*** '''
         self.data_path = data_path
@@ -61,6 +66,7 @@ class COBRA(object):
         self.sampling_0 = sampling_0
         self.discret_nbins = discret_nbins
         self.regroup_sign = regroup_sign
+        self.rseed = rseed
         
     
     def transform(self):
@@ -78,7 +84,8 @@ class COBRA(object):
                                      self.sampling_1,
                                      self.sampling_0,
                                      self.discret_nbins,
-                                     self.regroup_sign)
+                                     self.regroup_sign,
+                                     self.rseed)
 
         df_trans = dtrans.transform()
         
@@ -121,6 +128,8 @@ class COBRA(object):
                                forced_vars=forced_vars,
                                excluded_vars=excluded_vars,
                                name=name)
+        
+        self._partition_dict = modsel._partition_dict
         
         return df_models
     
@@ -253,9 +262,8 @@ class COBRA(object):
         #----------------------------------
         #------  Prepare the data  --------
         #----------------------------------
-        df_plt = df[['predictor_lastadd','auc_train','auc_selection','auc_validation','opt_var']]
-        df_plt.columns = ['variable name', 'AUC train','AUC selection','AUC validation', 'selected variables']
-        sel_val = df_plt['selected variables'][df_plt['selected variables'] == True].index[0]
+        df_plt = df[['last_var_added','auc_train','auc_selection','auc_validation']]
+        df_plt.columns = ['variable name', 'AUC train','AUC selection','AUC validation']
         
         #----------------------------------
         #--------  Plot the AUC  ----------
@@ -265,10 +273,9 @@ class COBRA(object):
         plt.plot(df_plt['AUC train'], marker=".", markersize=20, linewidth=3, label='AUC train')
         plt.plot(df_plt['AUC selection'], marker=".", markersize=20, linewidth=3, label='AUC selection')
         plt.plot(df_plt['AUC validation'], marker=".", markersize=20, linewidth=3, label='AUC validation')
-        plt.vlines(x=sel_val, linewidth=3, color='black', ymin=min(df_plt['AUC train']), ymax=max(df_plt['AUC train']), label='selected variables')
         #Set xticks
         ax.set_xticks(np.arange(len(df_plt['variable name'])+1))
-        ax.set_xticklabels([''] + df_plt['variable name'].tolist(), rotation = 40, ha='right')
+        ax.set_xticklabels(df_plt['variable name'].tolist(), rotation = 40, ha='right')
         #Make Pretty
         ax.legend(loc='lower right')
         fig.suptitle('Multivariate Model AUC - ' + df.name, fontsize=20)
@@ -276,12 +283,13 @@ class COBRA(object):
         plt.show()
     
     @staticmethod
-    def plotVariableImportance(df, dim=(12,8)):
+    def plotVariableImportance(df, step, dim=(12,8)):
         '''
         Method plots variable importance for given model
         Returns plot
         ----------------------------------------------------
         df: dataframe with models performance
+        step: for which model the importance will be shown
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
         Importance on optimal number of vars
@@ -291,8 +299,9 @@ class COBRA(object):
         #----------------------------------
         #------  Prepare the data  --------
         #----------------------------------
-        dict_plt = df['importance'][df['opt_var'] == True].iloc[0]
-        df_plt = pd.DataFrame.from_dict(dict_plt, orient='index')
+        #dict_plt = df['importance'].iloc[model_row]
+        dict_plt = df['importance'][df['step'] == step]
+        df_plt = pd.DataFrame.from_dict(dict_plt.iloc[0], orient='index')
         df_plt.reset_index(level=0, inplace=True)
         df_plt.columns = ['variable name','importance']
         
@@ -311,7 +320,7 @@ class COBRA(object):
         Method plots cumulative response and gains in one plot for multiple models
         Returns plot
         ----------------------------------------------------
-        model_list: list with models to plot
+        model_list: list of tuples with model DF and step number (which model to take from the DF)
         df_trans: dataframe with cleaned, binned, partitioned and prepared data
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
@@ -335,9 +344,9 @@ class COBRA(object):
         #
         for i, model in enumerate(model_list):
             #------  Prepare the data  --------
-            cum_resp = model['cum_response'][model['opt_var'] == True].iloc[0]
+            cum_resp = model[0]['cum_response'][model[0]['step'] == model[1]].tolist()[0]
             #------  Plot line for each model  --------
-            ax_cresp.plot(cum_resp, color=colors[i], linewidth=3, label='cumulative response - ' + model.name)
+            ax_cresp.plot(cum_resp, color=colors[i], linewidth=3, label='cumulative response - ' + model[0].name)
             
         ax_cresp.axhline(y=np.round(avg_incidence*100), color="darkorange", linewidth=3, ls="--", label='average incidence rate')
         ax_cresp.set_title('Cumulative Response', fontsize=20)
@@ -354,9 +363,9 @@ class COBRA(object):
         #
         for i, model in enumerate(model_list):
             #------  Prepare the data  --------
-            cum_gains = model['cum_gains'][model['opt_var'] == True].iloc[0]
+            cum_gains = model[0]['cum_gains'][model[0]['step'] == model[1]].tolist()[0]
             #------  Plot line for each model  --------
-            ax_cgains.plot(cum_gains, color=colors[i], linewidth=3, label='cumulative gains - ' + model.name)
+            ax_cgains.plot(cum_gains, color=colors[i], linewidth=3, label='cumulative gains - ' + model[0].name)
             
         ax_cgains.plot(ax_cgains.get_xlim(), ax_cgains.get_ylim(), linewidth=3, ls="--", color="darkorange", label='random selection')
         ax_cgains.set_title('Cumulative Gains', fontsize=20)
@@ -373,29 +382,30 @@ class COBRA(object):
         plt.tight_layout()
         
         plt.show()
-    
+        
     @staticmethod
     def plotAUCComparison(model_list, dim=(12,8)):
         '''
         Method plots AUC comarison on train/selection/validation
         Returns plot
         ----------------------------------------------------
-        model_list: list with models to plot (df contains model performance)
+        model_list: list of tuples with model DF and step number (which model to take from the DF)
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
         '''
         plt.style.use('seaborn-darkgrid')
-        
+
         #----------------------------------
         #------  Prepare the data  --------
         #----------------------------------
-        df_plt = pd.DataFrame()
-        for model in model_list:
-            df_aux = model[['auc_train','auc_selection','auc_validation']][model['opt_var'] == True]
+        df_plt = pd.DataFrame() 
+        for model, step in model_list:
+            df_aux = pd.DataFrame(model[['auc_train','auc_selection','auc_validation']][model['step'] == step])
             df_aux['model'] = model.name
-            df_plt = pd.concat([df_aux,df_plt])
+            df_plt = pd.concat([df_plt, df_aux])
             
-        df_plt.reset_index(inplace=True, drop=True)
+        df_plt.reset_index(inplace=True, drop=True) 
+        
         df_plt.columns = ['AUC train','AUC selection','AUC validation','model']
         df_plt = pd.melt(df_plt, id_vars=['model'], value_vars=['AUC train','AUC selection','AUC validation'], 
                          var_name='partition', value_name='AUC')
@@ -403,7 +413,7 @@ class COBRA(object):
         #----------------------------------
         #-------  Plot the bars  ----------
         #----------------------------------
-        fig, ax = plt.subplots(figsize=dim)
+        fig, ax = plt.subplots(figsize=(12,8))
         
         ax = sns.barplot(x="AUC", y="partition", hue="model", data=df_plt)
         
