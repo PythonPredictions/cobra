@@ -131,20 +131,24 @@ class ModelSelection(object):
                                                           'pred_validation'
                                                           ])
         
-        #-----------------------------------------------------------------------------------
-        #-------------------------------------  MAIN LOOP  ---------------------------------
-        #-----------------------------------------------------------------------------------
+        
         f_position_forced = lambda i, forced, all_vars: len(forced) if i <= len(forced) else len(all_vars)
         
         n_steps = min(30,len(all_vars))
         predictors = []
         row = 0
         
+        #-----------------------------------------------------------------------------------
+        #-------------------------------  ITERATE FOR EVERY STEP  --------------------------
+        #-----------------------------------------------------------------------------------
         for step in range(1,n_steps):
             
             pos = f_position_forced(step, forced_vars, all_vars)
             remaining_predictors = [var for var in all_vars[:pos] if var not in predictors]
             
+            #-----------------------------------------------------------------------------------
+            #--------------------------------  FOR EVERY COMBINATION  --------------------------
+            #-----------------------------------------------------------------------------------
             for predictor in remaining_predictors:
                 predictors_subset = predictors + [predictor]
                 #Train - train model
