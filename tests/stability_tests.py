@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
+import math
 pd.set_option("display.max_columns",50)
 
 data_path = 'C:/Local/pers/Documents/GitHub/COBRA/datasets/data.csv'
@@ -278,95 +279,92 @@ def __increp(b_var, target, train):
 #
 df = pd.read_csv(data_path, header=0, sep=None, engine='python')
 
-#
-# PREPARE DATA
-#
-clmn = 'scont_1'
-df_prep = df[['TARGET',clmn]]
-
-#
-# ADD PARTITION
-#
-import math
-
-np.random.seed(0)
-
 _partitioning_settings = {'train':0.5,
                           'selection':0.3, 
                           'validation':0.2}
 
-
-#
-# BINNING
-#
 df_simulation = pd.DataFrame(None,columns=[
+                                          'variable',
                                           'iteration',
                                           'length',
                                           'coef',
                                           'AUC'
                                           ])
-row = 0
-for i in range(1,51):
-    #PARTITION
-    df_prep = df_prep.iloc[np.random.permutation(len(df_prep))].sort_values(by='TARGET', ascending=False).reset_index(drop=True)
-    partition = []
-    sorted_target=df_prep['TARGET'] #Just the target since it is allready sorted (see above)
-    for target in [sorted_target.iloc[0],sorted_target.iloc[-1]]:
-        target_length = (sorted_target==target).sum()
-        
-        for part, size in _partitioning_settings.items():
-            partition.extend([part]*math.ceil(target_length*size))
             
-    df_prep["PARTITION"] = partition[:len(df_prep)]
-    
-    #Binns
-    result = __eqfreq(var=df_prep[clmn],
-                      train=df_prep["PARTITION"]=="train",
-                      autobins=True,
-                      	nbins=5,
-                      precision=0,
-                      twobins=True,
-                      # TRUE OPTION STILL PRODUCES ERROR IN SORTNUMERIC function AND SCORING procedure !!!!!!!!!
-                     catchLarge=False)
-    
-    bin_serie = pd.Series(result[0])
-    # uncommemt this to see the counts - they change!
-    #print(bin_serie.groupby(bin_serie).count())
-    
-    #REPLACE INCIDENCE
-    inc_rep = __increp(b_var=bin_serie,
-                       target=df_prep['TARGET'],
-                       train=df_prep['PARTITION']=="train") 
-    
-    df_prep['D_'+clmn] = inc_rep
-   
-    #PREDICT
-    y_train = df_prep['TARGET'][df_prep['PARTITION'] == 'train'].as_matrix()
-    x_train = df_prep['D_'+clmn][df_prep['PARTITION'] == 'train'].as_matrix().reshape(-1,1)
-    
-    logit = LogisticRegression(fit_intercept=True, C=1e9, solver = 'liblinear')
-    logit.fit(y=y_train, X=x_train)
-    y_pred_train = logit.predict_proba(x_train)
-    
-    AUC_train = metrics.roc_auc_score(y_true=y_train, y_score=y_pred_train[:,1])
-    
-    coefs = logit.coef_[0]
-    
-    df_simulation.loc[row] = [
-                             i,
-                             len(np.unique(result[0])),
-                             coefs[0],
-                             np.round(AUC_train,3)
-                             ]
-    row +=1
-    
-    print('ITERATION {}, lenght: {}, coef: {}, AUC: {}.'.format(i, len(np.unique(result[0])),coefs,np.round(AUC_train,3)))
-    
-print('Std. Dev of coefs is: {}.'.format(df_simulation['coef'].std(axis=0)))
-print('Mean of coefs is: {}.'.format(df_simulation['coef'].mean(axis=0)))
+cont_clmns = ['age', 'fnlwgt', 'education-num','capital-gain', 'capital-loss', 'hours-per-week', 
+              'scont_1', 'scont_2', 'scont_3', 'scont_4', 'scont_5', 'scont_6', 'scont_7', 'scont_8', 
+              'scont_9', 'scont_10', 'scat_1','scat_2', 'scat_3', 'scat_4', 'scat_5', 'sflag_1',
+              'sflag_2', 'sflag_3','sflag_4', 'sflag_5']    
 
-print('Std. Dev of AUC is: {}.'.format(df_simulation['AUC'].std(axis=0)))
-print('Mean of AUC is: {}.'.format(df_simulation['AUC'].mean(axis=0)))
+row = 0
+for clmn in cont_clmns:
+     
+    df_prep = df[['TARGET',clmn]]          
+    
+    for i in range(1,51):
+        #PARTITION
+        df_prep = df_prep.iloc[np.random.permutation(len(df_prep))].sort_values(by='TARGET', ascending=False).reset_index(drop=True)
+        partition = []
+        sorted_target=df_prep['TARGET'] #Just the target since it is allready sorted (see above)
+        for target in [sorted_target.iloc[0],sorted_target.iloc[-1]]:
+            target_length = (sorted_target==target).sum()
+            
+            for part, size in _partitioning_settings.items():
+                partition.extend([part]*math.ceil(target_length*size))
+                
+        df_prep["PARTITION"] = partition[:len(df_prep)]
+        
+        #Binns
+        result = __eqfreq(var=df_prep[clmn],
+                          train=df_prep["PARTITION"]=="train",
+                          autobins=True,
+                          	nbins=5,
+                          precision=0,
+                          twobins=True,
+                          # TRUE OPTION STILL PRODUCES ERROR IN SORTNUMERIC function AND SCORING procedure !!!!!!!!!
+                         catchLarge=False)
+        
+        bin_serie = pd.Series(result[0])
+        # uncommemt this to see the counts - they change!
+        #print(bin_serie.groupby(bin_serie).count())
+        
+        #REPLACE INCIDENCE
+        inc_rep = __increp(b_var=bin_serie,
+                           target=df_prep['TARGET'],
+                           train=df_prep['PARTITION']=="train") 
+        
+        df_prep['D_'+clmn] = inc_rep
+       
+        #PREDICT
+        y_train = df_prep['TARGET'][df_prep['PARTITION'] == 'train'].as_matrix()
+        x_train = df_prep['D_'+clmn][df_prep['PARTITION'] == 'train'].as_matrix().reshape(-1,1)
+        
+        logit = LogisticRegression(fit_intercept=True, C=1e9, solver = 'liblinear')
+        logit.fit(y=y_train, X=x_train)
+        y_pred_train = logit.predict_proba(x_train)
+        
+        AUC_train = metrics.roc_auc_score(y_true=y_train, y_score=y_pred_train[:,1])
+        
+        coefs = logit.coef_[0]
+        
+        df_simulation.loc[row] = [
+                                 clmn,
+                                 i,
+                                 len(np.unique(result[0])),
+                                 coefs[0],
+                                 np.round(AUC_train,3)
+                                 ]
+        row +=1
+        
+        #print('ITERATION {}, lenght: {}, coef: {}, AUC: {}.'.format(i, len(np.unique(result[0])),coefs,np.round(AUC_train,3)))
+
+
+print(df_simulation.groupby(['variable','length'])['length'].count())
+print(df_simulation.groupby(['variable'])['coef'].mean())
+print(df_simulation.groupby(['variable'])['coef'].std())
+print(df_simulation.groupby(['variable'])['AUC'].mean())
+print(df_simulation.groupby(['variable'])['AUC'].std())
+
 
 
 
