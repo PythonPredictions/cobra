@@ -190,9 +190,21 @@ class ModelSelection(object):
                 
             #Only positive coefs
             if positive_only:
+                all_coefs_negative = len(df_forward_selection[(df_forward_selection['all_coefs_positive'] == True) & (df_forward_selection['step'] == step)]) == 0
+        
+                if all_coefs_negative:
+                    print('No models with only positive coefficients, step skipped.')
+                    #Skip the next steps and go the next iteration
+                    #The fitted models are not of interest if the user explicitly
+                    # says positive_only=True
+                    continue
+
+                '''
+                Previous solution, I kept it FYI
                 if len(df_forward_selection[(df_forward_selection['all_coefs_positive'] == True) & (df_forward_selection['step'] == step)]) == 0:
                     raise ValueError("No models with only positive coefficients","NormalStop")
-                
+                '''
+
                 ##Find best model
                 #Sort AUC by size
                 df_forward_selection['auc_train_rank'] = df_forward_selection.groupby('step')['auc_train'].rank(ascending=False)
