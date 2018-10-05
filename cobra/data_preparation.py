@@ -150,7 +150,9 @@ class DataPreparation(object):
         if types_exist: 
             for row in df_types.itertuples(): #0:index, 1:variable, 2:data_type        
                 if row[2] == 'int':
-                    df[row[1]] = df[row[1]].astype(np.int64)
+                	#Nan is stored as float, hence the dtype.
+                	#Won't work when converting to int with nans
+                    df[row[1]] = df[row[1]].astype(np.float64)
                 if row[2] in ['str', 'bool']:
                     df[row[1]] = df[row[1]].apply(str)
         
