@@ -193,21 +193,20 @@ class COBRA(object):
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
         '''
-        def interval2string(x):
-
-		    ''' 
-		    Converts interval '(151, 361]' to integer 151.
-		    Only first number is kept, because I want to order by it.
-		    '''
-		    x_split = x.split(',')[0]
-		    
-		    replace_strings = (('...', '0'),('Missing',('999999999999')))
-		    
-		    for repl_str in replace_strings:
-		        x_split = x_split.replace(repl_str[0], repl_str[1])
-		    
-		    return int(re.sub('[^0-9]+', '',x_split))
-		       
+        def interval2string(x):            
+    		     ''' 
+    		     Converts interval '(151, 361]' to integer 151.
+    		     Only first number is kept, because I want to order by it.
+    		     '''
+    		     x_split = x.split(',')[0]
+    		     
+    		     replace_strings = (('...', '0'),('Missing',('999999999999')))
+    		     
+    		     for repl_str in replace_strings:
+    		         x_split = x_split.replace(repl_str[0], repl_str[1])
+    		     
+    		     return int(re.sub('[^0-9]+', '',x_split))
+		        
         plt.style.use('seaborn-darkgrid')
         
         #----------------------------------
