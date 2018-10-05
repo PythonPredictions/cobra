@@ -192,6 +192,16 @@ class COBRA(object):
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
         '''
+        def interval2string(x):
+            ''' 
+            Converts interval '(151, 361]' to integer 151.
+            Only first number is kept, because I want to order by it.
+            '''
+            x_split = x.split(',')[0]
+            x_replaced = x_split.replace('...', '0')
+            
+            return int(re.sub('[^0-9]+', '',x_replaced))
+        
         plt.style.use('seaborn-darkgrid')
         
         #----------------------------------
@@ -210,6 +220,11 @@ class COBRA(object):
                         }
         df_plt = df_plt.groupby(var_prefix, as_index=False)['TARGET'].agg(aggregations)
         df_plt['avg_inc_rate'] = avg_inc_rate
+        
+        #create a sort column and sort by it    
+        df_plt['sort_by'] = df_plt[var_prefix].apply(lambda x: interval2string(x))
+        df_plt.sort_values(by='sort_by', ascending=True, inplace=True)
+        df_plt.reset_index(inplace=True)
         
         #----------------------------------
         #-----  Plot the incidence  -------
@@ -283,19 +298,24 @@ class COBRA(object):
         plt.show()
     
     @staticmethod
-    def plotVariableImportance(df, step, dim=(12,8)):
+    def plotVariableImportance(df, step=None, dim=(12,8)):
         '''
         Method plots variable importance for given model
         Returns plot
         ----------------------------------------------------
         df: dataframe with models performance
         step: for which model the importance will be shown
+              (the best if not specified)
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
         Importance on optimal number of vars
         '''
         plt.style.use('seaborn-darkgrid')
-    
+        
+        #If step not specified, give model with highes performance
+        if step == None:
+            step = df['step'].iloc[df['auc_validation'].idxmax()]
+
         #----------------------------------
         #------  Prepare the data  --------
         #----------------------------------
@@ -304,14 +324,16 @@ class COBRA(object):
         df_plt = pd.DataFrame.from_dict(dict_plt.iloc[0], orient='index')
         df_plt.reset_index(level=0, inplace=True)
         df_plt.columns = ['variable name','importance']
+        df_plt.sort_values(by='importance', ascending=False, inplace=True)
+
         
         #----------------------------------
         #-------  Plot the bars  ----------
         #----------------------------------
-        fig, ax = plt.subplots(figsize=dim)
-            
+        fig, ax = plt.subplots(figsize=dim)       
         ax = sns.barplot(x="importance", y="variable name", data=df_plt)
         ax.set_title('Variable Importance in model ' + df.name)
+        ax.set_title('Variable importance in model {}, step {}.'.format(df.name, step))
         plt.show()
     
     @staticmethod
