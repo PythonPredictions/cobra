@@ -21,6 +21,7 @@ class ModelSelection(object):
     :modeling_nsteps:             Size of training set as int <0;1>
     :forced_vars:                 Force variables to be used in forward selection
     :excluded_vars:               List with variables to be excluded
+    :verbose:                     Whether more info about the ouput should be printed
     
     ***ATTRIBUTES***
     :_partition_dict:             Dict with partitioned DFs X/Y train/selection/validation
@@ -28,8 +29,9 @@ class ModelSelection(object):
     ---------------------------------------------------- 
     '''
     
-    def __init__(self):
-        pass
+    def __init__(self, verbose):
+        self.verbose = verbose
+        
         
     def fit(self, df_trans, df_unisel, modeling_nsteps, forced_vars, excluded_vars, name):
         '''

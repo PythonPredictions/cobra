@@ -123,7 +123,7 @@ class COBRA(object):
         name: name of the model
         ---------------------------------------------------- 
         '''
-        modsel = ms.ModelSelection()
+        modsel = ms.ModelSelection(self.verbose)
         
         df_models = modsel.fit(df_t, 
                                df_us,
