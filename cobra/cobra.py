@@ -134,6 +134,28 @@ class COBRA(object):
         
         return df_models
     
+    def summary(self, df_t):
+        ''' 
+        Method describes dataset (=prints summary).
+        Now just few simple things, make printing fancy and add more.
+        ------------------------------------------------------------
+        df_t: dataframe with transformed data
+        ------------------------------------------------------------
+        '''
+        print('----------------- SUMMARY -----------------'.format())
+        print('Dataset has {} rows and {} columns.'.format(len(df_t), len(df_t.columns)))
+        print('Train set has {} rows'.format(len(df_t[df_t['PARTITION'] == 'train'])))
+        print('Selection set has {} rows'.format(len(df_t[df_t['PARTITION'] == 'selection'])))
+        print('Validation set has {} rows'.format(len(df_t[df_t['PARTITION'] == 'validation'])))
+        print('Overall incidence rate is {0:0.2f}%'.format(df_t['TARGET'].mean()*100))
+        
+        num_of_missings = df_t[df_t == 'Missing'].count().sum()
+        all_elements = len(df_t) * len(df_t.columns)
+        
+        print('{0:0.2f}% records in the dataset are missing.'.format((num_of_missings/all_elements)*100))
+        print('-------------------------------------------'.format())
+
+    
     '''
     ====================================================================
     ================  STATIC METHODS FOR VISUALIZATION  ================
@@ -285,6 +307,10 @@ class COBRA(object):
         df_plt = df[['last_var_added','auc_train','auc_selection','auc_validation']]
         df_plt.columns = ['variable name', 'AUC train','AUC selection','AUC validation']
         
+        highest_auc = np.round(max(max(df_plt['AUC train']), 
+                               max(df_plt['AUC selection']), 
+                               max(df_plt['AUC validation'])), 1)
+        
         #----------------------------------
         #--------  Plot the AUC  ----------
         #----------------------------------
@@ -293,9 +319,10 @@ class COBRA(object):
         plt.plot(df_plt['AUC train'], marker=".", markersize=20, linewidth=3, label='AUC train')
         plt.plot(df_plt['AUC selection'], marker=".", markersize=20, linewidth=3, label='AUC selection')
         plt.plot(df_plt['AUC validation'], marker=".", markersize=20, linewidth=3, label='AUC validation')
-        #Set xticks
+        #Set x/yticks
         ax.set_xticks(np.arange(len(df_plt['variable name'])+1))
         ax.set_xticklabels(df_plt['variable name'].tolist(), rotation = 40, ha='right')
+        ax.set_yticks(np.arange(0.5, highest_auc+0.02, 0.05))
         #Make Pretty
         ax.legend(loc='lower right')
         fig.suptitle('Multivariate Model AUC - ' + df.name, fontsize=20)
