@@ -31,7 +31,7 @@ class ModelSelection(object):
     def __init__(self):
         pass
         
-    def fit(self, df_trans, df_unisel, modeling_nsteps, forced_vars, excluded_vars, name, verbose):
+    def fit(self, df_trans, df_unisel, modeling_nsteps, forced_vars, excluded_vars, name):
         '''
         Method fits (=performs) Model Selection
         Returns DF with model performance and list
