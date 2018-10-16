@@ -55,7 +55,8 @@ class COBRA(object):
                  sampling_0=1, 
                  discret_nbins=5, 
                  regroup_sign=0.001,
-                 rseed=None):
+                 rseed=None,
+                 verbose=False):
         
         ''' ***PARAMETERS*** '''
         self.data_path = data_path
@@ -68,6 +69,7 @@ class COBRA(object):
         self.discret_nbins = discret_nbins
         self.regroup_sign = regroup_sign
         self.rseed = rseed
+        self.verbose = verbose
         
     
     def transform(self):

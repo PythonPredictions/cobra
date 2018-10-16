@@ -31,7 +31,7 @@ class ModelSelection(object):
     def __init__(self):
         pass
         
-    def fit(self, df_trans, df_unisel, modeling_nsteps, forced_vars, excluded_vars, name):
+    def fit(self, df_trans, df_unisel, modeling_nsteps, forced_vars, excluded_vars, name, verbose):
         '''
         Method fits (=performs) Model Selection
         Returns DF with model performance and list
@@ -193,10 +193,11 @@ class ModelSelection(object):
                 all_coefs_negative = len(df_forward_selection[(df_forward_selection['all_coefs_positive'] == True) & (df_forward_selection['step'] == step)]) == 0
         
                 if all_coefs_negative:
-                    print('No models with only positive coefficients, step skipped.')
-                    #Skip the next steps and go the next iteration
-                    #The fitted models are not of interest if the user explicitly
-                    # says positive_only=True
+                    if self.verbose:
+                        print('No models with only positive coefficients, step skipped.')
+                        #Skip the next steps and go the next iteration
+                        #The fitted models are not of interest if the user explicitly
+                        # says positive_only=True
                     continue
 
                 '''
