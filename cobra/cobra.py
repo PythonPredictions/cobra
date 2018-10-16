@@ -55,8 +55,7 @@ class COBRA(object):
                  sampling_0=1, 
                  discret_nbins=5, 
                  regroup_sign=0.001,
-                 rseed=None,
-                 verbose=False):
+                 rseed=None):
         
         ''' ***PARAMETERS*** '''
         self.data_path = data_path
