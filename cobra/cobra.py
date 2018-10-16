@@ -69,7 +69,6 @@ class COBRA(object):
         self.discret_nbins = discret_nbins
         self.regroup_sign = regroup_sign
         self.rseed = rseed
-        self.verbose = verbose
         
     
     def transform(self):
@@ -110,7 +109,7 @@ class COBRA(object):
         
         return df_sel, df_corr
     
-    def fit_model(self, df_t, df_us, modeling_nsteps=30, forced_vars=None, excluded_vars=None, name=None):
+    def fit_model(self, df_t, df_us, modeling_nsteps=30, forced_vars=None, excluded_vars=None, name=None, verbose=False):
         '''
         Method fits and finds best model
         Returns dataframe with all the info - forward selection, AUC, importance...
@@ -121,9 +120,10 @@ class COBRA(object):
         forced_vars: list with variables to be forced in the model
         excluded_vars: list with variables to be excluded in the model
         name: name of the model
+        verbose: whether immediate steps of the procedure should be printed to the console
         ---------------------------------------------------- 
         '''
-        modsel = ms.ModelSelection(self.verbose)
+        modsel = ms.ModelSelection(verbose=verbose)
         
         df_models = modsel.fit(df_t, 
                                df_us,

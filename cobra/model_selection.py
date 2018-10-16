@@ -45,6 +45,7 @@ class ModelSelection(object):
         excluded_vars: variables to be excluded
         ---------------------------------------------------- 
         '''
+        
         self.modeling_nsteps = modeling_nsteps
         
         ##Create partition
