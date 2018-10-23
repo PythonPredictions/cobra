@@ -303,7 +303,7 @@ class COBRA(object):
         ax2.grid(False)
         
         ##Description
-        fig.suptitle('Incidence Plot - ' + variable, fontsize=20)
+        fig.suptitle('Incidence Plot - ' + variable, fontsize=20, y=1.02)
         ax2.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=1, mode="expand", borderaxespad=0.)
         plt.show()
     
