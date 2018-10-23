@@ -18,7 +18,7 @@ class ModelSelection(object):
     Date: 19/02/2018
     ----------------------------------------------------
     ***PARAMETERS***
-    :modeling_nsteps:             Size of training set as int <0;1>
+    :modeling_nsteps:             how many variables will be used for modelling
     :forced_vars:                 Force variables to be used in forward selection
     :excluded_vars:               List with variables to be excluded
     :verbose:                     Whether more info about the ouput should be printed
@@ -131,13 +131,14 @@ class ModelSelection(object):
                                                           'selected_model',
                                                           'pred_training',
                                                           'pred_selection',
-                                                          'pred_validation'
+                                                          'pred_validation',
+                                                          'first_rank'
                                                           ])
         
         
         f_position_forced = lambda i, forced, all_vars: len(forced) if i <= len(forced) else len(all_vars)
         
-        n_steps = min(30,len(all_vars))
+        n_steps = min(self.modeling_nsteps,len(all_vars))
         predictors = []
         row = 0
         
@@ -175,19 +176,20 @@ class ModelSelection(object):
                 
                 #Update DF
                 df_forward_selection.loc[row] = [
-                                                 step,
-                                                 logit.coef_,
-                                                 all_coefs_positive,
-                                                 AUC_train,
-                                                 AUC_selection,
-                                                 AUC_validation,
-                                                 predictors_subset,
-                                                 predictors_subset[-1],
-                                                 0,
-                                                 False,
-                                                 y_pred_train,
-                                                 y_pred_selection,
-                                                 y_pred_validation
+                                                 step,                      #Step
+                                                 logit.coef_,               #coef
+                                                 all_coefs_positive,        #all_coefs_positive
+                                                 AUC_train,                 #auc_train
+                                                 AUC_selection,             #auc_selection
+                                                 AUC_validation,            #auc_validation
+                                                 predictors_subset,         #predictors_subset
+                                                 predictors_subset[-1],     #last_var_added
+                                                 0,                         #auc_train_rank
+                                                 False,                     #selected_model
+                                                 y_pred_train,              #pred_training
+                                                 y_pred_selection,          #pred_selection
+                                                 y_pred_validation,         #pred_validation
+                                                 0                          #first_rank
                                                  ]
                 row +=1
                 
@@ -210,16 +212,17 @@ class ModelSelection(object):
                 '''
 
                 ##Find best model
-                #Sort AUC by size
-                df_forward_selection['auc_train_rank'] = df_forward_selection.groupby('step')['auc_train'].rank(ascending=False)
+                #Sort AUC by size (if two with same performance, ranked by first appearence)
+                df_forward_selection['auc_train_rank'] = df_forward_selection.groupby('step')['auc_train'].rank(ascending=False, method='first')
                 
                 #Find model where AUC is highest AND all coefs are positive - convert to boolean flag
-                df_forward_selection['selected_model'] = df_forward_selection[df_forward_selection['all_coefs_positive'] == True].groupby(['step'])['auc_train'].transform(max)
-                df_forward_selection['selected_model'] = (df_forward_selection['selected_model'] == df_forward_selection['auc_train'])
+                df_forward_selection['first_rank'] = df_forward_selection[df_forward_selection['all_coefs_positive'] == True].groupby(['step'])['auc_train_rank'].transform(min)
+                df_forward_selection['selected_model'] = (df_forward_selection['first_rank'] == df_forward_selection['auc_train_rank'])
             else:
                 ##Highest AUC, regardless of coefs
-                df_forward_selection['selected_model'] = (df_forward_selection.groupby(['step'])['auc_train'].transform(max) == df_forward_selection['auc_train'])
-                
+                df_forward_selection['auc_train_rank'] = df_forward_selection.groupby('step')['auc_train'].rank(ascending=False, method='first')
+                df_forward_selection['selected_model'] = (df_forward_selection.groupby(['step'])['auc_train_rank'].transform(min) == df_forward_selection['auc_train_rank'])
+                        
             ##Add next predictor
             add_variable = df_forward_selection.loc[(df_forward_selection['selected_model'] == True) & (df_forward_selection['step'] == step), 'last_var_added'].iloc[0]
             predictors.append(add_variable)
