@@ -138,7 +138,7 @@ class ModelSelection(object):
         
         f_position_forced = lambda i, forced, all_vars: len(forced) if i <= len(forced) else len(all_vars)
         
-        n_steps = min(self.modeling_nsteps,len(all_vars))
+        n_steps = min(self.modeling_nsteps + 1,len(all_vars))
         predictors = []
         row = 0
         
