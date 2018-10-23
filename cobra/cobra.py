@@ -12,7 +12,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import re
+from string import ascii_lowercase
 
 class COBRA(object):
     '''
@@ -216,20 +216,35 @@ class COBRA(object):
         dim: tuple with width and lentgh of the plot
         ---------------------------------------------------- 
         '''
-        def interval2string(x):            
-    		     ''' 
-    		     Converts interval '(151, 361]' to integer 151.
-    		     Only first number is kept, because I want to order by it.
-    		     '''
-    		     x_split = x.split(',')[0]
-    		     
-    		     replace_strings = (('...', '0'),('Missing',('999999999999')))
-    		     
-    		     for repl_str in replace_strings:
-    		         x_split = x_split.replace(repl_str[0], repl_str[1])
-    		     
-    		     return int(re.sub('[^0-9]+', '',x_split))
-		        
+        def masterOfOrder(x):     
+            ''' 
+            Function converts interval or string (category) to a number, so the incidence plot can be orderd.
+            In case of interval -> '(151, 361]' to integer 151.
+            In case of string -> order is alphabetical
+            Missings and Non-significants are always put at the end
+            
+            Parameters
+            ----------
+            x: value to be converted
+            
+            Output
+            ------
+            Order of given value
+            '''
+            x_split = x.split(',')[0]
+            replace_strings = (('...', '0'),('Missing','999999999999'), ('Non-significants','999999999999'))
+            for repl_str in replace_strings:
+                        x_split = x_split.replace(repl_str[0], repl_str[1])
+            x_split = x_split.strip("()[]")
+            
+            try:
+                order = float(x_split)
+            except:
+                LETTERS = {letter: index for index, letter in enumerate(ascii_lowercase, start=1)}
+                order = LETTERS[x[0].lower()]
+                
+            return order
+    		        
         plt.style.use('seaborn-darkgrid')
         
         #----------------------------------
@@ -250,7 +265,7 @@ class COBRA(object):
         df_plt['avg_inc_rate'] = avg_inc_rate
         
         #create a sort column and sort by it    
-        df_plt['sort_by'] = df_plt[var_prefix].apply(lambda x: interval2string(x))
+        df_plt['sort_by'] = df_plt[var_prefix].apply(lambda x: masterOfOrder(x))
         df_plt.sort_values(by='sort_by', ascending=True, inplace=True)
         df_plt.reset_index(inplace=True)
         
@@ -266,12 +281,15 @@ class COBRA(object):
         plt.ylabel('Bin Size')
         plt.xlabel(variable + ' Bins')
         
+        max_inc = max(df_plt['bin_inc_rate'])
+        
         ##Second Axis
         ax2 = ax.twinx()
         #incidence rate per bin
         plt.plot(df_plt['bin_inc_rate'], color="darkorange", marker=".", markersize=20, linewidth=3, label='incidence rate per bin')
         plt.plot(df_plt['avg_inc_rate'], color="dimgrey", linewidth=4, label='average incidence rate')
         ax2.plot(np.nan, "cornflowerblue", linewidth=6, label = 'bin size') #dummy line to have label on second axis from first
+        ax2.set_yticks(np.arange(0, max_inc+0.05, 0.05))
         ax2.set_yticklabels(['{:3.1f}%'.format(x*100) for x in ax2.get_yticks()])
         plt.ylabel('Incidence')
         
