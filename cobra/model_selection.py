@@ -234,8 +234,8 @@ class ModelSelection(object):
             predictors.append(add_variable)
             
         #Return only DF with selected models
-        clmns_out = ['step', 'coef', 'auc_train', 'auc_selection', 'auc_validation', 'predictors_subset', 'last_var_added',
-                     'pred_training','pred_selection','pred_validation']
+        clmns_out = ['step', 'coef', 'intercept', 'auc_train', 'auc_selection', 'auc_validation', 
+                     'predictors_subset', 'last_var_added','pred_training','pred_selection','pred_validation']
         
         df_out = df_forward_selection[clmns_out][df_forward_selection['selected_model'] == True]
 
