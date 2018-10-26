@@ -92,8 +92,8 @@ class COBRA(object):
 
         df_trans = dtrans.transform()
         
-        self._headers_dict = dpc._headers_dict
-        self._partitioning_settings = dpc._partitioning_settings
+        self._headers_dict = dtrans._headers_dict
+        self._partitioning_settings = dtrans._partitioning_settings
         
         return df_trans
         
