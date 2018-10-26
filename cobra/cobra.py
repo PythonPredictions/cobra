@@ -35,6 +35,8 @@ class COBRA(object):
     
     ***ATTRIBUTES***
     :_partition_dict:           Dict with partitioned DFs X/Y train/selection/validation
+    :_headers_dict:             Dict of 4 lists with header names (object, numeric, bool, other)
+    :_partitioning_settings:    Dict with train/sel/valid sets with their size
     ----------------------------------------------------
     __init__: contains variables which are established with the object. 
               If some of them is changed, then the whole process must be redone(call the class again),
@@ -90,6 +92,9 @@ class COBRA(object):
 
         df_trans = dtrans.transform()
         
+        self._headers_dict = dpc._headers_dict
+        self._partitioning_settings = dpc._partitioning_settings
+        
         return df_trans
         
     
@@ -108,7 +113,7 @@ class COBRA(object):
         
         return df_sel, df_corr
     
-    def fit_model(self, df_t, df_us, modeling_nsteps=30, forced_vars=None, excluded_vars=None, name=None, verbose=False):
+    def fit_model(self, df_t, df_us, modeling_nsteps=30, forced_vars=None, excluded_vars=None, name=None, verbose=False, positive_only=True):
         '''
         Method fits and finds best model
         Returns dataframe with all the info - forward selection, AUC, importance...
@@ -120,9 +125,10 @@ class COBRA(object):
         excluded_vars: list with variables to be excluded in the model
         name: name of the model
         verbose: whether immediate steps of the procedure should be printed to the console
+        positive_only: whether only positive coeficients should be considered (recommended to stay so)
         ---------------------------------------------------- 
         '''
-        modsel = ms.ModelSelection(verbose=verbose)
+        modsel = ms.ModelSelection(verbose=verbose, positive_only=positive_only)
         
         df_models = modsel.fit(df_t, 
                                df_us,

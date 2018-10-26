@@ -26,11 +26,13 @@ class ModelSelection(object):
     ***ATTRIBUTES***
     :_partition_dict:             Dict with partitioned DFs X/Y train/selection/validation
     :_optimal_nvars:              Optimal number of variables
+    :positive_only:               Whether all coeficients should be positivr
     ---------------------------------------------------- 
     '''
     
-    def __init__(self, verbose):
+    def __init__(self, verbose, positive_only):
         self.verbose = verbose
+        self.positive_only = positive_only
         
         
     def fit(self, df_trans, df_unisel, modeling_nsteps, forced_vars, excluded_vars, name):
@@ -93,7 +95,7 @@ class ModelSelection(object):
         
         return dict_out
     
-    def _forwardSelection(self, df_sel, forced_vars, excluded_vars, positive_only=True):
+    def _forwardSelection(self, df_sel, forced_vars, excluded_vars):
         '''
         Method performs forward selection
         Returns DF with performance
@@ -121,6 +123,7 @@ class ModelSelection(object):
         df_forward_selection = pd.DataFrame(None,columns=[
                                                           'step',
                                                           'coef',
+                                                          'intercept',
                                                           'all_coefs_positive',
                                                           'auc_train',
                                                           'auc_selection',
@@ -178,6 +181,7 @@ class ModelSelection(object):
                 df_forward_selection.loc[row] = [
                                                  step,                      #Step
                                                  logit.coef_,               #coef
+                                                 logit.intercept_,          #intercept
                                                  all_coefs_positive,        #all_coefs_positive
                                                  AUC_train,                 #auc_train
                                                  AUC_selection,             #auc_selection
@@ -194,12 +198,14 @@ class ModelSelection(object):
                 row +=1
                 
             #Only positive coefs
-            if positive_only:
+            if self.positive_only:
                 all_coefs_negative = len(df_forward_selection[(df_forward_selection['all_coefs_positive'] == True) & (df_forward_selection['step'] == step)]) == 0
         
                 if all_coefs_negative:
                     if self.verbose:
-                        print('No models with only positive coefficients, step skipped.')
+                        
+                        print('No models with only positive coefficients, following step skipped.')
+                        print(df_forward_selection[(df_forward_selection['all_coefs_positive'] == True) & (df_forward_selection['step'] == step)])                        
                         #Skip the next steps and go the next iteration
                         #The fitted models are not of interest if the user explicitly
                         # says positive_only=True
