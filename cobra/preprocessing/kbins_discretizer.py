@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 from sklearn.exceptions import NotFittedError
+from sklearn.cluster import KMeans
 
 
 class KBinsDiscretizer:
@@ -101,123 +102,29 @@ class KBinsDiscretizer:
         # To do: add checks!
         self._bins_by_column = bins_by_column
 
-    def _compute_minimal_precision_of_cutpoints(self, cutpoints: list) -> int:
-        """Compute the minimal precision of a list of cutpoints so that we end
-        up with a strictly ascending sequence of numbers.
-        The starting_precision attribute will be used as the initial precision.
-        In case of a negative starting_precision, the bin edges will be rounded
-        to the nearest 10, 100, ... (e.g. 5.55 -> 10, 246 -> 200, ...)
+    def fit(self, data: pd.DataFrame, column_names: list):
+        """Fits the estimator
 
         Parameters
         ----------
-        cutpoints : list
-            The bin edges for binning a continuous variable
-
-        Returns
-        -------
-        int
-            minimal precision for the bin edges
+        data : pd.DataFrame
+            Data to be discretized
+        column_names : list
+            Columns of data to be discretized
         """
 
-        precision = self.starting_precision
-        while True:
-            cont = False
-            for a, b in zip(cutpoints, cutpoints[1:]):
-                if a != b and round(a, precision) == round(b, precision):
-                    # precision is not high enough, so increase
-                    precision += 1
-                    cont = True  # set cont to True to keep looping
-                    break  # break out of the for loop
-            if not cont:
-                # if minimal precision was found,
-                # return to break out of while loop
-                return precision
+        if self.strategy not in self.valid_strategies:
+            raise ValueError("{}: valid options for 'strategy' are {}. "
+                             "Got strategy={!r} instead."
+                             .format(KBinsDiscretizer.__name__,
+                                     self.valid_strategies, self.strategy))
 
-    def _compute_bins_from_cutpoints(self, cutpoints: list) -> List[tuple]:
-        """Given a list of bin edges, compute the minimal precision for which
-        we can make meaningful bins and make those bins
+        for column_name in column_names:
 
-        Parameters
-        ----------
-        cutpoints : list
-            The bin edges for binning a continuous variable
+            bins = self._fit_column(data, column_name)
 
-        Returns
-        -------
-        List[tuple]
-            A (sorted) list of bins as tuples
-        """
-        # compute the minimal precision of the cutpoints
-        # this can be a negative number, which then
-        # rounds numbers to the nearest 10, 100, ...
-        precision = self._compute_minimal_precision_of_cutpoints(cutpoints)
-
-        bins = []
-        for a, b in zip(cutpoints, cutpoints[1:]):
-            fmt_a = round(a, precision)
-            fmt_b = round(b, precision)
-
-            bins.append((fmt_a, fmt_b))
-
-        return bins
-
-    @staticmethod
-    def _create_index(intervals: List[tuple],
-                      closed: str="right") -> pd.IntervalIndex:
-        """Create an pd.IntervalIndex based on a list of tuples.
-        This is basically a wrapper around pd.IntervalIndex.from_tuples
-        However, the lower bound of the first entry in the list (the lower bin)
-        is replaced by -np.inf. Similarly, the upper bound of the last entry in
-        the list (upper bin) is replaced by np.inf.
-
-        Parameters
-        ----------
-        intervals : List[tuple]
-            a list of tuples describing the intervals
-        closed : str, optional
-            Whether the intervals should be closed on the left-side,
-            right-side, both or neither.
-
-        Returns
-        -------
-        pd.IntervalIndex
-            Description
-        """
-        # deepcopy variable because we do not want to modify the content
-        # of intervals (which is still used outside of this function)
-        _intervals = deepcopy(intervals)
-        # Modify min and max with -np.inf and np.inf resp. so that these values
-        # are guaranteed to be included when transforming the data
-        _intervals[0] = (-np.inf, _intervals[0][1])
-        _intervals[-1] = (_intervals[-1][0], np.inf)
-
-        return pd.IntervalIndex.from_tuples(_intervals, closed)
-
-    def _create_bin_labels(self, bins: List[tuple]) -> list:
-        """Given a list of bins, create a list of string containing the bins
-        as a string with a specific format (e.g. bin labels)
-
-        Parameters
-        ----------
-        bins : List[tuple]
-            list of bins
-
-        Returns
-        -------
-        list
-            list of (formatted) bin labels
-        """
-        bin_labels = []
-        for interval in bins:
-            bin_labels.append(self.label_format.format(interval[0],
-                                                       interval[1]))
-
-        # Format first and last bin as < x and > y resp.
-        if self.change_endpoint_format:
-            bin_labels[0] = "< {}".format(bins[0][1])
-            bin_labels[-1] = "> {}".format(bins[-1][0])
-
-        return bin_labels
+            # Add to bins_by_column for later use
+            self._bins_by_column[column_name] = bins
 
     def _fit_column(self, data: pd.DataFrame,
                     column_name: str) -> List[tuple]:
@@ -249,31 +156,24 @@ class KBinsDiscretizer:
             missing_pct = data[column_name].isnull().sum()/size
             n_bins = int(max((1 - missing_pct) * n_bins), 2)
 
-        cutpoints = []
-        if self.strategy == "quantile":
-            cutpoints = list(data[column_name]
-                             .quantile(np.linspace(0, 1, n_bins + 1),
-                                       interpolation='linear'))
-        elif self.strategy == "uniform":
-            cutpoints = list(np.linspace(col_min, col_max, n_bins + 1))
+        bin_edges = self._compute_bin_edges(data, column_name, n_bins,
+                                            col_min, col_max)
 
-        # Make sure the cutpoints are unique and sorted
-        cutpoints = sorted(list(set(cutpoints)))
-
-        if len(cutpoints) < 3:
+        if len(bin_edges) < 3:
             log.warning("Only 1 bin was found for predictor {} and will be "
                         "ignored in computation".format(column_name))
             return None
 
-        if len(cutpoints) < n_bins + 1:
+        if len(bin_edges) < n_bins + 1:
             log.warning("The number of actual bins for column {} is {} "
                         "which is smaller than the requested number of bins "
-                        "{}".format(column_name, len(cutpoints) - 1, n_bins))
+                        "{}".format(column_name, len(bin_edges) - 1, n_bins))
 
-        return self._compute_bins_from_cutpoints(cutpoints)
+        return self._compute_bins_from_edges(bin_edges)
 
-    def fit(self, data: pd.DataFrame, column_names: list):
-        """Fits the estimator
+    def transform(self, data: pd.DataFrame,
+                  column_names: list) -> pd.DataFrame:
+        """Summary
 
         Parameters
         ----------
@@ -281,20 +181,30 @@ class KBinsDiscretizer:
             Data to be discretized
         column_names : list
             Columns of data to be discretized
-        """
 
-        if self.strategy not in self.valid_strategies:
-            raise ValueError("{}: valid options for 'strategy' are {}. "
-                             "Got strategy={!r} instead."
-                             .format(KBinsDiscretizer.__name__,
-                                     self.valid_strategies, self.strategy))
+        Returns
+        -------
+        pd.DataFrame
+            data with additional discretized variables
+        """
+        if len(self._bins_by_column) == 0:
+            msg = ("{} instance is not fitted yet. Call 'fit' with "
+                   "appropriate arguments before using this method.")
+
+            raise NotFittedError(msg.format(self.__class__.__name__))
 
         for column_name in column_names:
+            if column_name not in self._bins_by_column:
+                log.warning("Column {} is not in fitted output "
+                            "and will be skipped".format(column_name))
+                continue
 
-            bins = self._fit_column(data, column_name)
+            # can be None for a column with a constant value!
+            bins = self._bins_by_column[column_name]
+            if bins:
+                data = self._transform_column(data, column_name, bins)
 
-            # Add to bins_by_column for later use
-            self._bins_by_column[column_name] = bins
+        return data
 
     def _transform_column(self, data: pd.DataFrame,
                           column_name: str,
@@ -343,41 +253,6 @@ class KBinsDiscretizer:
 
         return data
 
-    def transform(self, data: pd.DataFrame,
-                  column_names: list) -> pd.DataFrame:
-        """Summary
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            Data to be discretized
-        column_names : list
-            Columns of data to be discretized
-
-        Returns
-        -------
-        pd.DataFrame
-            data with additional discretized variables
-        """
-        if len(self._bins_by_column) == 0:
-            msg = ("{} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
-            raise NotFittedError(msg.format(self.__class__.__name__))
-
-        for column_name in column_names:
-            if column_name not in self._bins_by_column:
-                log.warning("Column {} is not in fitted output "
-                            "and will be skipped".format(column_name))
-                continue
-
-            # can be None for a column with a constant value!
-            bins = self._bins_by_column[column_name]
-            if bins:
-                data = self._transform_column(data, column_name, bins)
-
-        return data
-
     def fit_transform(self, data: pd.DataFrame,
                       column_names: list) -> pd.DataFrame:
         """Summary
@@ -396,3 +271,181 @@ class KBinsDiscretizer:
         """
         self.fit(data, column_names)
         return self.transform(data, column_names)
+
+    def _compute_bin_edges(self, data: pd.DataFrame, column_name: str,
+                           n_bins: int, col_min: float,
+                           col_max: float) -> list:
+        """Compute the bin edges for a given column, a DataFrame and the number
+        of required bins
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Data to be discretized
+        column_name : str
+             name of the column to discretize
+        n_bins : int
+            Number of bins to produce.
+        col_min : float
+            min value of the variable
+        col_max : float
+            max value of the variable
+
+        Returns
+        -------
+        list
+            list of bin edges from which to compute the bins
+        """
+
+        bin_edges = []
+        if self.strategy == "quantile":
+            bin_edges = list(data[column_name]
+                             .quantile(np.linspace(0, 1, n_bins + 1),
+                                       interpolation='linear'))
+        elif self.strategy == "uniform":
+            bin_edges = list(np.linspace(col_min, col_max, n_bins + 1))
+
+        # elif self.strategy == "kmeans":
+
+        #     if data[column_name].isnull().sum() > 0:
+        #         raise ValueError("{}: kmeans strategy cannot handle NULL "
+        #                          "values in the data."
+        #                          .format(KBinsDiscretizer.__name__))
+
+        #     # Deterministic initialization with uniform spacing
+        #     uniform_edges = np.linspace(col_min, col_max, n_bins + 1)
+        #     init = (uniform_edges[1:] + uniform_edges[:-1])[:, None] * 0.5
+
+        #     # 1D k-means
+        #     kmeans = KMeans(n_clusters=n_bins, init=init, n_init=1)
+        #     centers = (kmeans.fit(data[column_name][:, None])
+        #                      .cluster_centers_[:, 0])
+
+        #     # Make sure to sort centers as they may be unsorted,
+        #     # even with sorted init!
+        #     centers.sort()
+
+        #     # compute bin_edges from centers
+        #     bin_edges = (centers[1:] + centers[:-1]) * 0.5
+        #     bin_edges = np.r_[col_min, bin_edges, col_max]
+
+        # Make sure the bin_edges are unique and sorted
+        return sorted(list(set(bin_edges)))
+
+    def _compute_minimal_precision_of_bin_edges(self, bin_edges: list) -> int:
+        """Compute the minimal precision of a list of bin_edges so that we end
+        up with a strictly ascending sequence of numbers.
+        The starting_precision attribute will be used as the initial precision.
+        In case of a negative starting_precision, the bin edges will be rounded
+        to the nearest 10, 100, ... (e.g. 5.55 -> 10, 246 -> 200, ...)
+
+        Parameters
+        ----------
+        bin_edges : list
+            The bin edges for binning a continuous variable
+
+        Returns
+        -------
+        int
+            minimal precision for the bin edges
+        """
+
+        precision = self.starting_precision
+        while True:
+            cont = False
+            for a, b in zip(bin_edges, bin_edges[1:]):
+                if a != b and round(a, precision) == round(b, precision):
+                    # precision is not high enough, so increase
+                    precision += 1
+                    cont = True  # set cont to True to keep looping
+                    break  # break out of the for loop
+            if not cont:
+                # if minimal precision was found,
+                # return to break out of while loop
+                return precision
+
+    def _compute_bins_from_edges(self, bin_edges: list) -> List[tuple]:
+        """Given a list of bin edges, compute the minimal precision for which
+        we can make meaningful bins and make those bins
+
+        Parameters
+        ----------
+        bin_edges : list
+            The bin edges for binning a continuous variable
+
+        Returns
+        -------
+        List[tuple]
+            A (sorted) list of bins as tuples
+        """
+        # compute the minimal precision of the bin_edges
+        # this can be a negative number, which then
+        # rounds numbers to the nearest 10, 100, ...
+        precision = self._compute_minimal_precision_of_bin_edges(bin_edges)
+
+        bins = []
+        for a, b in zip(bin_edges, bin_edges[1:]):
+            fmt_a = round(a, precision)
+            fmt_b = round(b, precision)
+
+            bins.append((fmt_a, fmt_b))
+
+        return bins
+
+    @staticmethod
+    def _create_index(intervals: List[tuple],
+                      closed: str="right") -> pd.IntervalIndex:
+        """Create an pd.IntervalIndex based on a list of tuples.
+        This is basically a wrapper around pd.IntervalIndex.from_tuples
+        However, the lower bound of the first entry in the list (the lower bin)
+        is replaced by -np.inf. Similarly, the upper bound of the last entry in
+        the list (upper bin) is replaced by np.inf.
+
+        Parameters
+        ----------
+        intervals : List[tuple]
+            a list of tuples describing the intervals
+        closed : str, optional
+            Whether the intervals should be closed on the left-side,
+            right-side, both or neither.
+
+        Returns
+        -------
+        pd.IntervalIndex
+            Description
+        """
+        # deepcopy variable because we do not want to modify the content
+        # of intervals (which is still used outside of this function)
+        _intervals = deepcopy(intervals)
+        # Replace min and max with -np.inf and np.inf resp. so that these
+        # values are guaranteed to be included when transforming the data
+        _intervals[0] = (-np.inf, _intervals[0][1])
+        _intervals[-1] = (_intervals[-1][0], np.inf)
+
+        return pd.IntervalIndex.from_tuples(_intervals, closed)
+
+    def _create_bin_labels(self, bins: List[tuple]) -> list:
+        """Given a list of bins, create a list of string containing the bins
+        as a string with a specific format (e.g. bin labels)
+
+        Parameters
+        ----------
+        bins : List[tuple]
+            list of tuple containing for each bin the upper and lower bound
+
+        Returns
+        -------
+        list
+            list of (formatted) bin labels
+        """
+        bin_labels = []
+        for interval in bins:
+            bin_labels.append(self.label_format.format(interval[0],
+                                                       interval[1]))
+
+        # Format first and last bin as < x and > y resp.
+        if self.change_endpoint_format:
+            bin_labels[0] = "< {}".format(bins[0][1])
+            bin_labels[-1] = "> {}".format(bins[-1][0])
+
+        return bin_labels
