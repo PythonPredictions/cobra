@@ -146,7 +146,7 @@ class KBinsDiscretizer:
         col_min, col_max = data[column_name].min(), data[column_name].max()
 
         if col_min == col_max:
-            log.warning("Predictor {} is constant and "
+            log.warning("Predictor '{}' is constant and "
                         "will be ignored in computation".format(column_name))
             return None
 
@@ -160,12 +160,12 @@ class KBinsDiscretizer:
                                             col_min, col_max)
 
         if len(bin_edges) < 3:
-            log.warning("Only 1 bin was found for predictor {} and will be "
-                        "ignored in computation".format(column_name))
+            log.warning("Only 1 bin was found for predictor '{}' so it will "
+                        "be ignored in computation".format(column_name))
             return None
 
         if len(bin_edges) < n_bins + 1:
-            log.warning("The number of actual bins for column {} is {} "
+            log.warning("The number of actual bins for predictor '{}' is {} "
                         "which is smaller than the requested number of bins "
                         "{}".format(column_name, len(bin_edges) - 1, n_bins))
 
@@ -195,7 +195,7 @@ class KBinsDiscretizer:
 
         for column_name in column_names:
             if column_name not in self._bins_by_column:
-                log.warning("Column {} is not in fitted output "
+                log.warning("Column '{}' is not in fitted output "
                             "and will be skipped".format(column_name))
                 continue
 

@@ -90,7 +90,7 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
         for column in self.columns:
             if column not in X.columns:
-                log.warning("DataFrame has no column {}, so it will be "
+                log.warning("DataFrame has no column '{}', so it will be "
                             "skipped in fitting" .format(column))
                 continue
 
@@ -159,7 +159,7 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         for column in self.columns:
 
             if column not in X.columns:
-                log.warning("Column {} is not in fitted output "
+                log.warning("Column '{}' is not in fitted output "
                             "and will be skipped".format(column))
                 continue
 
