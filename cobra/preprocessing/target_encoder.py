@@ -1,11 +1,13 @@
-import numpy as np
+import logging
+log = logging.getLogger(__name__)
+
+#import numpy as np
 import pandas as pd
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.exceptions import NotFittedError
 
 
-# Prototype of TargetEncoder
 class TargetEncoder(BaseEstimator, TransformerMixin):
 
     """Target encoding for categorical features.
@@ -59,26 +61,6 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         # self.randomized = randomized
         # self.sigma = sigma
 
-    @staticmethod
-    def _get_categorical_columns(data: pd.DataFrame) -> list:
-        """Get the columns containing categorical data
-        (dtype "object" or "category")
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            Description
-
-        Returns
-        -------
-        list
-            List of column names containing categorical data
-        """
-        object_columns = data.dtypes[data.dtypes == object].index
-        categorical_columns = data.dtypes[data.dtypes == "category"].index
-
-        return list(set(object_columns).union(categorical_columns))
-
     def fit(self, X: pd.DataFrame, y: pd.Series):
         """Fit the TargetEncoder to X and y
 
@@ -107,6 +89,11 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         global_mean = y.sum() / y.count()
 
         for column in self.columns:
+            if column not in X.columns:
+                log.warning("DataFrame has no column {}, so it will be "
+                            "skipped in fitting" .format(column))
+                continue
+
             self._mapping[column] = self._fit_column(X[column], y, global_mean)
 
     def _fit_column(self, X: pd.Series, y: pd.Series,
@@ -140,25 +127,6 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
         return numerator/denominator
 
-    @staticmethod
-    def _clean_column_name(column_name: str) -> str:
-        """Clean column name string by removing "_bin" and adding "_enc"
-
-        Parameters
-        ----------
-        column_name : str
-            column name to be cleaned
-
-        Returns
-        -------
-        str
-            cleaned column name
-        """
-        if "_bin" in column_name:
-            return column_name.replace("_bin", "") + "_enc"
-        else:
-            return column_name + "_enc"
-
     def transform(self, X: pd.DataFrame, y: pd.Series=None) -> pd.DataFrame:
         """Summary
 
@@ -187,13 +155,12 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        transform_columns = list(X.columns)
         new_columns = []
         for column in self.columns:
 
-            if column not in transform_columns:
-                # skip if this column was not in X
-                # print WARNING here!!!
+            if column not in X.columns:
+                log.warning("Column {} is not in fitted output "
+                            "and will be skipped".format(column))
                 continue
 
             new_column = TargetEncoder._clean_column_name(column)
@@ -203,3 +170,42 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
             new_columns.append(new_column)
 
         return X[new_columns]
+
+    @staticmethod
+    def _get_categorical_columns(data: pd.DataFrame) -> list:
+        """Get the columns containing categorical data
+        (dtype "object" or "category")
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Description
+
+        Returns
+        -------
+        list
+            List of column names containing categorical data
+        """
+        object_columns = data.dtypes[data.dtypes == object].index
+        categorical_columns = data.dtypes[data.dtypes == "category"].index
+
+        return list(set(object_columns).union(set(categorical_columns)))
+
+    @staticmethod
+    def _clean_column_name(column_name: str) -> str:
+        """Clean column name string by removing "_bin" and adding "_enc"
+
+        Parameters
+        ----------
+        column_name : str
+            column name to be cleaned
+
+        Returns
+        -------
+        str
+            cleaned column name
+        """
+        if "_bin" in column_name:
+            return column_name.replace("_bin", "") + "_enc"
+        else:
+            return column_name + "_enc"
