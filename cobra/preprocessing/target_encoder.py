@@ -1,3 +1,6 @@
+"""
+ Incidence Replacement Module
+"""
 import logging
 log = logging.getLogger(__name__)
 
@@ -36,19 +39,7 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, columns: list=None, weight: float=0.0):
-        """Constructor
 
-        Parameters
-        ----------
-        columns : list, optional
-            A list of columns to encode, if None, all string columns will be
-            encoded.
-        weight : float, optional
-            Smoothing parameters (non-negative). The higher the value of the
-            parameter, the bigger the contribution of the overall mean. When
-            set to zero, there is no smoothing
-            (e.g. the pure target incidence is used)
-        """
         if weight < 0:
             raise ValueError("The value of weight cannot be smaller than zero")
 
@@ -128,7 +119,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         return numerator/denominator
 
     def transform(self, X: pd.DataFrame, y: pd.Series=None) -> pd.DataFrame:
-        """Summary
+        """Replace (e.g. encode) categories of each column with its average
+        incidence which was computed when the fit method was called
 
         Parameters
         ----------

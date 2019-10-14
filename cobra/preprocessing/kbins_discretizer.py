@@ -22,7 +22,11 @@ from sklearn.exceptions import NotFittedError
 
 class KBinsDiscretizer:
 
-    """Bin continuous data into intervals of predefined size
+    """Bin continuous data into intervals of predefined size. This provides a
+    way to partition continuous data into discrete values, i.e. tranform
+    continuous data into nominal data. This can make a linear model more
+    expressive as it introduces nonlinearity to the model, while maintaining
+    the interpretability of the model afterwards.
 
     Attributes
     ----------
@@ -173,7 +177,8 @@ class KBinsDiscretizer:
 
     def transform(self, data: pd.DataFrame,
                   column_names: list) -> pd.DataFrame:
-        """Summary
+        """Discretizes the data in the given list of columns by mapping each
+        number to the appropriate bin computed by the fit method
 
         Parameters
         ----------
