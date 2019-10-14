@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -116,6 +117,41 @@ class TestKBinsDiscretizer:
 
         expected = [(0, 1), (1, 2), (2, 3)]
         assert actual == expected
+
+     # Tests for _fit_column
+    def test_kbins_discretizer_fit_column_regular(self):
+
+        data = pd.DataFrame({"variable": list(range(0, 11))})  # ints from 0-10
+
+        discretizer = KBinsDiscretizer(n_bins=4)
+        actual = discretizer._fit_column(data, column_name="variable")
+
+        expected = [(0.0, 2.0), (2.0, 5.0), (5.0, 8.0), (8.0, 10.0)]
+
+        assert expected == actual
+
+    def test_kbins_discretizer_fit_column_auto_adapt_bins(self):
+
+        data = pd.DataFrame({"variable": list(range(0, 11)) +
+                             ([np.nan] * 17)})  # ints from 0-10 with 17 nan's
+
+        discretizer = KBinsDiscretizer(auto_adapt_bins=True)
+        actual = discretizer._fit_column(data, column_name="variable")
+
+        expected = [(0.0, 2.0), (2.0, 5.0), (5.0, 8.0), (8.0, 10.0)]
+
+        assert expected == actual
+
+    def test_kbins_discretizer_fit_column_two_bin_edges(self):
+
+        data = pd.DataFrame({"variable": [0] + ([1] * 100)})  # almost constant
+
+        discretizer = KBinsDiscretizer()
+        actual = discretizer._fit_column(data, column_name="variable")
+
+        expected = None
+
+        assert expected == actual
 
     # Tests for _create_bin_labels
     def test_kbins_discretizer_create_bin_labels(self):
