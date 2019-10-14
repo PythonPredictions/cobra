@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from sklearn.exceptions import NotFittedError
-from sklearn.cluster import KMeans
+#from sklearn.cluster import KMeans
 
 
 class KBinsDiscretizer:
@@ -154,7 +154,7 @@ class KBinsDiscretizer:
         if self.auto_adapt_bins:
             size = len(data.index)
             missing_pct = data[column_name].isnull().sum()/size
-            n_bins = int(max((1 - missing_pct) * n_bins), 2)
+            n_bins = int(max(round((1 - missing_pct) * n_bins), 2))
 
         bin_edges = self._compute_bin_edges(data, column_name, n_bins,
                                             col_min, col_max)
