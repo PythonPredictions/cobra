@@ -70,7 +70,7 @@ class KBinsDiscretizer:
 
         self.n_bins = n_bins
         self.strategy = strategy.lower()
-        self.closed = closed
+        self.closed = closed.lower()
         self.auto_adapt_bins = auto_adapt_bins
         self.starting_precision = starting_precision
         self.label_format = label_format
@@ -419,6 +419,14 @@ class KBinsDiscretizer:
         pd.IntervalIndex
             Description
         """
+
+        # check if closed is of the proper form
+        if closed not in ["left", "right"]:
+            raise ValueError("{}: valid options for 'closed' are {}. "
+                             "Got strategy={!r} instead."
+                             .format(KBinsDiscretizer.__name__,
+                                     ["left", "right"], closed))
+
         # deepcopy variable because we do not want to modify the content
         # of intervals (which is still used outside of this function)
         _intervals = deepcopy(intervals)
@@ -450,7 +458,11 @@ class KBinsDiscretizer:
 
         # Format first and last bin as < x and > y resp.
         if self.change_endpoint_format:
-            bin_labels[0] = "< {}".format(bins[0][1])
-            bin_labels[-1] = "> {}".format(bins[-1][0])
+            if self.closed == "left":
+                bin_labels[0] = "< {}".format(bins[0][1])
+                bin_labels[-1] = ">= {}".format(bins[-1][0])
+            else:
+                bin_labels[0] = "<= {}".format(bins[0][1])
+                bin_labels[-1] = "> {}".format(bins[-1][0])
 
         return bin_labels
