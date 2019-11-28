@@ -1,5 +1,10 @@
 """
- Incidence Replacement Module
+Incidence Replacement Module. The implementation is inspired by
+https://contrib.scikit-learn.org/categorical-encoding/index.html
+
+Authors:
+- Geert Verstraeten (methodology)
+- Matthias Roels (implementation)
 """
 import logging
 log = logging.getLogger(__name__)
@@ -157,7 +162,11 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
             new_column = TargetEncoder._clean_column_name(column)
 
-            X[new_column] = X[column].map(self._mapping[column])
+            # Convert dtype to float because when the original dtype
+            # is of type "category", the resulting dtype is also of type
+            # "category"
+            X[new_column] = (X[column].map(self._mapping[column])
+                             .astype("float"))
 
             new_columns.append(new_column)
 

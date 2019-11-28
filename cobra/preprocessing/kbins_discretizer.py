@@ -1,8 +1,15 @@
 """
-This class is a rework of
-https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py
-However, it is purely written in pandas instead of numpy because
-it is more intuitive
+This module is a rework of
+https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/
+_discretization.py
+However, it is purely written in pandas instead of numpy because it is more
+intuitive
+
+Also, some custom modifications were included to allign it with our methodology
+
+Authors:
+- Geert Verstraeten (methodology)
+- Matthias Roels (implementation)
 """
 # standard lib imports
 from copy import deepcopy

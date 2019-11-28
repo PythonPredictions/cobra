@@ -90,6 +90,9 @@ class TestTargetEncoder:
                                         'neutral'],
                            'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
 
+        # inputs of TargetEncoder will be of dtype category
+        df["variable"] = df["variable"].astype("category")
+
         expected = pd.DataFrame({'variable_enc': [0.666667, 0.666667,
                                                   0.333333, 0.50000,
                                                   0.333333, 0.666667,
