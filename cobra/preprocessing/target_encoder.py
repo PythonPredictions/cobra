@@ -56,7 +56,7 @@ class TargetEncoder(BaseEstimator):
         # self.randomized = randomized
         # self.sigma = sigma
 
-    def to_dict(self) -> dict:
+    def attributes_to_dict(self) -> dict:
         """Return the attributes of TargetEncoder in a dictionary
 
         Returns
@@ -74,13 +74,15 @@ class TargetEncoder(BaseEstimator):
 
         return params
 
-    def from_dict(self, params: dict):
-        """Summary
+    def set_attributes_from_dict(self, params: dict):
+        """Set instance attributes from a dictionary of values with key the
+        name of the attribute.
 
         Parameters
         ----------
         params : dict
-            Description
+            Contains the attributes of TargetEncoder with their
+            names as key.
         """
 
         if "weight" in params and type(params["weight"]) == float:

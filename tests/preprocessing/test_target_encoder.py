@@ -10,8 +10,8 @@ class TestTargetEncoder:
         with pytest.raises(ValueError):
             TargetEncoder(weight=-1)
 
-    # Tests for to_dict and from_dict
-    def test_target_encoder_to_dict(self):
+    # Tests for attributes_attributes_to_dict and set_attributes_from_dict
+    def test_target_encoder_attributes_to_dict(self):
 
         encoder = TargetEncoder()
 
@@ -21,7 +21,7 @@ class TestTargetEncoder:
 
         encoder._mapping["variable"] = mapping_data
 
-        actual = encoder.to_dict()
+        actual = encoder.attributes_to_dict()
 
         expected = {"weight": 0.0,
                     "_mapping": {"variable": {
@@ -33,14 +33,14 @@ class TestTargetEncoder:
         assert actual == expected
 
     @pytest.mark.parametrize("attribute",
-                             [("weight",), ("mapping",)],
+                             ["weight", "mapping"],
                              ids=["test_weight", "test_mapping"])
-    def test_target_encoder_from_dict_unfitted(self, attribute):
+    def test_target_encoder_set_attributes_from_dict_unfitted(self, attribute):
 
         encoder = TargetEncoder()
 
         data = {"weight": 1.0}
-        encoder.from_dict(data)
+        encoder.set_attributes_from_dict(data)
 
         if attribute == "weight":
             actual = encoder.weight
@@ -53,7 +53,7 @@ class TestTargetEncoder:
 
             assert expected == actual
 
-    def test_target_encoder_from_dict(self):
+    def test_target_encoder_set_attributes_from_dict(self):
 
         encoder = TargetEncoder()
 
@@ -64,7 +64,7 @@ class TestTargetEncoder:
                     "positive": 0.666667
                 }}}
 
-        encoder.from_dict(data)
+        encoder.set_attributes_from_dict(data)
 
         expected = pd.Series(data=[0.333333, 0.50000, 0.666667],
                              index=["negative", "neutral", "positive"])

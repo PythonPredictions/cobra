@@ -15,6 +15,66 @@ def does_not_raise():
 class TestKBinsDiscretizer:
 
     ################# Test for public methods #################
+    def test_attributes_to_dict(self):
+
+        discretizer = KBinsDiscretizer()
+
+        bins = [(0.0, 3.0), (3.0, 6.0), (6.0, 9.0)]
+        discretizer._bins_by_column = {"variable": bins}
+
+        actual = discretizer.attributes_to_dict()
+
+        expected = {
+            "n_bins": 10,
+            "strategy": "quantile",
+            "closed": "right",
+            "auto_adapt_bins": False,
+            "starting_precision": 0,
+            "label_format": "{} - {}",
+            "change_endpoint_format": False,
+            "_bins_by_column": {"variable": [[0.0, 3.0], [3.0, 6.0],
+                                             [6.0, 9.0]]}
+        }
+
+        assert actual == expected
+
+    @pytest.mark.parametrize("attribute",
+                             ["n_bins", "strategy", "closed",
+                              "auto_adapt_bins", "starting_precision",
+                              "label_format", "change_endpoint_format",
+                              "_bins_by_column"],
+                             ids=["n_bins", "strategy", "closed",
+                                  "auto_adapt_bins", "starting_precision",
+                                  "label_format", "change_endpoint_format",
+                                  "_bins_by_column"])
+    def test_set_attributes_from_dict(self, attribute):
+
+        discretizer = KBinsDiscretizer()
+
+        params = {
+            "n_bins": 5,
+            "strategy": "uniform",
+            "closed": "left",
+            "auto_adapt_bins": True,
+            "starting_precision": 1,
+            "label_format": "[,)",
+            "change_endpoint_format": True,
+            "_bins_by_column": {"variable": [[0.0, 3.0], [3.0, 6.0],
+                                             [6.0, 9.0]]}
+        }
+
+        expected = params[attribute]
+
+        if attribute == "_bins_by_column":
+            # list of list is transformed to a list of tuples
+            # in KBinsDiscretizer!!!
+            expected = {"variable": [(0.0, 3.0), (3.0, 6.0), (6.0, 9.0)]}
+
+        discretizer.set_attributes_from_dict(params)
+
+        actual = getattr(discretizer, attribute)
+
+        assert actual == expected
 
     ################# Test for private methods #################
     @pytest.mark.parametrize("n_bins, expectation",
