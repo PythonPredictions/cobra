@@ -12,11 +12,11 @@ log = logging.getLogger(__name__)
 #import numpy as np
 import pandas as pd
 
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
 
-class TargetEncoder(BaseEstimator, TransformerMixin):
+class TargetEncoder(BaseEstimator):
 
     """Target encoding for categorical features.
 
@@ -43,12 +43,11 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         zero, there is no smoothing (e.g. the pure target incidence is used).
     """
 
-    def __init__(self, columns: list=None, weight: float=0.0):
+    def __init__(self, weight: float=0.0):
 
         if weight < 0:
             raise ValueError("The value of weight cannot be smaller than zero")
 
-        self.columns = columns
         self.weight = weight
         self._mapping = {}  # placeholder for fitted output
 
@@ -57,40 +56,79 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         # self.randomized = randomized
         # self.sigma = sigma
 
-    def fit(self, X: pd.DataFrame, y: pd.Series):
-        """Fit the TargetEncoder to X and y
+    def to_dict(self) -> dict:
+        """Return the attributes of TargetEncoder in a dictionary
+
+        Returns
+        -------
+        dict
+            Contains the attributes of TargetEncoder instance with the names
+            as keys
+        """
+        params = self.get_params()
+
+        params["_mapping"] = {
+            key: value.to_dict()
+            for key, value in self._mapping.items()
+        }
+
+        return params
+
+    def from_dict(self, params: dict):
+        """Summary
 
         Parameters
         ----------
-        X : pd.DataFrame
+        params : dict
+            Description
+        """
+
+        if "weight" in params and type(params["weight"]) == float:
+            self.weight = params["weight"]
+
+        _mapping = {}
+        if "_mapping" in params and type(params["_mapping"]) == dict:
+            _mapping = params["_mapping"]
+
+        def dict_to_series(key, value):
+            s = pd.Series(value)
+            s.index.name = key
+            return s
+
+        self._mapping = {
+            key: dict_to_series(key, value)
+            for key, value in _mapping.items()
+        }
+
+        return self
+
+    def fit(self, data: pd.DataFrame, column_names: list,
+            target_column: str):
+        """Fit the TargetEncoder to data and y
+
+        Parameters
+        ----------
+        data : pd.DataFrame
             data used to compute the mapping to encode the categorical
             variables with.
-        y : pd.Series
-            series containing the targets for each observation
-
-        Raises
-        ------
-        ValueError
-            if the length of X and y are not equal
+        column_names : list
+            Columns of data to be encoded
+        target_column : str
+            Column name of the target
         """
-        # The lengths must be equal
-        if len(X.index) != len(y.index):
-            raise ValueError("The length of X is {}, but the length of y is {}"
-                             .format(len(X.index), len(y.index)))
-
-        if self.columns is None:
-            self.columns = TargetEncoder._get_categorical_columns(X)
 
         # compute global mean (target incidence in case of binary target)
+        y = data[target_column]
         global_mean = y.sum() / y.count()
 
-        for column in self.columns:
-            if column not in X.columns:
+        for column in column_names:
+            if column not in data.columns:
                 log.warning("DataFrame has no column '{}', so it will be "
                             "skipped in fitting" .format(column))
                 continue
 
-            self._mapping[column] = self._fit_column(X[column], y, global_mean)
+            self._mapping[column] = self._fit_column(data[column], y,
+                                                     global_mean)
 
     def _fit_column(self, X: pd.Series, y: pd.Series,
                     global_mean: float) -> pd.Series:
@@ -123,7 +161,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
 
         return numerator/denominator
 
-    def transform(self, X: pd.DataFrame, y: pd.Series=None) -> pd.DataFrame:
+    def transform(self, data: pd.DataFrame,
+                  column_names: list) -> pd.DataFrame:
         """Replace (e.g. encode) categories of each column with its average
         incidence which was computed when the fit method was called
 
@@ -131,8 +170,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         ----------
         X : pd.DataFrame
             data to encode
-        y : pd.Series, optional
-            Ignored (added for compatibility with scikit-learn)
+        column_names : list
+             Columns of data to be encoded
 
         Returns
         -------
@@ -153,9 +192,9 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         new_columns = []
-        for column in self.columns:
+        for column in column_names:
 
-            if column not in X.columns:
+            if column not in data.columns:
                 log.warning("Column '{}' is not in fitted output "
                             "and will be skipped".format(column))
                 continue
@@ -165,32 +204,12 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
             # Convert dtype to float because when the original dtype
             # is of type "category", the resulting dtype is also of type
             # "category"
-            X[new_column] = (X[column].map(self._mapping[column])
-                             .astype("float"))
+            data[new_column] = (data[column].map(self._mapping[column])
+                                .astype("float"))
 
             new_columns.append(new_column)
 
-        return X[new_columns]
-
-    @staticmethod
-    def _get_categorical_columns(data: pd.DataFrame) -> list:
-        """Get the columns containing categorical data
-        (dtype "object" or "category")
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            Description
-
-        Returns
-        -------
-        list
-            List of column names containing categorical data
-        """
-        object_columns = data.dtypes[data.dtypes == object].index
-        categorical_columns = data.dtypes[data.dtypes == "category"].index
-
-        return list(set(object_columns).union(set(categorical_columns)))
+        return data
 
     @staticmethod
     def _clean_column_name(column_name: str) -> str:
