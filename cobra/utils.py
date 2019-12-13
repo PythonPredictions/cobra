@@ -5,7 +5,7 @@ import pandas as pd
 def get_column_datatypes(data: pd.DataFrame,
                          target_column_name: str=None,
                          id_column_name: str=None,
-                         numeric_is_categorical_threshold: int=10) -> dict:
+                         threshold_numeric_is_categorical: int=10) -> dict:
     """Get a list of column names by data type from a pandas DataFrame,
     excluding the id column and the target_column if provided
 
@@ -17,7 +17,7 @@ def get_column_datatypes(data: pd.DataFrame,
         Description
     id_column_name : str, optional
         Description
-    numeric_is_categorical_threshold : int, optional
+    threshold_numeric_is_categorical : int, optional
         Threshold to decide whether a numeric variable is categorical based
         on the number of unique values in that column
 
@@ -47,10 +47,10 @@ def get_column_datatypes(data: pd.DataFrame,
     # Remark: numeric variables can still be "categorical"
     # i.e. when they only contain some distinct values!
     # We only consider a variable continuous if they have more distinct values
-    # than the requested number bins (using numeric_is_categorical_threshold)
+    # than the requested number bins (using threshold_numeric_is_categorical)
 
-    # continuous if more than numeric_is_categorical_threshold distinct values
-    threshold = numeric_is_categorical_threshold
+    # continuous if more than threshold_numeric_is_categorical distinct values
+    threshold = threshold_numeric_is_categorical
     vars_cat_numeric = set([col for col in vars_numeric
                            if len(data[col].unique()) < threshold])
 

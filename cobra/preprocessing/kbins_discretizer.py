@@ -186,6 +186,11 @@ class KBinsDiscretizer(BaseEstimator):
 
         for column_name in column_names:
 
+            if column_name not in data.columns:
+                log.warning("DataFrame has no column '{}', so it will be "
+                            "skipped in fitting" .format(column_name))
+                continue
+
             bins = self._fit_column(data, column_name)
 
             # Add to bins_by_column for later use
