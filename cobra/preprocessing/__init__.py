@@ -1,7 +1,7 @@
 from .kbins_discretizer import KBinsDiscretizer
 from .target_encoder import TargetEncoder
-from .categorical_regrouper import CategoryRegrouper
+from .categorical_data_processor import CategoricalDataProcessor
 
 __all__ = ['KBinsDiscretizer',
            'TargetEncoder',
-           'CategoryRegrouper']
+           'CategoricalDataProcessor']
