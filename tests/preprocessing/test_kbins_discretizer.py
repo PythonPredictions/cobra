@@ -42,11 +42,7 @@ class TestKBinsDiscretizer:
                              ["n_bins", "strategy", "closed",
                               "auto_adapt_bins", "starting_precision",
                               "label_format", "change_endpoint_format",
-                              "_bins_by_column"],
-                             ids=["n_bins", "strategy", "closed",
-                                  "auto_adapt_bins", "starting_precision",
-                                  "label_format", "change_endpoint_format",
-                                  "_bins_by_column"])
+                              "_bins_by_column"])
     def test_set_attributes_from_dict(self, attribute):
 
         discretizer = KBinsDiscretizer()
@@ -76,12 +72,57 @@ class TestKBinsDiscretizer:
 
         assert actual == expected
 
+    # no further tests here as this is just a wrapper around _fit_column!
+    @pytest.mark.parametrize("strategy, expectation",
+                             [("trees", pytest.raises(ValueError)),
+                              ("quantile", does_not_raise())])
+    def test_fit_exception(self, strategy, expectation):
+        discretizer = KBinsDiscretizer(strategy=strategy)
+
+        data = pd.DataFrame({"variable": list(range(0, 10)) + [np.nan]})
+
+        with expectation:
+            discretizer.fit(data, ["variable"])
+
+    # no further tests here as this is just a wrapper around _transform_column!
+    @pytest.mark.parametrize("scenario, expectation",
+                             [("raise", pytest.raises(ValueError)),
+                              ("regular_test", does_not_raise()),
+                              ("constant_data", does_not_raise())])
+    def test_transform(self, scenario, expectation):
+
+        discretizer = KBinsDiscretizer(n_bins=3, strategy="uniform")
+
+        data = pd.DataFrame({"variable": ([1] * 10)})
+        expected = data.copy()
+
+        if scenario == "regular_test":
+            # overwrite data and expected with DataFrame containing
+            # a non-constant variable
+            data = pd.DataFrame({"variable": list(range(0, 10)) + [np.nan]})
+            expected = data.copy()
+
+            discretizer.fit(data, ["variable"])
+
+            categories = ["0.0 - 3.0", "3.0 - 6.0", "6.0 - 9.0", "Missing"]
+            expected["variable_bin"] = pd.Categorical(["0.0 - 3.0"]*4
+                                                      + ["3.0 - 6.0"]*3
+                                                      + ["6.0 - 9.0"]*3
+                                                      + ["Missing"],
+                                                      categories=categories,
+                                                      ordered=True)
+        elif scenario == "constant_data":
+            discretizer.fit(data, ["variable"])
+
+        with expectation:
+            actual = discretizer.transform(data, ["variable"])
+            pd.testing.assert_frame_equal(actual, expected)
+
     ################# Test for private methods #################
     @pytest.mark.parametrize("n_bins, expectation",
                              [(1, pytest.raises(ValueError)),
                               (10.5, pytest.raises(ValueError)),
-                              (2, does_not_raise())],
-                             ids=["invalid_int", "float", "normal"])
+                              (2, does_not_raise())])
     def test_validate_n_bins_exception(self, n_bins, expectation):
         with expectation:
             assert KBinsDiscretizer()._validate_n_bins(n_bins=n_bins) is None
@@ -89,7 +130,7 @@ class TestKBinsDiscretizer:
     def test_transform_column(self):
 
         data = pd.DataFrame({"variable": list(range(0, 10)) + [np.nan]})
-        discretizer = KBinsDiscretizer(n_bins=3, strategy="unform")
+        discretizer = KBinsDiscretizer(n_bins=3, strategy="uniform")
 
         bins = [(0.0, 3.0), (3.0, 6.0), (6.0, 9.0)]
 
