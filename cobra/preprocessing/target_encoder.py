@@ -197,6 +197,10 @@ class TargetEncoder(BaseEstimator):
         for column in column_names:
 
             if column not in data.columns:
+                log.warning("Unknown column '{}' will be skipped"
+                            .format(column))
+                continue
+            elif column not in self._mapping:
                 log.warning("Column '{}' is not in fitted output "
                             "and will be skipped".format(column))
                 continue
