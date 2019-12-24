@@ -1,9 +1,10 @@
 """
 This class implements the Python Prediction's way of dealing with
-categorical data preprocessing. There are two steps involved here:
+categorical data preprocessing. There are three steps involved here:
 - An optional regrouping of the different categories based on category size
-  and significance of the category
+  and significance of the category w.r.t. the target
 - Missing value replacement with the additional category "Missing"
+- Change of dtype to "category" (could potentially lead to memory optimization)
 
 Authors:
 - Geert Verstraeten (methodology)
@@ -33,9 +34,9 @@ class CategoricalDataProcessor(BaseEstimator):
 
     Attributes
     ----------
-    category_size_threshold : int, optional
+    category_size_threshold : int
         minimal size of a category to keep it as a separate category
-    forced_categories : dict, optional
+    forced_categories : dict
         Map to prevent certain categories from being group into "Other"
         for each colum - dict of the form {col:[forced vars]}.
     keep_missing : bool
@@ -52,10 +53,10 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def __init__(self, regroup: bool=True, regroup_name: str="Other",
                  keep_missing: bool=True,
-                 category_size_threshold: Optional[int]=None,
+                 category_size_threshold: int=5,
                  p_value_threshold: float=0.001,
                  scale_contingency_table: bool=True,
-                 forced_categories: Optional[dict]=None):
+                 forced_categories: dict={}):
 
         self.regroup = regroup
         self.regroup_name = regroup_name
@@ -97,11 +98,15 @@ class CategoricalDataProcessor(BaseEstimator):
 
             combined_cats = self._fit_column(data, column_name, target_column)
 
+            # Remove forced categories
+            forced_cats = self.forced_categories.get(column_name, set())
+            combined_cats = combined_cats.difference(forced_cats)
+
             # Add to _combined_categories_by_column for later use
             self._combined_categories_by_column[column_name] = combined_cats
 
     def _fit_column(self, data: pd.DataFrame, column_name: str,
-                    target_column) -> list:
+                    target_column) -> set:
         """Compute which categories to regroup into "Other" for a particular
         column
 
@@ -117,15 +122,13 @@ class CategoricalDataProcessor(BaseEstimator):
         list
             list of categories to combine into a category "Other"
         """
-
-        X = data[column_name]
         y = data[target_column]
         incidence = y.mean()
 
         combined_categories = set()
 
         # replace missings and get unique categories as a list
-        X = CategoricalDataProcessor._replace_missings(X)
+        X = CategoricalDataProcessor._replace_missings(data[column_name])
         unique_categories = list(X.unique())
 
         # get small categories and add them to the merged category list
@@ -179,6 +182,11 @@ class CategoricalDataProcessor(BaseEstimator):
 
         for column_name in column_names:
 
+            if column_name not in data.columns:
+                log.warning("Unknown column '{}' will be skipped"
+                            .format(column_name))
+                continue
+
             data = self._transform_column(data, column_name)
 
         return data
@@ -212,6 +220,11 @@ class CategoricalDataProcessor(BaseEstimator):
 
         if self.regroup:
             categories = self._combined_categories_by_column.get(column_name)
+
+            if not categories:
+                log.warning("Column '{}' is not in fitted output "
+                            "and will be skipped".format(column_name))
+                return data
 
             data[column_name_clean] = (CategoricalDataProcessor
                                        ._replace_categories(
