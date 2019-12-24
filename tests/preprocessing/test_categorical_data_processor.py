@@ -28,7 +28,7 @@ class TestCategoricalDataProcessor:
             "scale_contingency_table": True,
             "forced_categories": {},
             "_combined_categories_by_column": {
-                "variable": combined_categories
+                "variable": list(set(combined_categories))
             }
         }
 
@@ -70,8 +70,8 @@ class TestCategoricalDataProcessor:
         assert actual == expected
 
     @pytest.mark.parametrize("scale_contingency_table, expected",
-                             [(False, 0.013288667),
-                              (True, 0.434373)])
+                             [(False, 0.01329),
+                              (True, 0.43437)])
     def test_compute_p_value(self, scale_contingency_table, expected):
 
         X = pd.Series(data=(["c1"]*70 + ["c2"]*20 + ["c3"]*10))
@@ -81,7 +81,7 @@ class TestCategoricalDataProcessor:
         actual = (CategoricalDataProcessor
                   ._compute_p_value(X, y, category, scale_contingency_table))
 
-        assert pytest.approx(actual) == expected
+        assert pytest.approx(actual, abs=1e-5) == expected
 
     def test_get_small_categories(self):
 
