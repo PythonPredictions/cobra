@@ -8,6 +8,67 @@ from cobra.preprocessing import CategoricalDataProcessor
 
 class TestCategoricalDataProcessor:
 
+    def test_attributes_to_dict(self):
+
+        processor = CategoricalDataProcessor()
+
+        combined_categories = ["a", "b", "c"]
+        processor._combined_categories_by_column = {
+            "variable": set(combined_categories)
+        }
+
+        actual = processor.attributes_to_dict()
+
+        expected = {
+            "regroup": True,
+            "regroup_name": "Other",
+            "keep_missing": True,
+            "category_size_threshold": 5,
+            "p_value_threshold": 0.001,
+            "scale_contingency_table": True,
+            "forced_categories": {},
+            "_combined_categories_by_column": {
+                "variable": combined_categories
+            }
+        }
+
+        assert actual == expected
+
+    @pytest.mark.parametrize("attribute",
+                             ["regroup", "regroup_name", "keep_missing",
+                              "category_size_threshold", "p_value_threshold",
+                              "scale_contingency_table", "forced_categories",
+                              "_combined_categories_by_column"])
+    def test_set_attributes_from_dict(self, attribute):
+
+        processor = CategoricalDataProcessor()
+
+        combined_categories = ["a", "b", "c"]
+        params = {
+            "regroup": True,
+            "regroup_name": "Other",
+            "keep_missing": True,
+            "category_size_threshold": 5,
+            "p_value_threshold": 0.001,
+            "scale_contingency_table": True,
+            "forced_categories": {},
+            "_combined_categories_by_column": {
+                "variable": combined_categories
+            }
+        }
+
+        expected = params[attribute]
+
+        if attribute == "_combined_categories_by_column":
+            # list is transformed to a set in CategoricalDataProcessor
+            expected = {"variable": set(combined_categories)}
+
+        processor.set_attributes_from_dict(params)
+
+        actual = getattr(processor, attribute)
+
+        assert actual == expected
+
     @pytest.mark.parametrize("scale_contingency_table, expected",
                              [(False, 0.013288667),
                               (True, 0.434373)])

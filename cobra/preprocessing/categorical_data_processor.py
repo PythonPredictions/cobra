@@ -51,6 +51,10 @@ class CategoricalDataProcessor(BaseEstimator):
         Whether contingency table should be scaled before chi^2.'
     """
 
+    valid_keys = ["regroup", "regroup_name", "keep_missing",
+                  "category_size_threshold", "p_value_threshold",
+                  "scale_contingency_table", "forced_categories"]
+
     def __init__(self, regroup: bool=True, regroup_name: str="Other",
                  keep_missing: bool=True,
                  category_size_threshold: int=5,
@@ -68,6 +72,59 @@ class CategoricalDataProcessor(BaseEstimator):
 
         # dict to store fitted output in
         self._combined_categories_by_column = {}
+
+    def attributes_to_dict(self) -> dict:
+        """Return the attributes of CategoricalDataProcessor as a dictionary
+
+        Returns
+        -------
+        dict
+            Contains the attributes of CategoricalDataProcessor instance with
+            the attribute name as key
+        """
+        params = self.get_params()
+
+        params["_combined_categories_by_column"] = {
+            key: list(value)
+            for key, value in self._combined_categories_by_column.items()
+        }
+
+        return params
+
+    def set_attributes_from_dict(self, params: dict):
+        """Set instance attributes from a dictionary of values with key the
+        name of the attribute.
+
+        Parameters
+        ----------
+        params : dict
+            Contains the attributes of CategoricalDataProcessor with their
+            names as key.
+
+        Raises
+        ------
+        ValueError
+            In case _combined_categories_by_column is not of type dict
+        """
+        _fitted_output = params.pop("_combined_categories_by_column", {})
+
+        if type(_fitted_output) != dict:
+            raise ValueError("_combined_categories_by_column is expected to "
+                             "be a dict but is of type {} instead"
+                             .format(type(_fitted_output)))
+
+        # Clean out params dictionary to remove unknown keys (for safety!)
+        params = {key: params[key] for key in params if key in self.valid_keys}
+
+        # We cannot turn this method into a classmethod as we want to make use
+        # of the following method from BaseEstimator:
+        self.set_params(**params)
+
+        self._combined_categories_by_column = {
+            key: set(value) for key, value in _fitted_output.items()
+        }
+
+        return self
 
     def fit(self, data: pd.DataFrame, column_names: list,
             target_column: str):
