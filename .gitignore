@@ -103,5 +103,9 @@ ENV/
 # mypy
 .mypy_cache/
 
-#VScode settins
+# VScode settins
 .vscode
+
+# Other ignore files
+*.pptx
+*.ppt
