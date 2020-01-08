@@ -307,7 +307,7 @@ class KBinsDiscretizer(BaseEstimator):
         data[column_name_bin] = pd.cut(x=data[column_name],
                                        bins=interval_idx)
 
-         # Rename bins so that the output has a proper format
+        # Rename bins so that the output has a proper format
         bin_labels = self._create_bin_labels(bins)
 
         data[column_name_bin] = (data[column_name_bin]

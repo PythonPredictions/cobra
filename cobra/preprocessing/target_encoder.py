@@ -217,6 +217,28 @@ class TargetEncoder(BaseEstimator):
 
         return data
 
+    def fit_transform(self, data: pd.DataFrame,
+                      column_names: list,
+                      target_column: str) -> pd.DataFrame:
+        """Summary
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Data to be encoded
+        column_names : list
+            Columns of data to be encoded
+        target_column : str
+            Column name of the target
+
+        Returns
+        -------
+        pd.DataFrame
+            data with additional discretized variables
+        """
+        self.fit(data, column_names, target_column)
+        return self.transform(data, column_names)
+
     @staticmethod
     def _clean_column_name(column_name: str) -> str:
         """Clean column name string by removing "_bin" and adding "_enc"
@@ -233,5 +255,9 @@ class TargetEncoder(BaseEstimator):
         """
         if "_bin" in column_name:
             return column_name.replace("_bin", "") + "_enc"
+        elif "_processed" in column_name:
+            return column_name.replace("_processed", "") + "_enc"
+        elif "_cleaned" in column_name:
+            return column_name.replace("_cleaned", "") + "_enc"
         else:
             return column_name + "_enc"
