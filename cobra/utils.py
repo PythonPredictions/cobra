@@ -26,11 +26,6 @@ def get_column_datatypes(data: pd.DataFrame,
     dict
         Description
     """
-    column_names = list(data.columns)
-
-    # dummies variables: case they have only 2 values
-    vars_dummy = set([col for col in column_names
-                      if len(data[col].unique()) == 2])
 
     # categorical vars
     vars_cat = (set(data.dtypes[data.dtypes == object].index)
@@ -40,9 +35,6 @@ def get_column_datatypes(data: pd.DataFrame,
     is_number = np.vectorize(lambda x: np.issubdtype(x, np.number))
     bool_arr_is_numeric = is_number(data.dtypes)
     vars_numeric = set(data.columns[bool_arr_is_numeric])
-
-    # remove dummy variables from set
-    vars_numeric = vars_numeric.difference(vars_dummy)
 
     # Remark: numeric variables can still be "categorical"
     # i.e. when they only contain some distinct values!
@@ -62,8 +54,7 @@ def get_column_datatypes(data: pd.DataFrame,
     if id_column_name:
         vars_cat = vars_cat.difference(set([id_column_name]))
     if target_column_name:
-        vars_dummy = vars_dummy.difference(set([target_column_name]))
+        vars_cat = vars_cat.difference(set([target_column_name]))
 
-    return {"numeric_variables": vars_numeric,
-            "categorical_variables": vars_cat,
-            "dummy_variables": vars_dummy}
+    return {"numeric_variables": list(vars_numeric),
+            "categorical_variables": list(vars_cat)}
