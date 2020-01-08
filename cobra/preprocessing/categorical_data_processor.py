@@ -71,7 +71,7 @@ class CategoricalDataProcessor(BaseEstimator):
         self.forced_categories = forced_categories
 
         # dict to store fitted output in
-        self._combined_categories_by_column = {}
+        self._cleaned_categories_by_column = {}
 
     def attributes_to_dict(self) -> dict:
         """Return the attributes of CategoricalDataProcessor as a dictionary
@@ -84,9 +84,9 @@ class CategoricalDataProcessor(BaseEstimator):
         """
         params = self.get_params()
 
-        params["_combined_categories_by_column"] = {
+        params["_cleaned_categories_by_column"] = {
             key: list(value)
-            for key, value in self._combined_categories_by_column.items()
+            for key, value in self._cleaned_categories_by_column.items()
         }
 
         return params
@@ -104,12 +104,12 @@ class CategoricalDataProcessor(BaseEstimator):
         Raises
         ------
         ValueError
-            In case _combined_categories_by_column is not of type dict
+            In case _cleaned_categories_by_column is not of type dict
         """
-        _fitted_output = params.pop("_combined_categories_by_column", {})
+        _fitted_output = params.pop("_cleaned_categories_by_column", {})
 
         if type(_fitted_output) != dict:
-            raise ValueError("_combined_categories_by_column is expected to "
+            raise ValueError("_cleaned_categories_by_column is expected to "
                              "be a dict but is of type {} instead"
                              .format(type(_fitted_output)))
 
@@ -120,7 +120,7 @@ class CategoricalDataProcessor(BaseEstimator):
         # of the following method from BaseEstimator:
         self.set_params(**params)
 
-        self._combined_categories_by_column = {
+        self._cleaned_categories_by_column = {
             key: set(value) for key, value in _fitted_output.items()
         }
 
@@ -153,14 +153,14 @@ class CategoricalDataProcessor(BaseEstimator):
                             "skipped in fitting" .format(column_name))
                 continue
 
-            combined_cats = self._fit_column(data, column_name, target_column)
+            cleaned_cats = self._fit_column(data, column_name, target_column)
 
             # Remove forced categories
             forced_cats = self.forced_categories.get(column_name, set())
-            combined_cats = combined_cats.difference(forced_cats)
+            cleaned_cats = cleaned_cats.union(forced_cats)
 
-            # Add to _combined_categories_by_column for later use
-            self._combined_categories_by_column[column_name] = combined_cats
+            # Add to _cleaned_categories_by_column for later use
+            self._cleaned_categories_by_column[column_name] = cleaned_cats
 
     def _fit_column(self, data: pd.DataFrame, column_name: str,
                     target_column) -> set:
@@ -185,7 +185,10 @@ class CategoricalDataProcessor(BaseEstimator):
         combined_categories = set()
 
         # replace missings and get unique categories as a list
-        X = CategoricalDataProcessor._replace_missings(data[column_name])
+        X = (CategoricalDataProcessor
+             ._replace_missings(data[column_name])
+             .astype(object))
+
         unique_categories = list(X.unique())
 
         # get small categories and add them to the merged category list
@@ -212,7 +215,7 @@ class CategoricalDataProcessor(BaseEstimator):
         if self.keep_missing:
             combined_categories.discard("Missing")
 
-        return combined_categories
+        return set(unique_categories).difference(combined_categories)
 
     def transform(self, data: pd.DataFrame,
                   column_names: list) -> pd.DataFrame:
@@ -231,7 +234,7 @@ class CategoricalDataProcessor(BaseEstimator):
             data with additional discretized variables
         """
 
-        if self.regroup and len(self._combined_categories_by_column) == 0:
+        if self.regroup and len(self._cleaned_categories_by_column) == 0:
             msg = ("{} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
 
@@ -268,7 +271,7 @@ class CategoricalDataProcessor(BaseEstimator):
         """
 
         column_name_clean = column_name + "_processed"
-        data[column_name_clean] = data[column_name]
+        data[column_name_clean] = data[column_name].astype(object)
 
         # Fill missings first
         data[column_name_clean] = (CategoricalDataProcessor
@@ -276,11 +279,14 @@ class CategoricalDataProcessor(BaseEstimator):
                                                       column_name_clean))
 
         if self.regroup:
-            categories = self._combined_categories_by_column.get(column_name)
+            categories = self._cleaned_categories_by_column.get(column_name)
 
             if not categories:
-                log.warning("Column '{}' is not in fitted output "
-                            "and will be skipped".format(column_name))
+                # Log warning if categories is None, which indicates it is
+                # not in fitted output
+                if categories is None:
+                    log.warning("Column '{}' is not in fitted output "
+                                "and will be skipped".format(column_name))
                 return data
 
             data[column_name_clean] = (CategoricalDataProcessor
@@ -425,4 +431,4 @@ class CategoricalDataProcessor(BaseEstimator):
         pd.Series
             Description
         """
-        return data.apply(lambda x: x if x not in categories else "Other")
+        return data.apply(lambda x: x if x in categories else "Other")
