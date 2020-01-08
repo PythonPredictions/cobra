@@ -247,8 +247,8 @@ class PreProcessor(BaseEstimator):
                    categorical_data_processor,
                    discretizer, target_encoder,
                    pipeline["threshold_numeric_is_categorical"],
-                   continuous_vars=pipeline["continuous_vars"],
-                   discrete_vars=pipeline["discrete_vars"])
+                   continuous_vars=pipeline["_continuous_vars"],
+                   discrete_vars=pipeline["_discrete_vars"])
 
     def fit(self, data: pd.DataFrame, target_column_name: str,
             id_column_name: str=None):
@@ -470,8 +470,8 @@ class PreProcessor(BaseEstimator):
         pipeline["discretizer"] = self.discretizer.attributes_to_dict()
         pipeline["target_encoder"] = (self.target_encoder.attributes_to_dict())
 
-        pipeline["continuous_vars"] = self._continuous_vars
-        pipeline["discrete_vars"] = self._discrete_vars
+        pipeline["_continuous_vars"] = self._continuous_vars
+        pipeline["_discrete_vars"] = self._discrete_vars
 
         if self.serialization_path:
             path = self.serialization_path
@@ -505,4 +505,7 @@ class PreProcessor(BaseEstimator):
             elif key != "metadata":
                 input_keys.add(key)
 
-        return valid_keys == input_keys
+        input_keys = sorted(list(input_keys))
+        input_keys = [key for key in input_keys if not key.startswith("_")]
+
+        return sorted(list(valid_keys)) == sorted(list(input_keys))
