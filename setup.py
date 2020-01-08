@@ -1,24 +1,19 @@
 from distutils.core import setup
+
 setup(
-    name = 'cobra',
-    packages = ['cobra'],
-    version = '1.0',
-    description = 'Library for fast model building',
-    author='Jan Benisek',
-	author_email = "jan.benisek@pythonpredictions.com",
-    url = "https://github.com/JanBenisek/COBRA",
-    download_url = "https://github.com/JanBenisek/COBRA",
-    keywords = ["Python", "cobra"],
-    classifiers = [
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Development Status :: 1 - Beta",
-        "Environment :: Other Environment",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
-        "Operating System :: OS Independent",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Text Processing :: Linguistic",
-        ],
-    long_description = 'Refactored Cobra project into a Python library.'
-	)
+    name="cobra",
+    version="0.1.0",
+    description="Python Prediction's methodology for predictive analytics",
+    packages=["cobra"],
+    url="https://github.com/PythonPredictions",
+    #long_description=long_description,  # TO DO
+    #long_description_content_type="text/markdown",
+    install_requires=[
+        "pandas>=0.25.1",
+        "numpy>=1.17.2",
+        "scipy>=1.2.0",
+        "scikit_learn>=0.22.1",
+        "matplotlib>=3.0.2",
+        "seaborn>=0.9.0"],
+    python_requires=">=3.5",
+)
