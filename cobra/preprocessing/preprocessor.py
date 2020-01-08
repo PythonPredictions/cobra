@@ -90,6 +90,8 @@ class PreProcessor(BaseEstimator):
         self._is_fitted = False
         self._continuous_vars = continuous_vars
         self._discrete_vars = discrete_vars
+        if continuous_vars or discrete_vars:
+            self._is_fitted = True
 
     @classmethod
     def from_params(cls,
@@ -244,8 +246,7 @@ class PreProcessor(BaseEstimator):
 
         return cls(pipeline["train_pct"], pipeline["selection_pct"],
                    pipeline["validation_pct"], pipeline["stratify_split"],
-                   categorical_data_processor,
-                   discretizer, target_encoder,
+                   categorical_data_processor, discretizer, target_encoder,
                    pipeline["threshold_numeric_is_categorical"],
                    continuous_vars=pipeline["_continuous_vars"],
                    discrete_vars=pipeline["_discrete_vars"])
