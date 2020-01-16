@@ -12,7 +12,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### What can cobra do? 
 
-  * Transform given pandas DataFrame to be ready to use for prediction modelling: partition into train/selection/validation sets, create bins from continuous variables, regroup categorical variables and add columns with incidence rate per category/bin.
+  * Transform given pandas DataFrame to be ready to use for prediction modelling: partition into train/selection/validation sets, create bins from continuous variables, regroup categorical variables, replace missing values and add columns with incidence rate per category/bin.
   * Perform univariate selection based on AUC
   * Find best model by forward selection
   * Visualize the results
@@ -47,7 +47,7 @@ As this package is an internal package that is not open-sourced, it is not avail
 
   * Clone this repository. 
   * Open a shell that can execute python code and navigate to the folder where this repo was cloned in.
-  * Once you are in the folder, execute `python setup.py install`. 
+  * Once you are in the folder, execute `python setup.py install` or `pip install .`. 
 
 ### Usage
 
@@ -55,7 +55,4 @@ TO DO
 
 ## Development 
 
-We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch.
-
-  
-  
+We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch. Make sure to write or modify unit test for your changes!

@@ -1,10 +1,14 @@
 from contextlib import contextmanager
 import pytest
+from pytest_mock import mocker
 
 import numpy as np
 import pandas as pd
 
-#from cobra.preprocessing.preprocessor import PreProcessor
+from cobra.preprocessing import PreProcessor
+from cobra.preprocessing import KBinsDiscretizer
+from cobra.preprocessing import TargetEncoder
+from cobra.preprocessing import CategoricalDataProcessor
 
 
 @contextmanager
@@ -13,9 +17,6 @@ def does_not_raise():
 
 
 class TestPreProcessor:
-
-    def test_from_params(self):
-        pass
 
     def test_from_pipeline(self):
         pass
@@ -27,6 +28,9 @@ class TestPreProcessor:
         pass
 
     def test_train_selection_validation_split(self):
+        pass
+
+    def test_get_variable_list(self):
         pass
 
     def test_serialize(self):

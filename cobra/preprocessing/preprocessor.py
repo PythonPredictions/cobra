@@ -43,9 +43,6 @@ class PreProcessor(BaseEstimator):
     discretizer : KBinsDiscretizer
         Instance of KBinsDiscretizer to do the prepocessing of continuous
         variables by means of discretization
-    numeric_threshold : int
-        Threshold to decide whether a numeric variable is in fact a categorical
-        one based on the number of unique values of that variable
     serialization_path : str
         path to save the pipeline to
     stratify_split : bool
@@ -57,11 +54,9 @@ class PreProcessor(BaseEstimator):
     def __init__(self, categorical_data_processor: CategoricalDataProcessor,
                  discretizer: KBinsDiscretizer,
                  target_encoder: TargetEncoder,
-                 threshold_numeric_is_categorical: int=None,
                  serialization_path: str=None,
                  is_fitted: bool=False):
 
-        self.numeric_threshold = threshold_numeric_is_categorical
         self.serialization_path = serialization_path
 
         self._categorical_data_processor = categorical_data_processor
@@ -87,10 +82,9 @@ class PreProcessor(BaseEstimator):
                     scale_contingency_table: bool=True,
                     forced_categories: dict={},
                     weight: float=0.0,
-                    threshold_numeric_is_categorical: int=None,
                     serialization_path: Optional[str]=None):
         """Constructor to instantiate PreProcessor from all the parameters
-        that can be set in all its required classes.
+        that can be set in all its required (attribute) classes.
 
         Parameters
         ----------
@@ -140,10 +134,6 @@ class PreProcessor(BaseEstimator):
             (e.g. the pure target incidence is used).
         serialization_path : str, optional
             path to save the pipeline to
-        threshold_numeric_is_categorical : int, optional
-            Threshold to decide whether a numeric variable is in fact a
-            categorical one based on the number of unique values of
-            that variable
 
         Returns
         -------
@@ -167,16 +157,17 @@ class PreProcessor(BaseEstimator):
         target_encoder = TargetEncoder(weight)
 
         return cls(categorical_data_processor, discretizer, target_encoder,
-                   threshold_numeric_is_categorical, serialization_path)
+                   serialization_path)
 
     @classmethod
     def from_pipeline(cls, pipeline_path: str):
-        """Summary
+        """Constructor to instantiate PreProcessor from a (fitted) pipeline,
+        stored as a JSON file.
 
         Parameters
         ----------
         pipeline_path : str
-            Description
+            path to the (fitted) pipeline
 
         Returns
         -------
@@ -206,37 +197,28 @@ class PreProcessor(BaseEstimator):
         target_encoder.set_attributes_from_dict(pipeline["target_encoder"])
 
         return cls(categorical_data_processor, discretizer, target_encoder,
-                   pipeline["threshold_numeric_is_categorical"],
                    pipeline["_is_fitted"])
 
-    def fit(self, train_data: pd.DataFrame, target_column_name: str,
-            id_column_name: str=None,
-            continuous_vars: list=[], discrete_vars: list=[]):
+    def fit(self, train_data: pd.DataFrame, continuous_vars: list,
+            discrete_vars: list, target_column_name: str):
         """Fit the data to the preprocessing pipeline
 
         Parameters
         ----------
         train_data : pd.DataFrame
             Data to be preprocessed
-        target_column_name : str
-            Name of the target column
-        id_column_name : str, optional
-            Name of the id column
         continuous_vars : list, optional
             list of continuous variables
         discrete_vars : list, optional
             list of discrete variables
+        target_column_name : str
+            Name of the target column
         """
 
-        if not (continuous_vars or discrete_vars):
-            continuous_vars, discrete_vars = self._get_variable_list_by_type(
-                train_data,
-                target_column_name,
-                id_column_name)
-
         # get list of all variables
-        var_list = PreProcessor._get_variable_list(continuous_vars,
-                                                   discrete_vars)
+        preprocessed_variable_names = (PreProcessor
+                                       ._get_variable_list(continuous_vars,
+                                                           discrete_vars))
 
         log.info("Starting to fit pipeline")
         start = time.time()
@@ -265,7 +247,8 @@ class PreProcessor(BaseEstimator):
                           .transform(train_data, discrete_vars))
 
         begin = time.time()
-        self._target_encoder.fit(train_data, var_list, target_column_name)
+        self._target_encoder.fit(train_data, preprocessed_variable_names,
+                                 target_column_name)
         log.info("Fitting TargetEncoder took {} seconds"
                  .format(time.time() - begin))
 
@@ -277,18 +260,13 @@ class PreProcessor(BaseEstimator):
         log.info("Fitting and serializing pipeline took {} seconds"
                  .format(time.time() - start))
 
-    def transform(self, data: pd.DataFrame, target_column_name: str,
-                  id_column_name: str=None, continuous_vars: list=[],
-                  discrete_vars: list=[]) -> pd.DataFrame:
+    def transform(self, data: pd.DataFrame, continuous_vars: list,
+                  discrete_vars: list) -> pd.DataFrame:
         """Summary
 
         Parameters
         ----------
         data : pd.DataFrame
-            Description
-        target_column_name : str
-            Description
-        id_column_name : str, optional
             Description
         continuous_vars : list, optional
             list of continuous variables
@@ -314,20 +292,9 @@ class PreProcessor(BaseEstimator):
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        if not (continuous_vars or discrete_vars):
-            continuous_vars, discrete_vars = self._get_variable_list_by_type(
-                data,
-                target_column_name,
-                id_column_name)
-
-            # remove "split" column as this is the column
-            # making the train-selection-validation split
-            if "split" in discrete_vars:
-                discrete_vars.remove("split")
-
-        # get list of all variables
-        var_list = PreProcessor._get_variable_list(continuous_vars,
-                                                   discrete_vars)
+        preprocessed_variable_names = (PreProcessor
+                                       ._get_variable_list(continuous_vars,
+                                                           discrete_vars))
 
         if continuous_vars:
             data = self._discretizer.transform(data, continuous_vars)
@@ -336,7 +303,8 @@ class PreProcessor(BaseEstimator):
             data = self._categorical_data_processor.transform(data,
                                                               discrete_vars)
 
-        data = self._target_encoder.transform(data, var_list)
+        data = self._target_encoder.transform(data,
+                                              preprocessed_variable_names)
 
         log.info("Transforming data took {} seconds"
                  .format(time.time() - start))
@@ -415,74 +383,6 @@ class PreProcessor(BaseEstimator):
         return (pd.concat([df_train, df_selection, df_validation])
                 .reset_index(drop=True))
 
-    @staticmethod
-    def _get_variable_list(continuous_vars: list, discrete_vars: list) -> list:
-        """Summary
-
-        Parameters
-        ----------
-        continuous_vars : list
-            Description
-        discrete_vars : list
-            Description
-
-        Returns
-        -------
-        list
-            Description
-
-        Raises
-        ------
-        ValueError
-            Description
-        """
-        var_list = ([col + "_processed" for col in discrete_vars]
-                    + [col + "_bin" for col in continuous_vars])
-
-        if not var_list:
-            raise ValueError("Variable var_list is None or empty list")
-
-        return var_list
-
-    def _get_variable_list_by_type(self, data: pd.DataFrame,
-                                   target_column_name: str,
-                                   id_column_name: str=None):
-        """Get two lists of variables (numeric and categorical)
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            Data to be preprocessed
-        target_column_name : str
-            Name of the target column
-        id_column_name : str, optional
-            Name of the id column
-        """
-
-        if not self.numeric_threshold:
-            raise ValueError("threshold_numeric_is_categorical is not allowed "
-                             "to be None")
-
-        columns_by_datatype = utils.get_column_datatypes(
-            data,
-            target_column_name,
-            id_column_name,
-            self.numeric_threshold)
-
-        continuous_vars = columns_by_datatype["numeric_variables"]
-        discrete_vars = columns_by_datatype["categorical_variables"]
-
-        log.info("Numeric variables: {}".format(continuous_vars))
-        log.info("Categorical variables:".format(discrete_vars))
-
-        var_list = ([col + "_processed" for col in discrete_vars]
-                    + [col + "_bin" for col in continuous_vars])
-
-        if not var_list:
-            raise ValueError("Variable var_list is None or empty list")
-
-        return continuous_vars, discrete_vars
-
     def _serialize(self) -> dict:
         """Serialize the preprocessing pipeline by writing all its required
         parameters to a JSON file.
@@ -507,7 +407,6 @@ class PreProcessor(BaseEstimator):
                                       .attributes_to_dict())
 
         pipeline["_is_fitted"] = True
-        pipeline["threshold_numeric_is_categorical"] = self.numeric_threshold
 
         if self.serialization_path:
             path = self.serialization_path
@@ -545,3 +444,32 @@ class PreProcessor(BaseEstimator):
         input_keys = [key for key in input_keys if not key.startswith("_")]
 
         return sorted(list(valid_keys)) == sorted(list(input_keys))
+
+    @staticmethod
+    def _get_variable_list(continuous_vars: list, discrete_vars: list) -> list:
+        """Summary
+
+        Parameters
+        ----------
+        continuous_vars : list
+            Description
+        discrete_vars : list
+            Description
+
+        Returns
+        -------
+        list
+            Description
+
+        Raises
+        ------
+        ValueError
+            Description
+        """
+        var_list = ([col + "_processed" for col in discrete_vars]
+                    + [col + "_bin" for col in continuous_vars])
+
+        if not var_list:
+            raise ValueError("Variable var_list is None or empty list")
+
+        return var_list
