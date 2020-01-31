@@ -346,7 +346,13 @@ class PreProcessor(BaseEstimator):
 
         predictors = [col for col in column_names if col != target_column_name]
 
+        # for the first split, take sum of selection & validation pct as
+        # test pct
         test_pct = selection_pct + validation_pct
+        # To further split our test set into selection + validation set,
+        # we have to modify validation pct because we only have test_pct of
+        # the data available anymore for further splitting!
+        validation_pct_modif = validation_pct / test_pct
 
         X = data[predictors]
         y = data[target_column_name]
@@ -363,10 +369,12 @@ class PreProcessor(BaseEstimator):
         if stratify_split:
             stratify = y_test
 
-        X_sel, X_val, y_sel, y_val = train_test_split(X_test, y_test,
-                                                      test_size=validation_pct,
-                                                      random_state=42,
-                                                      stratify=stratify)
+        X_sel, X_val, y_sel, y_val = train_test_split(
+            X_test, y_test,
+            test_size=validation_pct_modif,
+            random_state=42,
+            stratify=stratify
+            )
 
         df_train = pd.DataFrame(X_train, columns=predictors)
         df_train[target_column_name] = y_train
