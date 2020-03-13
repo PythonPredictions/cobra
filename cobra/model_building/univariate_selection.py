@@ -1,0 +1,124 @@
+"""
+Module to perform univariate preselection and compute correlation amongst
+predictors
+
+Authors:
+- Geert Verstraeten (methodology)
+- Matthias Roels (current implementation)
+- Jan Benisek (initial implementation)
+"""
+import pandas as pd
+from sklearn.metrics import roc_auc_score
+
+
+def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
+                                    target_enc_selection_data: pd.DataFrame,
+                                    predictors: list,
+                                    target_column: str,
+                                    preselect_auc_threshold: float,
+                                    preselect_overtrain_threshold: float
+                                    ) -> pd.DataFrame:
+    """ Perform a preselection of predictors based on an AUC threshold of
+    a univariate model on a train and selection dataset and return a datframe
+    containing for each variable the train and selection AUC along with a
+    boolean "preselection" column.
+
+    As the AUC just calculates the quality of a ranking, all monotonous
+    transformations of a given ranking (i.e. transformations that do not alter
+    the ranking itself) will lead to the same AUC.
+    Hence, pushing a categorical variable (incl. a binned continuous variable)
+    through a logistic regression will produce exactly the same ranking as
+    pushing it through incidence replacement (i.e. target encoding),
+    as it will produce the exact same output: a ranking of the categories on
+    the training set.
+
+    Therefore, no univariate model is trained here as the target encoded train
+    and selection data is/must be used as inputs for this function. These will
+    be used as predicted scores to compute the AUC with against the target
+
+    Args:
+        target_enc_train_data (pd.DataFrame): Train data
+        target_enc_selection_data (pd.DataFrame): Selection data
+        predictors (list): list of predictors (e.g. column names in the train
+        and selection data sets)
+        target_column (str): name of the target column
+        preselect_auc_threshold (float): Description
+        preselect_overtrain_threshold (float): Description
+
+    Returns:
+        pd.DataFrame: DataFrame containing for each variable the train auc and
+        test auc allong with a boolean indicating whether or not it is selected
+        based on the criteria
+    """
+    result = []
+
+    for predictor in predictors:
+
+        cleaned_predictor = _clean_predictor_name(predictor)
+
+        auc_train = roc_auc_score(target_enc_train_data[predictor],
+                                  target_enc_train_data[target_column])
+
+        auc_selection = roc_auc_score(
+            target_enc_selection_data[predictor],
+            target_enc_selection_data[target_column]
+            )
+
+        result.append({"predictor": cleaned_predictor,
+                       "AUC train": auc_train,
+                       "AUC selection": auc_selection})
+
+    df_auc = pd.DataFrame(result)
+
+    # Filter based on min AUC
+    auc_thresh = df_auc.loc[:, "AUC selection"] > preselect_auc_threshold
+
+    # Identify those variables for which the AUC difference between train
+    # and selection is within a user-defined ratio
+    auc_overtrain = ((df_auc["AUC train"] - df_auc["AUC selection"]) * 100
+                     < preselect_overtrain_threshold)
+
+    df_auc["preselection"] = auc_thresh & auc_overtrain
+
+    return df_auc
+
+
+def compute_correlations(target_enc_train_data: pd.DataFrame,
+                         predictors: list) -> pd.DataFrame:
+    """Given a DataFrame and a list of predictors, compute the correlations
+    amongst the predictors in the DataFrame
+
+    Args:
+        target_enc_train_data (pd.DataFrame): data to compute correlation
+        matrix from
+        predictors (list): List of column names of the DataFrame between which
+        to compute correlations
+
+    Returns:
+        pd.DataFrame: The correlation matrix of the training set
+    """
+
+    correlations = target_enc_train_data[predictors].corr()
+
+    predictors_cleaned = [_clean_predictor_name(predictor)
+                          for predictor in predictors]
+
+    # Change index and columns with the cleaned version of the predictors
+    # e.g. change "var1_enc" with "var1"
+    correlations.columns = predictors_cleaned
+    correlations.index = predictors_cleaned
+
+    return correlations
+
+
+def _clean_predictor_name(predictor: str) -> str:
+    """Strip-off redundant suffix (e.g. "_enc" or "_bin") from the predictor
+    name to return a clean version of the predictor
+
+    Args:
+        predictor (str): Description
+
+    Returns:
+        str: Description
+    """
+    return predictor.replace("_enc", "").replace("_bin", "")
