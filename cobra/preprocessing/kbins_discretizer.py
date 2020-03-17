@@ -193,8 +193,9 @@ class KBinsDiscretizer(BaseEstimator):
 
             bins = self._fit_column(data, column_name)
 
-            # Add to bins_by_column for later use
-            self._bins_by_column[column_name] = bins
+            if bins is not None:
+                # Add to bins_by_column for later use
+                self._bins_by_column[column_name] = bins
 
     def _fit_column(self, data: pd.DataFrame,
                     column_name: str) -> List[tuple]:
