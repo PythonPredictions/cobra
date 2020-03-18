@@ -197,7 +197,7 @@ class PreProcessor(BaseEstimator):
         target_encoder.set_attributes_from_dict(pipeline["target_encoder"])
 
         return cls(categorical_data_processor, discretizer, target_encoder,
-                   pipeline["_is_fitted"])
+                   is_fitted=pipeline["_is_fitted"])
 
     def fit(self, train_data: pd.DataFrame, continuous_vars: list,
             discrete_vars: list, target_column_name: str):
