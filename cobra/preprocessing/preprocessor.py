@@ -28,8 +28,6 @@ from cobra.preprocessing import KBinsDiscretizer
 from cobra.preprocessing import TargetEncoder
 from cobra.preprocessing import CategoricalDataProcessor
 
-import cobra.utils as utils
-
 
 class PreProcessor(BaseEstimator):
 

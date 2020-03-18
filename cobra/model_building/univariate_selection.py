@@ -84,6 +84,29 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     return df_auc
 
 
+def get_preselected_predictors(df_auc: pd.DataFrame) -> list:
+    """Wrapper function to extract a list of predictors
+    from df_auc
+
+    Parameters
+    ----------
+    df_auc : pd.DataFrame
+        DataFrame containing for each variable the train auc and
+        test auc allong with a boolean indicating whether or not it is selected
+        based on the criteria
+
+    Returns
+    -------
+    list
+        list of preselected predictors
+    """
+    predictor_list = (df_auc[df_auc["preselection"]]
+                      .sort_values(by='AUC selection', ascending=False)
+                      .predictor.tolist())
+
+    return [col + "_enc" for col in predictor_list]
+
+
 def compute_correlations(target_enc_train_data: pd.DataFrame,
                          predictors: list) -> pd.DataFrame:
     """Given a DataFrame and a list of predictors, compute the correlations
