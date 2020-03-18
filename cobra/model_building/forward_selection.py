@@ -139,10 +139,9 @@ class ForwardFeatureSelection:
             In case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model
         """
-        # prep predictor lists
+        # remove excluded predictors from predictor lists
         filterd_predictors = [var for var in predictors
-                              if (var not in excluded_predictors
-                                  and var not in forced_predictors)]
+                              if var not in excluded_predictors]
 
         # checks on predictor lists and self.max_predictors attr
         if len(forced_predictors) > self.max_predictors:
@@ -188,19 +187,14 @@ class ForwardFeatureSelection:
                                             .difference(
                                                 set(current_predictors)))
             else:
-                candidate_predictors = [var for var in predictors
+                candidate_predictors = [var for var in (predictors
+                                                        + forced_predictors)
                                         if var not in current_predictors]
 
             model = self._find_next_best_model(train_data,
                                                target_column_name,
                                                candidate_predictors,
                                                current_predictors)
-            # if no new model was found, e.g. because there was no model with
-            # only positive coefficients, and all forced predictors were
-            # already tested (i.e. we are now looping through the other
-            # predictors) break out of the loop!
-            if (model is None) and (step > len(forced_predictors)):
-                break
 
             if model is not None:
                 # Add new model predictors to the list of current predictors
