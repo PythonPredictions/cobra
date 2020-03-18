@@ -35,7 +35,7 @@ class LogisticRegressionModel:
         """
         return self.logit.coef_[0]
 
-    def get_intercepts(self) -> float:
+    def get_intercept(self) -> float:
         """Returns the intercept of the model
 
         Returns
@@ -65,7 +65,7 @@ class LogisticRegressionModel:
         y_train : pd.Series
             target of train data
         """
-        self.predictors = X_train.columns
+        self.predictors = list(X_train.columns)
         self.logit.fit(X_train, y_train)
 
     def score_model(self, X: pd.DataFrame) -> np.ndarray:
@@ -81,7 +81,9 @@ class LogisticRegressionModel:
         np.ndarray
             score of the model for each observation
         """
-        return self.logit.predict_proba(X)[:, 1]
+        # We select predictor columns (self.predictors) here to
+        # ensure we have the proper predictors and the proper order!!!
+        return self.logit.predict_proba(X[self.predictors])[:, 1]
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
                  split: str="train") -> float:
@@ -103,6 +105,7 @@ class LogisticRegressionModel:
             the performance score of the model (e.g. AUC)
         """
         if self._eval_metrics_by_split.get(split) is None:
+
             y_pred = self.score_model(X)
 
             self._eval_metrics_by_split[split] = roc_auc_score(y_true=y,
