@@ -56,12 +56,13 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
 
         cleaned_predictor = _clean_predictor_name(predictor)
 
-        auc_train = roc_auc_score(target_enc_train_data[predictor],
-                                  target_enc_train_data[target_column])
+        auc_train = roc_auc_score(
+            y_true=target_enc_train_data[target_column],
+            y_score=target_enc_train_data[predictor])
 
         auc_selection = roc_auc_score(
-            target_enc_selection_data[predictor],
-            target_enc_selection_data[target_column]
+            y_true=target_enc_selection_data[target_column],
+            y_score=target_enc_selection_data[predictor]
             )
 
         result.append({"predictor": cleaned_predictor,
