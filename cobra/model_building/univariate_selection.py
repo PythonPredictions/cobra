@@ -9,6 +9,7 @@ Authors:
 """
 import pandas as pd
 from sklearn.metrics import roc_auc_score
+import cobra.utils as utils
 
 
 def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
@@ -47,14 +48,14 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
 
     Returns:
         pd.DataFrame: DataFrame containing for each variable the train auc and
-        test auc allong with a boolean indicating whether or not it is selected
-        based on the criteria
+        selection auc allong with a boolean indicating whether or not it is
+        selected based on the criteria
     """
     result = []
 
     for predictor in predictors:
 
-        cleaned_predictor = _clean_predictor_name(predictor)
+        cleaned_predictor = utils.clean_predictor_name(predictor)
 
         auc_train = roc_auc_score(
             y_true=target_enc_train_data[target_column],
@@ -81,7 +82,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
 
     df_auc["preselection"] = auc_thresh & auc_overtrain
 
-    return df_auc
+    return df_auc.sort_values(by='AUC selection', ascending=False)
 
 
 def get_preselected_predictors(df_auc: pd.DataFrame) -> list:
@@ -124,7 +125,7 @@ def compute_correlations(target_enc_train_data: pd.DataFrame,
 
     correlations = target_enc_train_data[predictors].corr()
 
-    predictors_cleaned = [_clean_predictor_name(predictor)
+    predictors_cleaned = [utils.clean_predictor_name(predictor)
                           for predictor in predictors]
 
     # Change index and columns with the cleaned version of the predictors
@@ -133,16 +134,3 @@ def compute_correlations(target_enc_train_data: pd.DataFrame,
     correlations.index = predictors_cleaned
 
     return correlations
-
-
-def _clean_predictor_name(predictor: str) -> str:
-    """Strip-off redundant suffix (e.g. "_enc" or "_bin") from the predictor
-    name to return a clean version of the predictor
-
-    Args:
-        predictor (str): Description
-
-    Returns:
-        str: Description
-    """
-    return predictor.replace("_enc", "").replace("_bin", "")
