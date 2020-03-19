@@ -1,7 +1,11 @@
+# third party imports
 import numpy as np
 import pandas as pd
+from scipy import stats
 from sklearn.metrics import roc_auc_score
 from sklearn.linear_model import LogisticRegression
+# custom imports
+import cobra.utils as utils
 
 
 class LogisticRegressionModel:
@@ -86,9 +90,11 @@ class LogisticRegressionModel:
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
-                 split: str="train") -> float:
-        """Evaluate the model on a given split (train, selection, validation)
-        of a data set (X, y)
+                 split: str=None) -> float:
+        """Evaluate the model on a given data set (X, y). The optional split
+        parameter is to indicate that the data set belongs to
+        (train, selection, validation), so that the computation on these sets
+        can be cached!
 
         Parameters
         ----------
@@ -104,10 +110,41 @@ class LogisticRegressionModel:
         float
             the performance score of the model (e.g. AUC)
         """
-        if self._eval_metrics_by_split.get(split) is None:
+
+        if (split is None) or (split not in self._eval_metrics_by_split):
 
             y_pred = self.score_model(X)
 
-            self._eval_metrics_by_split[split] = roc_auc_score(y_true=y,
-                                                               y_score=y_pred)
+            performance = roc_auc_score(y_true=y, y_score=y_pred)
+
+            if split is None:
+                return performance
+            else:
+                self._eval_metrics_by_split[split] = performance
+
         return self._eval_metrics_by_split[split]
+
+    def compute_variable_importance(self, data: pd.DataFrame) -> dict:
+        """Compute the importance of each predictor in the model and return
+        it as a dictionary
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            data to score the model
+
+        Returns
+        -------
+        dict
+            Map of predictor -> importance
+        """
+
+        y_pred = self.score_model(data)
+
+        return {
+            utils.clean_predictor_name(predictor): stats.pearsonr(
+                data[predictor],
+                y_pred
+                )
+            for predictor in self.predictors
+        }

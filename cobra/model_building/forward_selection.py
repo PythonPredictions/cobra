@@ -85,19 +85,19 @@ class ForwardFeatureSelection:
             performance_train = model.evaluate(
                 data[data["split"] == "train"],
                 data[data["split"] == "train"][target_column_name],
-                split="train"
+                split="train"  # used for caching
                 )
 
             performance_selection = model.evaluate(
                 data[data["split"] == "selection"],
                 data[data["split"] == "selection"][target_column_name],
-                split="selection"
+                split="selection"  # used for caching
                 )
 
             performance_validation = model.evaluate(
                 data[data["split"] == "validation"],
                 data[data["split"] == "validation"][target_column_name],
-                split="validation"
+                split="validation"  # used for caching
                 )
 
             last_added_predictor = (set(model.predictors)
@@ -240,7 +240,8 @@ class ForwardFeatureSelection:
             # Evaluate model
             performance = (model
                            .evaluate(train_data[current_predictors + [pred]],
-                                     train_data[target_column_name]))
+                                     train_data[target_column_name],
+                                     split="train"))
 
             if (self.pos_only and (not (model.get_coef() >= 0).all())):
                 continue
