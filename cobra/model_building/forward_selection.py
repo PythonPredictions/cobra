@@ -56,7 +56,9 @@ class ForwardFeatureSelection:
         return self._fitted_models[step]
 
     def compute_model_performances(self, data: pd.DataFrame,
-                                   target_column_name: str) -> list:
+                                   target_column_name: str,
+                                   splits: list=["train", "selection",
+                                                 "validation"]) -> list:
         """Compute for each model the performance for
            train-selection-validation sets and return them along with a list
            of predictors used in the model.
@@ -70,6 +72,8 @@ class ForwardFeatureSelection:
             dataset for which to compute performance of each model
         target_column_name : str
             name of the target column
+        splits : list, optional
+            list of splits to compute performance on
 
         Returns
         -------
@@ -81,35 +85,26 @@ class ForwardFeatureSelection:
         results = []
         predictor_set = set([])
         for model in self._fitted_models:
-            # Evaluate model
-            performance_train = model.evaluate(
-                data[data["split"] == "train"],
-                data[data["split"] == "train"][target_column_name],
-                split="train"  # used for caching
-                )
-
-            performance_selection = model.evaluate(
-                data[data["split"] == "selection"],
-                data[data["split"] == "selection"][target_column_name],
-                split="selection"  # used for caching
-                )
-
-            performance_validation = model.evaluate(
-                data[data["split"] == "validation"],
-                data[data["split"] == "validation"][target_column_name],
-                split="validation"  # used for caching
-                )
 
             last_added_predictor = (set(model.predictors)
                                     .difference(predictor_set))
-
-            results.append({
+            tmp = {
                 "predictors": model.predictors,
-                "last_added_predictor": list(last_added_predictor)[0],
-                "train_performance": performance_train,
-                "selection_performance": performance_selection,
-                "validation_performance": performance_validation
+                "last_added_predictor": list(last_added_predictor)[0]
+            }
+
+            # Evaluate model on each data set split,
+            # e.g. train-selection-validation
+            tmp.update({
+                f"{split}_performance": model.evaluate(
+                    data[data["split"] == split],
+                    data[data["split"] == split][target_column_name],
+                    split=split  # parameter used for caching
+                    )
+                for split in splits
             })
+
+            results.append(tmp)
 
             predictor_set = predictor_set.union(set(model.predictors))
 
