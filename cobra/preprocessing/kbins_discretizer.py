@@ -125,7 +125,7 @@ class KBinsDiscretizer(BaseEstimator):
         params = self.get_params()
 
         params["_bins_by_column"] = {
-            key: [list(tup) for tup in value]
+            key: [list(tup) for tup in value] if value else None
             for key, value in self._bins_by_column.items()
         }
 
@@ -193,9 +193,8 @@ class KBinsDiscretizer(BaseEstimator):
 
             bins = self._fit_column(data, column_name)
 
-            if bins is not None:
-                # Add to bins_by_column for later use
-                self._bins_by_column[column_name] = bins
+            # Add to bins_by_column for later use
+            self._bins_by_column[column_name] = bins
 
     def _fit_column(self, data: pd.DataFrame,
                     column_name: str) -> List[tuple]:
@@ -273,7 +272,7 @@ class KBinsDiscretizer(BaseEstimator):
 
             # can be None for a column with a constant value!
             bins = self._bins_by_column[column_name]
-            if bins:
+            if bins is not None:
                 data = self._transform_column(data, column_name, bins)
 
         return data
@@ -305,14 +304,14 @@ class KBinsDiscretizer(BaseEstimator):
         column_name_bin = column_name + "_bin"
 
         # use pd.cut to compute bins
-        data[column_name_bin] = pd.cut(x=data[column_name],
-                                       bins=interval_idx)
+        data.loc[:, column_name_bin] = pd.cut(x=data[column_name],
+                                              bins=interval_idx)
 
         # Rename bins so that the output has a proper format
         bin_labels = self._create_bin_labels(bins)
 
-        data[column_name_bin] = (data[column_name_bin]
-                                 .cat.rename_categories(bin_labels))
+        data.loc[:, column_name_bin] = (data[column_name_bin]
+                                        .cat.rename_categories(bin_labels))
 
         if data[column_name_bin].isnull().sum() > 0:
 

@@ -271,12 +271,14 @@ class CategoricalDataProcessor(BaseEstimator):
         """
 
         column_name_clean = column_name + "_processed"
-        data[column_name_clean] = data[column_name].astype(object)
+        data.loc[:, column_name_clean] = data[column_name].astype(object)
 
         # Fill missings first
-        data[column_name_clean] = (CategoricalDataProcessor
-                                   ._replace_missings(data,
-                                                      column_name_clean))
+        data.loc[:, column_name_clean] = (CategoricalDataProcessor
+                                          ._replace_missings(
+                                              data,
+                                              column_name_clean
+                                              ))
 
         if self.regroup:
             categories = self._cleaned_categories_by_column.get(column_name)
@@ -289,13 +291,14 @@ class CategoricalDataProcessor(BaseEstimator):
                                 "and will be skipped".format(column_name))
                 return data
 
-            data[column_name_clean] = (CategoricalDataProcessor
-                                       ._replace_categories(
-                                           data[column_name_clean],
-                                           categories))
+            data.loc[:, column_name_clean] = (CategoricalDataProcessor
+                                              ._replace_categories(
+                                                  data[column_name_clean],
+                                                  categories))
 
         # change data to categorical
-        data[column_name_clean] = data[column_name_clean].astype("category")
+        data.loc[:, column_name_clean] = (data[column_name_clean]
+                                          .astype("category"))
 
         return data
 
