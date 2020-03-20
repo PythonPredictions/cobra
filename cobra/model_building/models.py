@@ -145,6 +145,6 @@ class LogisticRegressionModel:
             utils.clean_predictor_name(predictor): stats.pearsonr(
                 data[predictor],
                 y_pred
-                )
+                )[0]
             for predictor in self.predictors
         }
