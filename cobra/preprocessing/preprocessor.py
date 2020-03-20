@@ -232,7 +232,6 @@ class PreProcessor(BaseEstimator):
 
             train_data = self._discretizer.transform(train_data,
                                                      continuous_vars)
-
         if discrete_vars:
             begin = time.time()
             self._categorical_data_processor.fit(train_data,
@@ -364,6 +363,20 @@ class PreProcessor(BaseEstimator):
                                                             random_state=42,
                                                             stratify=stratify)
 
+        df_train = pd.DataFrame(X_train, columns=predictors)
+        df_train[target_column_name] = y_train
+        df_train["split"] = "train"
+
+        # If there is no validation percentage, return train-selection sets
+        # only
+        if validation_pct == 0.0:
+            df_selection = pd.DataFrame(X_test, columns=predictors)
+            df_selection[target_column_name] = y_test
+            df_selection["split"] = "selection"
+
+            return (pd.concat([df_train, df_selection])
+                    .reset_index(drop=True))
+
         if stratify_split:
             stratify = y_test
 
@@ -373,10 +386,6 @@ class PreProcessor(BaseEstimator):
             random_state=42,
             stratify=stratify
             )
-
-        df_train = pd.DataFrame(X_train, columns=predictors)
-        df_train[target_column_name] = y_train
-        df_train["split"] = "train"
 
         df_selection = pd.DataFrame(X_sel, columns=predictors)
         df_selection[target_column_name] = y_sel
