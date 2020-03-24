@@ -113,20 +113,20 @@ class ForwardFeatureSelection:
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
             predictors: list, forced_predictors: list=[],
             excluded_predictors: list=[]):
-        """Summary
+        """Fit the forward feature selection estimator
 
         Parameters
         ----------
         data : pd.DataFrame
-            Description
+            Data on which to fit the model
         target_column_name : str
-            Description
+            Name of the target column
         predictors : list
-            Description
+            List of predictors on which to train the estimator
         forced_predictors : list, optional
-            Description
+            List of predictors to force in the estimator
         excluded_predictors : list, optional
-            Description
+            List of predictors to exclude from the estimator
 
         Raises
         ------
@@ -158,18 +158,21 @@ class ForwardFeatureSelection:
     def _forward_selection(self, train_data: pd.DataFrame,
                            target_column_name: str, predictors: list,
                            forced_predictors: list=[]):
-        """Summary
+        """Perform the forward feature selection algoritm to compute a list
+        of models (with increasing performance?). The length of the list,
+        i.e. the number of models is bounded by the max_predictors class
+        attribute.
 
         Parameters
         ----------
         train_data : pd.DataFrame
-            Description
+            Data on which to fit the model
         target_column_name : str
-            Description
+            Name of the target column
         predictors : list
-            Description
+            List of predictors on which to train the models
         forced_predictors : list, optional
-            Description
+            List of predictors to force in the models
         """
         current_predictors = []
 
@@ -205,23 +208,26 @@ class ForwardFeatureSelection:
                               target_column_name: str,
                               candidate_predictors: list,
                               current_predictors: list) -> MLModel:
-        """Summary
+        """Given a list of current predictors which are already to selected to
+        be include in the model, Find amongst a list candidate predictors
+        the predictor to add to the selected list so that the resulting model
+        has the best performance.
 
         Parameters
         ----------
         train_data : pd.DataFrame
-            Description
+            Data on which to fit the model
         target_column_name : str
-            Description
+            Name of the target column
         candidate_predictors : list
-            Description
+            List of candidate predictors to test
         current_predictors : list
-            Description
+            List of predictors on which to train the models
 
         Returns
         -------
         MLModel
-            Description
+            Best performing model
         """
         # placeholders
         best_model = None
@@ -251,21 +257,21 @@ class ForwardFeatureSelection:
 
     def _train_model(self, train_data: pd.DataFrame, target_column_name: str,
                      predictors: list) -> MLModel:
-        """Summary
+        """Train the model with a given set of predictors
 
         Parameters
         ----------
         train_data : pd.DataFrame
-            Description
+            Data on which to fit the model
         target_column_name : str
-            Description
+            Name of the target column
         predictors : list
-            Description
+            List of predictors on which to train the models
 
         Returns
         -------
         MLModel
-            Description
+            trained model
         """
         model = MLModel()
 
