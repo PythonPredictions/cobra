@@ -18,7 +18,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
                                     preselect_auc_threshold: float,
                                     preselect_overtrain_threshold: float
                                     ) -> pd.DataFrame:
-    """ Perform a preselection of predictors based on an AUC threshold of
+    """Perform a preselection of predictors based on an AUC threshold of
     a univariate model on a train and selection dataset and return a datframe
     containing for each variable the train and selection AUC along with a
     boolean "preselection" column.
@@ -33,18 +33,29 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     Therefore, no univariate model is trained here as the target encoded train
     and selection data is/must be used as inputs for this function. These will
     be used as predicted scores to compute the AUC with against the target
-    Args:
-        target_enc_train_data (pd.DataFrame): Train data
-        target_enc_selection_data (pd.DataFrame): Selection data
-        predictors (list): list of predictors (e.g. column names in the train
-        and selection data sets)
-        target_column (str): name of the target column
-        preselect_auc_threshold (float): Description
-        preselect_overtrain_threshold (float): Description
-    Returns:
-        pd.DataFrame: DataFrame containing for each variable the train auc and
-        selection auc allong with a boolean indicating whether or not it is
-        selected based on the criteria
+
+    Parameters
+    ----------
+    target_enc_train_data : pd.DataFrame
+        Train data
+    target_enc_selection_data : pd.DataFrame
+        Selection data
+    predictors : list
+        list of predictors (e.g. column names in the train
+    target_column : str
+        name of the target column
+    preselect_auc_threshold : float
+        Description
+    preselect_overtrain_threshold : float
+        Description
+    and selection data sets)
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing for each variable the train auc and
+    selection auc allong with a boolean indicating whether or not it is
+    selected based on the criteria
     """
     result = []
 
@@ -81,8 +92,8 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
 
 
 def get_preselected_predictors(df_auc: pd.DataFrame) -> list:
-    """Wrapper function to extract a list of predictors
-    from df_auc
+    """Wrapper function to extract a list of predictors from df_auc
+
     Parameters
     ----------
     df_auc : pd.DataFrame
@@ -105,13 +116,20 @@ def compute_correlations(target_enc_train_data: pd.DataFrame,
                          predictors: list) -> pd.DataFrame:
     """Given a DataFrame and a list of predictors, compute the correlations
     amongst the predictors in the DataFrame
-    Args:
-        target_enc_train_data (pd.DataFrame): data to compute correlation
-        matrix from
-        predictors (list): List of column names of the DataFrame between which
-        to compute correlations
-    Returns:
-        pd.DataFrame: The correlation matrix of the training set
+
+    Parameters
+    ----------
+    target_enc_train_data : pd.DataFrame
+        data to compute correlation
+    predictors : list
+        List of column names of the DataFrame between which
+    matrix from
+    to compute correlations
+
+    Returns
+    -------
+    pd.DataFrame
+        The correlation matrix of the training set
     """
 
     correlations = target_enc_train_data[predictors].corr()
