@@ -1,8 +1,15 @@
 """
-This class is a rework of
-https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py
-However, it is purely written in pandas instead of numpy because
-it is more intuitive
+This module is a rework of
+https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/
+_discretization.py
+However, it is purely written in pandas instead of numpy because it is more
+intuitive
+
+Also, some custom modifications were included to allign it with our methodology
+
+Authors:
+- Geert Verstraeten (methodology)
+- Matthias Roels (implementation)
 """
 # standard lib imports
 from copy import deepcopy
@@ -16,13 +23,18 @@ log = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 
+from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
-from sklearn.cluster import KMeans
+#from sklearn.cluster import KMeans
 
 
-class KBinsDiscretizer:
+class KBinsDiscretizer(BaseEstimator):
 
-    """Bin continuous data into intervals of predefined size
+    """Bin continuous data into intervals of predefined size. This provides a
+    way to partition continuous data into discrete values, i.e. tranform
+    continuous data into nominal data. This can make a linear model more
+    expressive as it introduces nonlinearity to the model, while maintaining
+    the interpretability of the model afterwards.
 
     Attributes
     ----------
@@ -53,6 +65,9 @@ class KBinsDiscretizer:
     """
 
     valid_strategies = ("uniform", "quantile")
+    valid_keys = ["n_bins", "strategy", "closed", "auto_adapt_bins",
+                  "starting_precision", "label_format",
+                  "change_endpoint_format"]
 
     def __init__(self, n_bins: int=10, strategy: str="quantile",
                  closed: str="right",
@@ -66,7 +81,7 @@ class KBinsDiscretizer:
 
         self.n_bins = n_bins
         self.strategy = strategy.lower()
-        self.closed = closed
+        self.closed = closed.lower()
         self.auto_adapt_bins = auto_adapt_bins
         self.starting_precision = starting_precision
         self.label_format = label_format
@@ -98,9 +113,59 @@ class KBinsDiscretizer:
                              "of bins. Received {}, expected at least 2."
                              .format(KBinsDiscretizer.__name__, n_bins))
 
-    def set_bins_by_columns(self, bins_by_column: List[tuple]):
-        # To do: add checks!
-        self._bins_by_column = bins_by_column
+    def attributes_to_dict(self) -> dict:
+        """Return the attributes of KBinsDiscretizer in a dictionary
+
+        Returns
+        -------
+        dict
+            Contains the attributes of KBinsDiscretizer instance with the names
+            as keys
+        """
+        params = self.get_params()
+
+        params["_bins_by_column"] = {
+            key: [list(tup) for tup in value] if value else None
+            for key, value in self._bins_by_column.items()
+        }
+
+        return params
+
+    def set_attributes_from_dict(self, params: dict):
+        """Set instance attributes from a dictionary of values with key the
+        name of the attribute.
+
+        Parameters
+        ----------
+        params : dict
+            Contains the attributes of KBinsDiscretizer with their
+            names as key.
+
+        Raises
+        ------
+        ValueError
+            In case _bins_by_column is not of type dict
+        """
+        _bins_by_column = params.pop("_bins_by_column", {})
+
+        if type(_bins_by_column) != dict:
+            raise ValueError("_bins_by_column is expected to be a dict "
+                             "but is of type {} instead"
+                             .format(type(_bins_by_column)))
+
+        # Clean out params dictionary to remove unknown keys (for safety!)
+        params = {key: params[key] for key in params if key in self.valid_keys}
+
+        # We cannot turn this method into a classmethod as we want to make use
+        # of the following method from BaseEstimator:
+        self.set_params(**params)
+
+        self._bins_by_column = {
+            key: [tuple(l) for l in value]
+            for key, value in _bins_by_column.items()
+        }
+
+        return self
 
     def fit(self, data: pd.DataFrame, column_names: list):
         """Fits the estimator
@@ -120,6 +185,11 @@ class KBinsDiscretizer:
                                      self.valid_strategies, self.strategy))
 
         for column_name in column_names:
+
+            if column_name not in data.columns:
+                log.warning("DataFrame has no column '{}', so it will be "
+                            "skipped in fitting" .format(column_name))
+                continue
 
             bins = self._fit_column(data, column_name)
 
@@ -154,7 +224,7 @@ class KBinsDiscretizer:
         if self.auto_adapt_bins:
             size = len(data.index)
             missing_pct = data[column_name].isnull().sum()/size
-            n_bins = int(max((1 - missing_pct) * n_bins), 2)
+            n_bins = int(max(round((1 - missing_pct) * n_bins), 2))
 
         bin_edges = self._compute_bin_edges(data, column_name, n_bins,
                                             col_min, col_max)
@@ -173,7 +243,8 @@ class KBinsDiscretizer:
 
     def transform(self, data: pd.DataFrame,
                   column_names: list) -> pd.DataFrame:
-        """Summary
+        """Discretizes the data in the given list of columns by mapping each
+        number to the appropriate bin computed by the fit method
 
         Parameters
         ----------
@@ -201,7 +272,7 @@ class KBinsDiscretizer:
 
             # can be None for a column with a constant value!
             bins = self._bins_by_column[column_name]
-            if bins:
+            if bins is not None:
                 data = self._transform_column(data, column_name, bins)
 
         return data
@@ -233,14 +304,14 @@ class KBinsDiscretizer:
         column_name_bin = column_name + "_bin"
 
         # use pd.cut to compute bins
-        data[column_name_bin] = pd.cut(x=data[column_name],
-                                       bins=interval_idx)
+        data.loc[:, column_name_bin] = pd.cut(x=data[column_name],
+                                              bins=interval_idx)
 
-         # Rename bins so that the output has a proper format
+        # Rename bins so that the output has a proper format
         bin_labels = self._create_bin_labels(bins)
 
-        data[column_name_bin] = (data[column_name_bin]
-                                 .cat.rename_categories(bin_labels))
+        data.loc[:, column_name_bin] = (data[column_name_bin]
+                                        .cat.rename_categories(bin_labels))
 
         if data[column_name_bin].isnull().sum() > 0:
 
@@ -414,6 +485,14 @@ class KBinsDiscretizer:
         pd.IntervalIndex
             Description
         """
+
+        # check if closed is of the proper form
+        if closed not in ["left", "right"]:
+            raise ValueError("{}: valid options for 'closed' are {}. "
+                             "Got strategy={!r} instead."
+                             .format(KBinsDiscretizer.__name__,
+                                     ["left", "right"], closed))
+
         # deepcopy variable because we do not want to modify the content
         # of intervals (which is still used outside of this function)
         _intervals = deepcopy(intervals)
@@ -445,7 +524,11 @@ class KBinsDiscretizer:
 
         # Format first and last bin as < x and > y resp.
         if self.change_endpoint_format:
-            bin_labels[0] = "< {}".format(bins[0][1])
-            bin_labels[-1] = "> {}".format(bins[-1][0])
+            if self.closed == "left":
+                bin_labels[0] = "< {}".format(bins[0][1])
+                bin_labels[-1] = ">= {}".format(bins[-1][0])
+            else:
+                bin_labels[0] = "<= {}".format(bins[0][1])
+                bin_labels[-1] = "> {}".format(bins[-1][0])
 
         return bin_labels
