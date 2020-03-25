@@ -58,7 +58,8 @@ class ForwardFeatureSelection:
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
                                    splits: list=["train", "selection",
-                                                 "validation"]) -> list:
+                                                 "validation"]
+                                   ) -> pd.DataFrame:
         """Compute for each model the performance for
            train-selection-validation sets and return them along with a list
            of predictors used in the model.
@@ -108,7 +109,7 @@ class ForwardFeatureSelection:
 
             predictor_set = predictor_set.union(set(model.predictors))
 
-        return results
+        return pd.DataFrame(results)
 
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
             predictors: list, forced_predictors: list=[],
