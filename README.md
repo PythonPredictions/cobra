@@ -16,7 +16,7 @@ Note that this package is a refactored version of the back-end of the original w
     - add columns with incidence rate per category/bin.
   * Perform univariate selection based on AUC
   * Compute correlation matrix of predictors
-  * Find best model by forward selection
+  * Find the suitable variables using forward feature selection
   * Visualize the results
   * Allow iteration among each step for the analyst
 
@@ -53,12 +53,104 @@ As this package is an internal package that is not open-sourced, it is not avail
 
   * Clone this repository.
   * Open a shell that can execute python code and navigate to the folder where this repo was cloned in.
-  * Once you are in the folder, execute `python setup.py install` or `pip install .`.
+  * Once you are in the folder, execute `python setup.py install` or `pip install .` (preferred).
 
 ### Usage
 
-TO DO
+This section contains detailed examples for each step. We assume the data for model building is available in a pandas DataFrame called `basetable`.
+
+```python
+from cobra.preprocessing import PreProcessor
+
+# Prepare data
+# create instance of PreProcessor from parameters
+# (many options possible, see source code for docs)
+path = "path/to/store/preprocessing/pipeline/as/json/file/for/later/re-use/"
+preprocessor = PreProcessor.from_params(serialization_path=path)
+
+# split data into train-selection-validation set
+# in the result, an additional column "split" will be created
+# containing each of those values
+basetable = preprocessor.train_selection_validation_split(
+                basetable,
+                target_column_name=target_column_name,
+                train_pct=0.6, selection_pct=0.2,
+                validation_pct=0.2)
+
+# create list containing the column names of the discrete resp.
+# continiuous variables
+continuous_vars = []
+discrete_vars = []
+
+# fit the pipeline (will automatically be stored to "path" variable)
+preprocessor.fit(basetable[basetable["split"]=="train"],
+                 continuous_vars=continuous_vars,
+                 discrete_vars=discrete_vars,
+                 target_column_name=target_column_name)
+
+# When you want to reuse the pipeline the next time, simply run
+# preprocessor = PreProcessor.from_pipeline(path) and you're good to go!
+
+# transform the data (e.g. perform discretisation, incidence replacement, ...)
+basetable = preprocessor.transform(basetable,
+                                   continuous_vars=continuous_vars,
+                                   discrete_vars=discrete_vars)
+```
+
+Once the preprocessing pipeline is fitted and applied to your data, it is time for the actual modelling. In this part of the process,
+we first start with the _univariate preselection_:
+
+```python
+from cobra.model_building import univariate_selection
+
+# perform univariate selection on preprocessed predictors:
+df_auc = univariate_selection.compute_univariate_preselection(
+    target_enc_train_data=basetable[basetable["split"] == "train"],
+    target_enc_selection_data=basetable[basetable["split"] == "selection"],
+    predictors=preprocessed_predictors,
+    target_column=target_column_name,
+    preselect_auc_threshold=0.5,
+    preselect_overtrain_threshold=5)
+
+# compute correlations between preprocessed predictors:
+df_corr = (univariate_selection
+           .compute_correlations(basetable[basetable["split"] == "train"],
+                                 preprocessed_predictors))
+
+# get a list of predictors selection by the univariate selection
+preselected_predictors = (univariate_selection
+                          .get_preselected_predictors(df_auc))
+```
+
+After a preselection is done on the predictors, we can start the model building itself using _forward feature selection_ to choose the right set of predictors:
+
+```python
+from cobra.model_building import ForwardFeatureSelection
+
+forward_selection = ForwardFeatureSelection(max_predictors=30,
+                                            pos_only=True)
+
+# fit the forward feature selection on the train data
+# has optional parameters to force and/or exclude certain predictors
+forward_selection.fit(basetable[basetable["split"] == "train"],
+                      target_column_name,
+                      preselected_predictors)
+
+# compute model performance (e.g. AUC for train-selection-validation)
+performances = (forward_selection
+                .compute_model_performances(basetable, target_column_name))
+
+# After plotting the performances and selecting the model,
+# we can extract this model from the forward_selection class:
+model = forward_selection.get_model_from_step(5)
+
+# Note that model has 6 variables (python lists start with index 0),
+# which can be obtained as follows:
+final_predictors = model.predictors
+# We can also compute the importance of each predictor in the model (dict):
+variable_importance = model.compute_variable_importance(transformed_data)
+```
 
 ## Development
 
-We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch. Make sure to write or modify unit test for your changes!
+We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch. Make sure to write or modify unit test for your changes if they are related to preprocessing!
