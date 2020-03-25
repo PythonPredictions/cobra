@@ -95,6 +95,7 @@ preprocessor.fit(basetable[basetable["split"]=="train"],
 basetable = preprocessor.transform(basetable,
                                    continuous_vars=continuous_vars,
                                    discrete_vars=discrete_vars)
+
 ```
 
 Once the preprocessing pipeline is fitted and applied to your data, it is time for the actual modelling. In this part of the process,
@@ -103,14 +104,18 @@ we first start with the _univariate preselection_:
 ```python
 from cobra.model_building import univariate_selection
 
+# Get list of predictor names to use for univariate_selection
+preprocessed_predictors = [col for col in basetable.columns if col.endswith("_enc")]
+
 # perform univariate selection on preprocessed predictors:
 df_auc = univariate_selection.compute_univariate_preselection(
     target_enc_train_data=basetable[basetable["split"] == "train"],
     target_enc_selection_data=basetable[basetable["split"] == "selection"],
     predictors=preprocessed_predictors,
     target_column=target_column_name,
-    preselect_auc_threshold=0.5,
-    preselect_overtrain_threshold=5)
+    preselect_auc_threshold=0.53,  # if auc_selection <= 0.53 exclude predictor
+    preselect_overtrain_threshold=0.05  # if (auc_train - auc_selection) >= 0.05 --> overfitting!
+    )
 
 # compute correlations between preprocessed predictors:
 df_corr = (univariate_selection
@@ -142,13 +147,13 @@ performances = (forward_selection
 
 # After plotting the performances and selecting the model,
 # we can extract this model from the forward_selection class:
-model = forward_selection.get_model_from_step(5)
+model = forward_selection.get_model_from_step(5)  # Python indexing starts from 0, so this model has 6 predictors
 
 # Note that model has 6 variables (python lists start with index 0),
 # which can be obtained as follows:
 final_predictors = model.predictors
 # We can also compute the importance of each predictor in the model (dict):
-variable_importance = model.compute_variable_importance(transformed_data)
+variable_importance = model.compute_variable_importance(basetable)
 ```
 
 ## Development
