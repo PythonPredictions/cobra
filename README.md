@@ -74,8 +74,8 @@ preprocessor = PreProcessor.from_params(serialization_path=path)
 basetable = preprocessor.train_selection_validation_split(
                 basetable,
                 target_column_name=target_column_name,
-                train_pct=0.6, selection_pct=0.2,
-                validation_pct=0.2)
+                train_prop=0.6, selection_prop=0.2,
+                validation_prop=0.2)
 
 # create list containing the column names of the discrete resp.
 # continiuous variables

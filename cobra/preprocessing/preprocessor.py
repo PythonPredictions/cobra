@@ -205,9 +205,9 @@ class PreProcessor(BaseEstimator):
         ----------
         train_data : pd.DataFrame
             Data to be preprocessed
-        continuous_vars : list, optional
+        continuous_vars : list
             list of continuous variables
-        discrete_vars : list, optional
+        discrete_vars : list
             list of discrete variables
         target_column_name : str
             Name of the target column
@@ -259,26 +259,26 @@ class PreProcessor(BaseEstimator):
 
     def transform(self, data: pd.DataFrame, continuous_vars: list,
                   discrete_vars: list) -> pd.DataFrame:
-        """Summary
+        """Transform the data by applying the preprocessing pipeline to the it
 
         Parameters
         ----------
         data : pd.DataFrame
-            Description
-        continuous_vars : list, optional
+            Data to be preprocessed
+        continuous_vars : list
             list of continuous variables
-        discrete_vars : list, optional
+        discrete_vars : list
             list of discrete variables
 
         Returns
         -------
         pd.DataFrame
-            Description
+            Transformed (preprocessed) data
 
         Raises
         ------
         NotFittedError
-            Description
+            In case PreProcessor was not fitted first
         """
 
         start = time.time()
@@ -308,12 +308,33 @@ class PreProcessor(BaseEstimator):
 
         return data
 
+    def fit_transform(self, train_data: pd.DataFrame, continuous_vars: list,
+                      discrete_vars: list, target_column_name: str):
+        """Fit the data to the preprocessing pipeline and transform the data
+
+        Parameters
+        ----------
+        train_data : pd.DataFrame
+            Data to be preprocessed
+        continuous_vars : list
+            list of continuous variables
+        discrete_vars : list
+            list of discrete variables
+        target_column_name : str
+            Name of the target column
+        """
+
+        self.fit(train_data, continuous_vars, discrete_vars,
+                 target_column_name)
+
+        return self.transform(train_data, continuous_vars, discrete_vars)
+
     @staticmethod
     def train_selection_validation_split(data: pd.DataFrame,
                                          target_column_name: str,
-                                         train_pct: float=0.6,
-                                         selection_pct: float=0.2,
-                                         validation_pct: float=0.2,
+                                         train_prop: float=0.6,
+                                         selection_prop: float=0.2,
+                                         validation_prop: float=0.2,
                                          stratify_split=True)->pd.DataFrame:
         """Split dataset into train-selection-validation datasets and merge
         them into one big DataFrame with an additional column "split"
@@ -325,11 +346,11 @@ class PreProcessor(BaseEstimator):
             Input dataset to split into train-selection and validation sets
         target_column_name : str
             Name of the target column
-        train_pct : float, optional
+        train_prop : float, optional
             Percentage data to put in train set
-        selection_pct : float, optional
+        selection_prop : float, optional
             Percentage data to put in selection set
-        validation_pct : float, optional
+        validation_prop : float, optional
             Percentage data to put in validation set
         stratify_split : bool, optional
             Whether or not to stratify the train-test split
@@ -339,17 +360,22 @@ class PreProcessor(BaseEstimator):
         pd.DataFrame
             Description
         """
+
+        if train_prop + selection_prop + validation_prop > 1:
+            raise ValueError("The sum of train_prop, selection_prop and "
+                             "validation_prop cannot be larger than 1")
+
         column_names = list(data.columns)
 
         predictors = [col for col in column_names if col != target_column_name]
 
         # for the first split, take sum of selection & validation pct as
         # test pct
-        test_pct = selection_pct + validation_pct
+        test_prop = selection_prop + validation_prop
         # To further split our test set into selection + validation set,
-        # we have to modify validation pct because we only have test_pct of
+        # we have to modify validation pct because we only have test_prop of
         # the data available anymore for further splitting!
-        validation_pct_modif = validation_pct / test_pct
+        validation_prop_modif = validation_prop / test_prop
 
         X = data[predictors]
         y = data[target_column_name]
@@ -358,10 +384,12 @@ class PreProcessor(BaseEstimator):
         if stratify_split:
             stratify = y
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y,
-                                                            test_size=test_pct,
-                                                            random_state=42,
-                                                            stratify=stratify)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y,
+            test_size=test_prop,
+            random_state=42,
+            stratify=stratify
+            )
 
         df_train = pd.DataFrame(X_train, columns=predictors)
         df_train[target_column_name] = y_train
@@ -369,7 +397,7 @@ class PreProcessor(BaseEstimator):
 
         # If there is no validation percentage, return train-selection sets
         # only
-        if validation_pct == 0.0:
+        if validation_prop == 0.0:
             df_selection = pd.DataFrame(X_test, columns=predictors)
             df_selection[target_column_name] = y_test
             df_selection["split"] = "selection"
@@ -382,7 +410,7 @@ class PreProcessor(BaseEstimator):
 
         X_sel, X_val, y_sel, y_val = train_test_split(
             X_test, y_test,
-            test_size=validation_pct_modif,
+            test_size=validation_prop_modif,
             random_state=42,
             stratify=stratify
             )
@@ -462,24 +490,25 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def _get_variable_list(continuous_vars: list, discrete_vars: list) -> list:
-        """Summary
+        """merge lists of continuous_vars and discrete_vars and add suffix
+        "_bin" resp. "_processed" to the predictors
 
         Parameters
         ----------
         continuous_vars : list
-            Description
+            list of continuous variables
         discrete_vars : list
-            Description
+            list of discrete variables
 
         Returns
         -------
         list
-            Description
+            Merged list of predictors with proper suffixes added
 
         Raises
         ------
         ValueError
-            Description
+            in case both lists are empty
         """
         var_list = ([col + "_processed" for col in discrete_vars]
                     + [col + "_bin" for col in continuous_vars])
