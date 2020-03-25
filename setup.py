@@ -5,7 +5,10 @@ setup(
     name="cobra",
     version="1.0.0",
     description="Python Prediction's methodology for predictive analytics",
-    packages=["cobra", "cobra.preprocessing", "cobra.model_building"],
+    packages=["cobra",
+              "cobra.preprocessing",
+              "cobra.model_building",
+              "cobra.evaluation"],
     url="https://github.com/PythonPredictions",
     #long_description=long_description,  # TO DO
     #long_description_content_type="text/markdown",
@@ -16,5 +19,5 @@ setup(
         "scikit_learn>=0.22.1",
         "matplotlib>=3.0.2",
         "seaborn>=0.9.0"],
-    python_requires=">=3.5",
+    python_requires=">=3.6",
 )
