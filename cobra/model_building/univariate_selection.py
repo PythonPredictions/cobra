@@ -89,7 +89,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     df_auc["preselection"] = auc_thresh & auc_overtrain
 
     return (df_auc.sort_values(by='AUC selection', ascending=False)
-            .reset_index())
+            .reset_index(drop=True))
 
 
 def get_preselected_predictors(df_auc: pd.DataFrame) -> list:

@@ -3,6 +3,8 @@ import pandas as pd
 #import matplotlib.pyplot as plt
 #import seaborn as sns
 
+import cobra.utils as utils
+
 
 def generate_pig_tables(data: pd.DataFrame,
                         id_column_name: str,
@@ -79,7 +81,7 @@ def compute_pig_table(data: pd.DataFrame,
     # add the column name to a variable column
     # add the average incidence
     # replace population size by a percentage of total population
-    res["variable"] = column_name
+    res["variable"] = utils.clean_predictor_name(column_name)
     res["avg_incidence"] = avg_incidence
     res["pop_size"] = res["pop_size"]/len(data.index)
 
