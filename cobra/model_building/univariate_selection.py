@@ -15,8 +15,8 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
                                     target_enc_selection_data: pd.DataFrame,
                                     predictors: list,
                                     target_column: str,
-                                    preselect_auc_threshold: float,
-                                    preselect_overtrain_threshold: float
+                                    preselect_auc_threshold: float=0.053,
+                                    preselect_overtrain_threshold: float=0.05
                                     ) -> pd.DataFrame:
     """Perform a preselection of predictors based on an AUC threshold of
     a univariate model on a train and selection dataset and return a datframe
@@ -41,14 +41,14 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     target_enc_selection_data : pd.DataFrame
         Selection data
     predictors : list
-        list of predictors (e.g. column names in the train
+        list of predictors (e.g. column names in the train set and selection
+        data sets)
     target_column : str
         name of the target column
-    preselect_auc_threshold : float
-        Description
-    preselect_overtrain_threshold : float
-        Description
-    and selection data sets)
+    preselect_auc_threshold : float, optional
+        threshold on AUC to select predictor
+    preselect_overtrain_threshold : float, optional
+        threshold on the difference between train and selection AUC
 
     Returns
     -------
@@ -83,12 +83,13 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
 
     # Identify those variables for which the AUC difference between train
     # and selection is within a user-defined ratio
-    auc_overtrain = ((df_auc["AUC train"] - df_auc["AUC selection"]) * 100
+    auc_overtrain = ((df_auc["AUC train"] - df_auc["AUC selection"])
                      < preselect_overtrain_threshold)
 
     df_auc["preselection"] = auc_thresh & auc_overtrain
 
-    return df_auc.sort_values(by='AUC selection', ascending=False)
+    return (df_auc.sort_values(by='AUC selection', ascending=False)
+            .reset_index())
 
 
 def get_preselected_predictors(df_auc: pd.DataFrame) -> list:

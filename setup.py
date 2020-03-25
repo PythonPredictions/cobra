@@ -1,10 +1,11 @@
 from distutils.core import setup
 
+
 setup(
     name="cobra",
-    version="0.1.0",
+    version="1.0.0",
     description="Python Prediction's methodology for predictive analytics",
-    packages=["cobra"],
+    packages=["cobra", "cobra.preprocessing", "cobra.model_building"],
     url="https://github.com/PythonPredictions",
     #long_description=long_description,  # TO DO
     #long_description_content_type="text/markdown",
