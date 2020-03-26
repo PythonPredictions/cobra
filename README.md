@@ -57,7 +57,13 @@ As this package is an internal package that is not open-sourced, it is not avail
 
 ### Usage
 
-This section contains detailed examples for each step. We assume the data for model building is available in a pandas DataFrame called `basetable`.
+This section contains detailed examples for each step on how to use COBRA for building a predictive model. All classes and functions contain detailed documentation, so in case you want more information on a class or function, simply run the following python snippet:
+
+```python
+help(function_or_class_you_want_info_from)
+```
+
+In the examples below, we assume the data for model building is available in a pandas DataFrame called `basetable`.
 
 ```python
 from cobra.preprocessing import PreProcessor
@@ -158,4 +164,4 @@ variable_importance = model.compute_variable_importance(basetable)
 
 ## Development
 
-We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch. Make sure to write or modify unit test for your changes if they are related to preprocessing!
+We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch. Make sure to follow the _PEP 8_ styleguide if you make any changes to COBRA. You should also write or modify unit test for your changes if they are related to preprocessing!
