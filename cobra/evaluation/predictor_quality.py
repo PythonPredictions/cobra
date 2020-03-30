@@ -5,30 +5,25 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def plot_variable_importance(importance_by_variable: dict,
+def plot_variable_importance(df_variable_importance: pd.DataFrame,
                              title: str=None,
                              dim: tuple=(12, 8)):
     """Plot variable importance of a given model
 
     Parameters
     ----------
-    importance_by_variable : dict
-        Map of predictor -> importance
+    df_variable_importance : pd.DataFrame
+        DataFrame containing columns predictor and importance
     title : str, optional
         Title of the plot
     dim : tuple, optional
         tuple with width and lentgh of the plot
     """
-    df = pd.DataFrame.from_dict(importance_by_variable,
-                                orient='index').reset_index()
-
-    df.columns = ["predictor", "importance"]
-
-    df = df.sort_values(by="importance", ascending=False)
 
     # plot data
     fig, ax = plt.subplots(figsize=dim)
-    ax = sns.barplot(x="importance", y="predictor", data=df)
+    ax = sns.barplot(x="importance", y="predictor",
+                     data=df_variable_importance)
     if title:
         ax.set_title(title)
     else:
