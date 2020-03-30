@@ -153,4 +153,5 @@ class LogisticRegressionModel:
                                     orient='index').reset_index()
         df.columns = ["predictor", "importance"]
 
-        return df.sort_values(by="importance", ascending=False)
+        return (df.sort_values(by="importance", ascending=False)
+                .reset_index(drop=True))

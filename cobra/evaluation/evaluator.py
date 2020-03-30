@@ -144,21 +144,24 @@ class Evaluator():
 
         auc = self._scalar_metrics["AUC"]
 
-        fig, ax = plt.subplots(figsize=dim)
+        with plt.style.context("seaborn-whitegrid"):
 
-        ax.plot(self.roc_curve["fpr"],
-                self.roc_curve["tpr"],
-                color="darkorange", lw=2,
-                label="ROC curve (area = {s:.3})".format(s=auc))
+            fig, ax = plt.subplots(figsize=dim)
 
-        ax.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
-        ax.set_xlabel("False Positive Rate", fontsize=15)
-        ax.set_ylabel("True Positive Rate", fontsize=15)
-        ax.legend(loc="lower right")
-        ax.set_title("ROC Curve", fontsize=20)
+            ax.plot(self.roc_curve["fpr"],
+                    self.roc_curve["tpr"],
+                    color="cornflowerblue", linewidth=3,
+                    label="ROC curve (area = {s:.3})".format(s=auc))
 
-        if path:
-            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+            ax.plot([0, 1], [0, 1], color="darkorange", linewidth=3,
+                    linestyle="--")
+            ax.set_xlabel("False Positive Rate", fontsize=15)
+            ax.set_ylabel("True Positive Rate", fontsize=15)
+            ax.legend(loc="lower right")
+            ax.set_title("ROC Curve", fontsize=20)
+
+            if path:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
 
@@ -310,7 +313,7 @@ class Evaluator():
             fig, ax = plt.subplots(figsize=dim)
 
             ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
-                    color="blue", linewidth=3,
+                    color="cornflowerblue", linewidth=3,
                     label="cumulative gains")
             ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3,
                     ls="--", color="darkorange", label="random selection")
@@ -319,7 +322,7 @@ class Evaluator():
 
             #Format axes
             ax.set_xlim([0, 100])
-            ax.set_ylim([0, 100])
+            ax.set_ylim([0, 105])
             #Format ticks
             ax.set_yticklabels(["{:3.0f}%".format(x)
                                 for x in ax.get_yticks()])
