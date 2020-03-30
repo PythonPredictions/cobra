@@ -303,7 +303,33 @@ class Evaluator():
         dim : tuple, optional
             tuple with width and lentgh of the plot
         """
-        pass
+        plt.style.use('seaborn-darkgrid')
+
+        fig, ax = plt.subplots(figsize=dim)
+
+        ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
+                color='blue', linewidth=3,
+                label='cumulative gains')
+        ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3,
+                ls="--", color="darkorange", label='random selection')
+
+        ax.set_title('Cumulative Gains', fontsize=20)
+
+        #Format axes
+        ax.set_xlim([0, 100])
+        ax.set_ylim([0, 100])
+        #Format ticks
+        ax.set_yticklabels(['{:3.0f}%'.format(x)
+                            for x in ax.get_yticks()])
+        ax.set_xticklabels(['{:3.0f}%'.format(x)
+                            for x in ax.get_xticks()])
+        #Legend
+        ax.legend(loc='lower right')
+
+        if path is not None:
+            plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
+
+        plt.show()
 
     @staticmethod
     def find_optimal_cutoff(y_true: np.ndarray,
@@ -362,6 +388,10 @@ class Evaluator():
         """Compute lift of the model per decile, returns x-labels, lifts and
         the target incidence to create cummulative response curves
 
+        Code from (https://github.com/reiinakano/scikit-plot/blob/
+                   2dd3e6a76df77edcbd724c4db25575f70abb57cb/
+                   scikitplot/helpers.py#L157)
+
         Parameters
         ----------
         y_true : np.ndarray
@@ -374,7 +404,23 @@ class Evaluator():
         tuple
             x-labels, lifts per decile and target incidence
         """
-        pass
+
+        # make y_true a boolean vector
+        y_true = (y_true == 1)
+
+        sorted_indices = np.argsort(y_pred)[::-1]
+        y_true = y_true[sorted_indices]
+        gains = np.cumsum(y_true)
+
+        percentages = np.arange(start=1, stop=len(y_true) + 1)
+
+        gains = gains / float(np.sum(y_true))
+        percentages = percentages / float(len(y_true))
+
+        gains = np.insert(gains, 0, [0])
+        percentages = np.insert(percentages, 0, [0])
+
+        return percentages, gains
 
     @staticmethod
     def _compute_lift_per_decile(y_true: np.ndarray,
