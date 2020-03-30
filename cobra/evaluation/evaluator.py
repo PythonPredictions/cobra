@@ -45,7 +45,7 @@ class Evaluator():
         self.probability_cutoff = probability_cutoff
 
         # Placeholder to store fitted output
-        self.evaluation_metrics = None
+        self._scalar_metrics = None
         self.roc_curve = None
         self.confusion_matrix = None
         self.lift_curve = None
@@ -66,7 +66,7 @@ class Evaluator():
                              for pred in y_pred])
 
         # Compute the various evaluation metrics
-        self.evaluation_metrics = Evaluator.compute_evaluation_metrics(
+        self._scalar_metrics = Evaluator.compute_scalar_metrics(
             y_true,
             y_pred,
             y_pred_b,
@@ -79,7 +79,7 @@ class Evaluator():
         self.cumulative_gains = Evaluator._compute_cumulative_gains(y_true,
                                                                     y_pred)
 
-    def get_metrics(self) -> pd.Series:
+    def get_scalar_scalar_metrics(self) -> pd.Series:
         """Get the evaluation_metrics attribute as a pandas Series
 
         Returns
@@ -87,15 +87,15 @@ class Evaluator():
         pd.Series
             Score of various scalar evaluation metrics for the model
         """
-        return pd.Series(self.evaluation_metrics)
+        return pd.Series(self._scalar_metrics)
 
     @staticmethod
-    def compute_evaluation_metrics(y_true: np.ndarray,
-                                   y_pred: np.ndarray,
-                                   y_pred_b: np.ndarray,
-                                   lift_at: float) -> dict:
-        """Convenient function to compute various performance measures and
-        return them in a dict
+    def compute_scalar_metrics(y_true: np.ndarray,
+                               y_pred: np.ndarray,
+                               y_pred_b: np.ndarray,
+                               lift_at: float) -> dict:
+        """Convenient function to compute various scalar performance measures
+        and return them in a dict
 
         Parameters
         ----------
@@ -142,7 +142,7 @@ class Evaluator():
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        auc = self.evaluation_metrics["AUC"]
+        auc = self._scalar_metrics["AUC"]
 
         fig, ax = plt.subplots(figsize=dim)
 
@@ -216,34 +216,35 @@ class Evaluator():
 
         lifts = np.array(lifts)*inc_rate*100
 
-        fig, ax = plt.subplots(figsize=dim)
-        plt.style.use("default")
+        with plt.style.context("seaborn-ticks"):
+            fig, ax = plt.subplots(figsize=dim)
 
-        plt.bar(x_labels[::-1], lifts, align="center", color="cornflowerblue")
-        plt.ylabel("response (%)", fontsize=16)
-        plt.xlabel("decile", fontsize=16)
-        ax.set_xticks(x_labels)
-        ax.set_xticklabels(x_labels)
+            plt.bar(x_labels[::-1], lifts, align="center",
+                    color="cornflowerblue")
+            plt.ylabel("response (%)", fontsize=16)
+            plt.xlabel("decile", fontsize=16)
+            ax.set_xticks(x_labels)
+            ax.set_xticklabels(x_labels)
 
-        plt.axhline(y=inc_rate*100, color="darkorange", linestyle="--",
-                    xmin=0.05, xmax=0.95, linewidth=3, label="Incidence")
+            plt.axhline(y=inc_rate*100, color="darkorange", linestyle="--",
+                        xmin=0.05, xmax=0.95, linewidth=3, label="Incidence")
 
-        #Legend
-        ax.legend(loc="upper right")
+            #Legend
+            ax.legend(loc="upper right")
 
-        ##Set Axis - make them pretty
-        sns.despine(ax=ax, right=True, left=True)
+            ##Set Axis - make them pretty
+            sns.despine(ax=ax, right=True, left=True)
 
-        #Remove white lines from the second axis
-        ax.grid(False)
+            #Remove white lines from the second axis
+            ax.grid(False)
 
-        ##Description
-        ax.set_title("Cumulative response", fontsize=20)
+            ##Description
+            ax.set_title("Cumulative response", fontsize=20)
 
-        if path is not None:
-            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+            if path is not None:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+            plt.show()
 
     def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)):
         """Plot lift per decile
@@ -264,34 +265,35 @@ class Evaluator():
 
         x_labels, lifts, _ = self.lift_curve
 
-        fig, ax = plt.subplots(figsize=dim)
-        plt.style.use("default")
+        with plt.style.context("seaborn-ticks"):
+            fig, ax = plt.subplots(figsize=dim)
 
-        plt.bar(x_labels[::-1], lifts, align="center", color="cornflowerblue")
-        plt.ylabel("lift", fontsize=16)
-        plt.xlabel("decile", fontsize=16)
-        ax.set_xticks(x_labels)
-        ax.set_xticklabels(x_labels)
+            plt.bar(x_labels[::-1], lifts, align="center",
+                    color="cornflowerblue")
+            plt.ylabel("lift", fontsize=16)
+            plt.xlabel("decile", fontsize=16)
+            ax.set_xticks(x_labels)
+            ax.set_xticklabels(x_labels)
 
-        plt.axhline(y=1, color="darkorange", linestyle="--",
-                    xmin=0.05, xmax=0.95, linewidth=3, label="Baseline")
+            plt.axhline(y=1, color="darkorange", linestyle="--",
+                        xmin=0.05, xmax=0.95, linewidth=3, label="Baseline")
 
-        #Legend
-        ax.legend(loc="upper right")
+            #Legend
+            ax.legend(loc="upper right")
 
-        ##Set Axis - make them pretty
-        sns.despine(ax=ax, right=True, left=True)
+            ##Set Axis - make them pretty
+            sns.despine(ax=ax, right=True, left=True)
 
-        #Remove white lines from the second axis
-        ax.grid(False)
+            #Remove white lines from the second axis
+            ax.grid(False)
 
-        ##Description
-        ax.set_title("Cumulative Lift", fontsize=20)
+            ##Description
+            ax.set_title("Cumulative Lift", fontsize=20)
 
-        if path is not None:
-            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+            if path is not None:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+            plt.show()
 
     def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)):
         """Plot lift per decile
@@ -303,33 +305,33 @@ class Evaluator():
         dim : tuple, optional
             tuple with width and lentgh of the plot
         """
-        plt.style.use('seaborn-darkgrid')
 
-        fig, ax = plt.subplots(figsize=dim)
+        with plt.style.context("seaborn-whitegrid"):
+            fig, ax = plt.subplots(figsize=dim)
 
-        ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
-                color='blue', linewidth=3,
-                label='cumulative gains')
-        ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3,
-                ls="--", color="darkorange", label='random selection')
+            ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
+                    color="blue", linewidth=3,
+                    label="cumulative gains")
+            ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3,
+                    ls="--", color="darkorange", label="random selection")
 
-        ax.set_title('Cumulative Gains', fontsize=20)
+            ax.set_title("Cumulative Gains", fontsize=20)
 
-        #Format axes
-        ax.set_xlim([0, 100])
-        ax.set_ylim([0, 100])
-        #Format ticks
-        ax.set_yticklabels(['{:3.0f}%'.format(x)
-                            for x in ax.get_yticks()])
-        ax.set_xticklabels(['{:3.0f}%'.format(x)
-                            for x in ax.get_xticks()])
-        #Legend
-        ax.legend(loc='lower right')
+            #Format axes
+            ax.set_xlim([0, 100])
+            ax.set_ylim([0, 100])
+            #Format ticks
+            ax.set_yticklabels(["{:3.0f}%".format(x)
+                                for x in ax.get_yticks()])
+            ax.set_xticklabels(["{:3.0f}%".format(x)
+                                for x in ax.get_xticks()])
+            #Legend
+            ax.legend(loc="lower right")
 
-        if path is not None:
-            plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
+            if path is not None:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+            plt.show()
 
     @staticmethod
     def find_optimal_cutoff(y_true: np.ndarray,
