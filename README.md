@@ -119,7 +119,7 @@ Once these PIG tables are computed, we can start with the _univariate preselecti
 
 ```python
 from cobra.model_building import univariate_selection
-from cobra.evaluation import plot_predictor_quality
+from cobra.evaluation import plot_univariate_predictor_quality
 from cobra.evaluation import plot_correlation_matrix
 
 # Get list of predictor names to use for univariate_selection
@@ -136,7 +136,7 @@ df_auc = univariate_selection.compute_univariate_preselection(
     )
 
 # Plot df_auc to get a horizontal barplot:
-plot_predictor_quality(df_auc)
+plot_univariate_predictor_quality(df_auc)
 
 # compute correlations between preprocessed predictors:
 df_corr = (univariate_selection
