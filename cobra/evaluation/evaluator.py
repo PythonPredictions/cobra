@@ -45,7 +45,7 @@ class Evaluator():
         self.probability_cutoff = probability_cutoff
 
         # Placeholder to store fitted output
-        self._scalar_metrics = None
+        self.scalar_metrics = None
         self.roc_curve = None
         self.confusion_matrix = None
         self.lift_curve = None
@@ -66,7 +66,7 @@ class Evaluator():
                              for pred in y_pred])
 
         # Compute the various evaluation metrics
-        self._scalar_metrics = Evaluator.compute_scalar_metrics(
+        self.scalar_metrics = Evaluator.compute_scalar_metrics(
             y_true,
             y_pred,
             y_pred_b,
@@ -79,23 +79,13 @@ class Evaluator():
         self.cumulative_gains = Evaluator._compute_cumulative_gains(y_true,
                                                                     y_pred)
 
-    def get_scalar_scalar_metrics(self) -> pd.Series:
-        """Get the evaluation_metrics attribute as a pandas Series
-
-        Returns
-        -------
-        pd.Series
-            Score of various scalar evaluation metrics for the model
-        """
-        return pd.Series(self._scalar_metrics)
-
     @staticmethod
     def compute_scalar_metrics(y_true: np.ndarray,
                                y_pred: np.ndarray,
                                y_pred_b: np.ndarray,
-                               lift_at: float) -> dict:
+                               lift_at: float) -> pd.Series:
         """Convenient function to compute various scalar performance measures
-        and return them in a dict
+        and return them in a pd.Series
 
         Parameters
         ----------
@@ -110,10 +100,10 @@ class Evaluator():
 
         Returns
         -------
-        dict
+        pd.Series
             contains various performance measures of the model
         """
-        return {
+        return pd.Series({
             "accuracy": accuracy_score(y_true, y_pred_b),
             "AUC": roc_auc_score(y_true, y_pred),
             "precision": precision_score(y_true, y_pred_b),
@@ -123,7 +113,7 @@ class Evaluator():
                                            ._compute_lift(y_true=y_true,
                                                           y_pred=y_pred,
                                                           lift_at=lift_at), 2)
-        }
+        })
 
     def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)):
         """Plot ROC curves of the model
@@ -142,7 +132,7 @@ class Evaluator():
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        auc = self._scalar_metrics["AUC"]
+        auc = float(self.scalar_metrics.loc["AUC"])
 
         with plt.style.context("seaborn-whitegrid"):
 
@@ -188,7 +178,7 @@ class Evaluator():
         fig, ax = plt.subplots(figsize=dim)
         ax = sns.heatmap(self.confusion_matrix,
                          annot=self.confusion_matrix.astype(str),
-                         fmt="s", cmap="Reds",
+                         fmt="s", cmap="Blues",
                          xticklabels=labels, yticklabels=labels)
         ax.set_title("Confusion matrix", fontsize=20)
 
