@@ -10,11 +10,9 @@ setup(
               "cobra.model_building",
               "cobra.evaluation"],
     url="https://github.com/PythonPredictions",
-    #long_description=long_description,  # TO DO
-    #long_description_content_type="text/markdown",
     install_requires=[
-        "pandas>=0.25.1",
         "numpy>=1.17.2",
+        "pandas>=0.25.1",
         "scipy>=1.2.0",
         "scikit_learn>=0.22.1",
         "matplotlib>=3.0.2",
