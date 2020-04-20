@@ -201,7 +201,7 @@ evaluator = Evaluator()
 evaluator.fit(y_true, y_pred)  # Automatically find the best cut-off probability
 
 # Get various scalar metrics such as accuracy, AUC, precision, recall, ...
-evaluator.get_scalar_scalar_metrics()
+evaluator.scalar_metrics
 
 # Plot non-scalar evaluation metrics:
 evaluator.plot_roc_curve()
