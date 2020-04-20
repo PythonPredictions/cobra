@@ -10,7 +10,9 @@ def generate_pig_tables(data: pd.DataFrame,
                         id_column_name: str,
                         target_column_name: str,
                         preprocessed_predictors: list) -> pd.DataFrame:
-    """Summary
+    """Compute PIG tables for all predictors in preprocessed_predictors. The
+    output is a DataFrame with columns "variable", "label", "pop_size",
+    "avg_incidence" and "incidence"
 
     Parameters
     ----------
@@ -28,11 +30,6 @@ def generate_pig_tables(data: pd.DataFrame,
     pd.DataFrame
         DataFrame containing a PIG table for all predictors
     """
-
-    # Based on the data, get column names by datatype
-    # threshold to decide whether a numeric column should be considered
-    # a categorical variable (if the number of distinct values is smaller
-    # or equal to the number of requested bins)
 
     pigs = [compute_pig_table(data, column_name, target_column_name,
                               id_column_name)

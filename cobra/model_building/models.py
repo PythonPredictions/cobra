@@ -124,9 +124,9 @@ class LogisticRegressionModel:
 
         return self._eval_metrics_by_split[split]
 
-    def compute_variable_importance(self, data: pd.DataFrame) -> dict:
+    def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute the importance of each predictor in the model and return
-        it as a dictionary
+        it as a DataFrame
 
         Parameters
         ----------
@@ -135,16 +135,23 @@ class LogisticRegressionModel:
 
         Returns
         -------
-        dict
-            Map of predictor -> importance
+        pd.DataFrame
+            DataFrame containing columns predictor and importance
         """
 
         y_pred = self.score_model(data)
 
-        return {
+        importance_by_variable = {
             utils.clean_predictor_name(predictor): stats.pearsonr(
                 data[predictor],
                 y_pred
                 )[0]
             for predictor in self.predictors
         }
+
+        df = pd.DataFrame.from_dict(importance_by_variable,
+                                    orient='index').reset_index()
+        df.columns = ["predictor", "importance"]
+
+        return (df.sort_values(by="importance", ascending=False)
+                .reset_index(drop=True))

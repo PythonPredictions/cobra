@@ -57,7 +57,13 @@ As this package is an internal package that is not open-sourced, it is not avail
 
 ### Usage
 
-This section contains detailed examples for each step. We assume the data for model building is available in a pandas DataFrame called `basetable`.
+This section contains detailed examples for each step on how to use COBRA for building a predictive model. All classes and functions contain detailed documentation, so in case you want more information on a class or function, simply run the following python snippet:
+
+```python
+help(function_or_class_you_want_info_from)
+```
+
+In the examples below, we assume the data for model building is available in a pandas DataFrame called `basetable`. This DataFrame should contain an ID columns (e.g. customernumber), a target column (e.g. "TARGET") and a number of candidate predictors to build or model with.
 
 ```python
 from cobra.preprocessing import PreProcessor
@@ -95,13 +101,29 @@ preprocessor.fit(basetable[basetable["split"]=="train"],
 basetable = preprocessor.transform(basetable,
                                    continuous_vars=continuous_vars,
                                    discrete_vars=discrete_vars)
+
 ```
 
-Once the preprocessing pipeline is fitted and applied to your data, it is time for the actual modelling. In this part of the process,
-we first start with the _univariate preselection_:
+Once the preprocessing pipeline is fitted and applied to your data, we are ready to start modelling. However, we could already compute the PIG tables here for later use:
+
+```python
+from cobra.evaluation import generate_pig_tables
+
+pig_tables = generate_pig_tables(basetable[basetable["split"] == "selection"],
+                                 id_column_name,
+                                 target_column_name
+                                 preprocessed_predictors)
+```
+
+Once these PIG tables are computed, we can start with the _univariate preselection_:
 
 ```python
 from cobra.model_building import univariate_selection
+from cobra.evaluation import plot_univariate_predictor_quality
+from cobra.evaluation import plot_correlation_matrix
+
+# Get list of predictor names to use for univariate_selection
+preprocessed_predictors = [col for col in basetable.columns if col.endswith("_enc")]
 
 # perform univariate selection on preprocessed predictors:
 df_auc = univariate_selection.compute_univariate_preselection(
@@ -109,23 +131,32 @@ df_auc = univariate_selection.compute_univariate_preselection(
     target_enc_selection_data=basetable[basetable["split"] == "selection"],
     predictors=preprocessed_predictors,
     target_column=target_column_name,
-    preselect_auc_threshold=0.5,
-    preselect_overtrain_threshold=5)
+    preselect_auc_threshold=0.53,  # if auc_selection <= 0.53 exclude predictor
+    preselect_overtrain_threshold=0.05  # if (auc_train - auc_selection) >= 0.05 --> overfitting!
+    )
+
+# Plot df_auc to get a horizontal barplot:
+plot_univariate_predictor_quality(df_auc)
 
 # compute correlations between preprocessed predictors:
 df_corr = (univariate_selection
            .compute_correlations(basetable[basetable["split"] == "train"],
                                  preprocessed_predictors))
 
+# plot correlation matrix
+plot_correlation_matrix(df_corr)
+
 # get a list of predictors selection by the univariate selection
 preselected_predictors = (univariate_selection
                           .get_preselected_predictors(df_auc))
 ```
 
-After a preselection is done on the predictors, we can start the model building itself using _forward feature selection_ to choose the right set of predictors:
+After a preselection is done on the predictors, we can start the model building itself using forward feature selection to choose the right set of predictors:
 
 ```python
 from cobra.model_building import ForwardFeatureSelection
+from cobra.evaluation import plot_performance_curves
+from cobra.evaluation import plot_variable_importance
 
 forward_selection = ForwardFeatureSelection(max_predictors=30,
                                             pos_only=True)
@@ -140,17 +171,51 @@ forward_selection.fit(basetable[basetable["split"] == "train"],
 performances = (forward_selection
                 .compute_model_performances(basetable, target_column_name))
 
+# plot performance curves
+plot_performance_curves(performances)
+
 # After plotting the performances and selecting the model,
 # we can extract this model from the forward_selection class:
 model = forward_selection.get_model_from_step(5)
 
-# Note that model has 6 variables (python lists start with index 0),
+# Note that chosen model has 6 variables (python lists start with index 0),
 # which can be obtained as follows:
 final_predictors = model.predictors
-# We can also compute the importance of each predictor in the model (dict):
-variable_importance = model.compute_variable_importance(transformed_data)
+# We can also compute and plot the importance of each predictor in the model:
+variable_importance = model.compute_variable_importance(
+    basetable[basetable["split"] == "selection"]
+)
+plot_variable_importance(variable_importance)
+```
+
+Now that we have build and selected a final model, it is time to evaluate it against various evaluation metrics:
+
+```python
+from cobra.evaluation import Evaluator
+
+# get numpy array of True target labels and predicted scores:
+y_true = basetable[basetable["split"] == "selection"][target_column_name].values
+y_pred = model.score_model(basetable[basetable["split"] == "selection"])
+
+evaluator = Evaluator()
+evaluator.fit(y_true, y_pred)  # Automatically find the best cut-off probability
+
+# Get various scalar metrics such as accuracy, AUC, precision, recall, ...
+evaluator.scalar_metrics
+
+# Plot non-scalar evaluation metrics:
+evaluator.plot_roc_curve()
+
+evaluator.plot_confusion_matrix()
+
+evaluator.plot_cumulative_gains()
+
+evaluator.plot_lift_curve()
+
+evaluator.plot_cumulative_response_curve()
+
 ```
 
 ## Development
 
-We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch. Make sure to write or modify unit test for your changes if they are related to preprocessing!
+We'd love you to contribute to the development of Cobra! To do so, clone the repo and create a _feature branch_ to do your development. Once your are finished, you can create a _pull request_ to merge it back into the main branch. Make sure to follow the _PEP 8_ styleguide if you make any changes to COBRA. You should also write or modify unit test for your changes if they are related to preprocessing!

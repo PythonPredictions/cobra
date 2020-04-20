@@ -103,8 +103,8 @@ ENV/
 # mypy
 .mypy_cache/
 
-# VScode settins
-.vscode
+# vscode settings
+.vscode/
 
 # Other ignore files
 *.pptx
