@@ -24,7 +24,7 @@ class LogisticRegressionModel:
 
     def __init__(self):
         self.logit = LogisticRegression(fit_intercept=True, C=1e9,
-                                        solver='liblinear')
+                                        solver='liblinear', random_state=42)
         # placeholder to keep track of a list of predictors
         self.predictors = []
         self._eval_metrics_by_split = {}

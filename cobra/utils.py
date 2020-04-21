@@ -70,4 +70,5 @@ def clean_predictor_name(predictor: str) -> str:
     Returns:
         str: Description
     """
-    return predictor.replace("_enc", "").replace("_bin", "")
+    return (predictor.replace("_enc", "").replace("_bin", "")
+            .replace("_processed", ""))

@@ -109,8 +109,9 @@ class Evaluator():
             "precision": precision_score(y_true, y_pred_b),
             "recall": recall_score(y_true, y_pred_b),
             "F1": f1_score(y_true, y_pred_b, average=None)[1],
-            "lift at".format(lift_at): np.round(Evaluator
-                                         ._compute_lift(y_true=y_true,
+            "lift at  {}".format(lift_at): np.round(Evaluator
+                                                    ._compute_lift(
+                                                        y_true=y_true,
                                                         y_pred=y_pred,
                                                         lift_at=lift_at), 2)
         })
