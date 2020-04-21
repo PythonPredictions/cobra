@@ -191,6 +191,13 @@ class CategoricalDataProcessor(BaseEstimator):
 
         unique_categories = list(X.unique())
 
+        # do not merge categories in case of dummies, i.e. 0 and 1
+        # (and possibly "Missings")
+        if (len(unique_categories) == 2
+            or (len(unique_categories) == 3
+                and "Missing" in unique_categories)):
+            return set(unique_categories)
+
         # get small categories and add them to the merged category list
         small_categories = (CategoricalDataProcessor
                             ._get_small_categories(
@@ -420,7 +427,8 @@ class CategoricalDataProcessor(BaseEstimator):
 
     @staticmethod
     def _replace_categories(data: pd.Series, categories: set) -> pd.Series:
-        """replace categories in set with "Other"
+        """replace categories in set with "Other" and transform the remaining
+        categories to strings to avoid type errors later on in the pipeline
 
         Parameters
         ----------
@@ -434,4 +442,4 @@ class CategoricalDataProcessor(BaseEstimator):
         pd.Series
             Description
         """
-        return data.apply(lambda x: x if x in categories else "Other")
+        return data.apply(lambda x: str(x) if x in categories else "Other")
