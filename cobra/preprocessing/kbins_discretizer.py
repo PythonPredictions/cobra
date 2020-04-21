@@ -161,7 +161,7 @@ class KBinsDiscretizer(BaseEstimator):
         self.set_params(**params)
 
         self._bins_by_column = {
-            key: [tuple(l) for l in value]
+            key: ([tuple(l) for l in value] if value else None)
             for key, value in _bins_by_column.items()
         }
 
