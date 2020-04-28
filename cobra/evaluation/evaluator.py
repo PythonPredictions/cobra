@@ -381,8 +381,8 @@ class Evaluator():
     @staticmethod
     def _compute_cumulative_gains(y_true: np.ndarray,
                                   y_pred: np.ndarray) -> tuple:
-        """Compute lift of the model per decile, returns x-labels, lifts and
-        the target incidence to create cummulative response curves
+        """Compute cumulative gains of the model, returns percentages and
+        gains cummulative gains curves
 
         Code from (https://github.com/reiinakano/scikit-plot/blob/
                    2dd3e6a76df77edcbd724c4db25575f70abb57cb/
@@ -398,7 +398,7 @@ class Evaluator():
         Returns
         -------
         tuple
-            x-labels, lifts per decile and target incidence
+            x-labels, gains
         """
 
         # make y_true a boolean vector

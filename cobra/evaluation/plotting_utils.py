@@ -45,7 +45,8 @@ def plot_univariate_predictor_quality(df_auc: pd.DataFrame,
 
 
 def plot_correlation_matrix(df_corr: pd.DataFrame,
-                            dim: tuple=(12, 8)):
+                            dim: tuple=(12, 8),
+                            path: str=None):
     """Plot correlation matrix amongst the predictors
 
     Parameters
@@ -54,10 +55,16 @@ def plot_correlation_matrix(df_corr: pd.DataFrame,
         Correlation matrix
     dim : tuple, optional
         tuple with width and lentgh of the plot
+    path : str, optional
+        path to store the figure
     """
     fig, ax = plt.subplots(figsize=dim)
     ax = sns.heatmap(df_corr, cmap='Blues')
     ax.set_title('Correlation Matrix')
+
+    if path is not None:
+        plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
     plt.show()
 
 
@@ -111,7 +118,8 @@ def plot_performance_curves(model_performance: pd.DataFrame,
 
 def plot_variable_importance(df_variable_importance: pd.DataFrame,
                              title: str=None,
-                             dim: tuple=(12, 8)):
+                             dim: tuple=(12, 8),
+                             path: str=None):
     """Plot variable importance of a given model
 
     Parameters
@@ -122,6 +130,8 @@ def plot_variable_importance(df_variable_importance: pd.DataFrame,
         Title of the plot
     dim : tuple, optional
         tuple with width and lentgh of the plot
+    path : str, optional
+        path to store the figure
     """
     with plt.style.context("seaborn-ticks"):
         fig, ax = plt.subplots(figsize=dim)
@@ -138,5 +148,8 @@ def plot_variable_importance(df_variable_importance: pd.DataFrame,
 
         # Remove white lines from the second axis
         ax.grid(False)
+
+        if path is not None:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
