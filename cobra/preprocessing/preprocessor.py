@@ -80,6 +80,7 @@ class PreProcessor(BaseEstimator):
                     scale_contingency_table: bool=True,
                     forced_categories: dict={},
                     weight: float=0.0,
+                    imputation_strategy: str="mean",
                     serialization_path: Optional[str]=None):
         """Constructor to instantiate PreProcessor from all the parameters
         that can be set in all its required (attribute) classes.
@@ -130,6 +131,12 @@ class PreProcessor(BaseEstimator):
             parameter, the bigger the contribution of the overall mean.
             When set to zero, there is no smoothing
             (e.g. the pure target incidence is used).
+        imputation_strategy : str, optional
+            in case there is a particular column which contains new categories,
+            the encoding will lead to NULL values which should be imputed.
+            Valid strategies are to replace with the global mean of the train
+            set or the min (resp. max) incidence of the categories of that
+            particular variable.
         serialization_path : str, optional
             path to save the pipeline to
 

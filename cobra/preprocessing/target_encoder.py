@@ -34,22 +34,37 @@ class TargetEncoder(BaseEstimator):
 
     Attributes
     ----------
-    columns : list
-        A list of columns to encode, if None, all string columns will be
-        encoded.
+    imputation_strategy : str
+        in case there is a particular column which contains new categories,
+        the encoding will lead to NULL values which should be imputed.
+        Valid strategies are to replace with the global mean of the train
+        set or the min (resp. max) incidence of the categories of that
+        particular variable.
     weight : float
         Smoothing parameters (non-negative). The higher the value of the
         parameter, the bigger the contribution of the overall mean. When set to
         zero, there is no smoothing (e.g. the pure target incidence is used).
     """
 
-    def __init__(self, weight: float=0.0):
+    valid_strategies = ("mean", "min", "max")
+
+    def __init__(self, weight: float=0.0,
+                 imputation_strategy: str="mean"):
 
         if weight < 0:
             raise ValueError("The value of weight cannot be smaller than zero")
+        elif imputation_strategy not in self.valid_strategies:
+            raise ValueError("Valid options for 'imputation_strategy' are {}."
+                             " Got imputation_strategy={!r} instead"
+                             .format(self.valid_strategies,
+                                     imputation_strategy))
 
         self.weight = weight
+        self.imputation_strategy = imputation_strategy
+
         self._mapping = {}  # placeholder for fitted output
+        # placeholder for the global incidence of the data used for fitting
+        self._global_mean = None
 
         # not implemented yet!
         # randomized: bool=False, sigma=0.05
@@ -72,6 +87,8 @@ class TargetEncoder(BaseEstimator):
             for key, value in self._mapping.items()
         }
 
+        params["_global_mean"] = self._global_mean
+
         return params
 
     def set_attributes_from_dict(self, params: dict):
@@ -87,6 +104,14 @@ class TargetEncoder(BaseEstimator):
 
         if "weight" in params and type(params["weight"]) == float:
             self.weight = params["weight"]
+
+        if ("imputation_strategy" in params and
+                params["imputation_strategy"] in self.valid_strategies):
+
+            self.imputation_strategy = params["imputation_strategy"]
+
+        if "_global_mean" in params and type(params["_global_mean"]) == float:
+            self._global_mean = params["_global_mean"]
 
         _mapping = {}
         if "_mapping" in params and type(params["_mapping"]) == dict:
@@ -121,7 +146,7 @@ class TargetEncoder(BaseEstimator):
 
         # compute global mean (target incidence in case of binary target)
         y = data[target_column]
-        global_mean = y.sum() / y.count()
+        self._global_mean = y.sum() / y.count()
 
         for column in column_names:
             if column not in data.columns:
@@ -129,11 +154,9 @@ class TargetEncoder(BaseEstimator):
                             "skipped in fitting" .format(column))
                 continue
 
-            self._mapping[column] = self._fit_column(data[column], y,
-                                                     global_mean)
+            self._mapping[column] = self._fit_column(data[column], y)
 
-    def _fit_column(self, X: pd.Series, y: pd.Series,
-                    global_mean: float) -> pd.Series:
+    def _fit_column(self, X: pd.Series, y: pd.Series) -> pd.Series:
         """Summary
 
         Parameters
@@ -143,8 +166,6 @@ class TargetEncoder(BaseEstimator):
             categorical variable.
         y : pd.Series
             series containing the targets for each observation
-        global_mean : float
-            Global mean of the target
 
         Returns
         -------
@@ -158,7 +179,9 @@ class TargetEncoder(BaseEstimator):
         # Q: do we need to do this here or during the transform phase???
 
         # Note if self.weight = 0, we have the ordinary incidence replacement
-        numerator = stats["count"]*stats["mean"] + self.weight*global_mean
+        numerator = (stats["count"]*stats["mean"]
+                     + self.weight * self._global_mean)
+
         denominator = stats["count"] + self.weight
 
         return numerator/denominator
@@ -187,13 +210,12 @@ class TargetEncoder(BaseEstimator):
             method
 
         """
-        if len(self._mapping) == 0:
+        if (len(self._mapping) == 0) or (self._global_mean is None):
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        new_columns = []
         for column in column_names:
 
             if column not in data.columns:
@@ -205,15 +227,47 @@ class TargetEncoder(BaseEstimator):
                             "and will be skipped".format(column))
                 continue
 
-            new_column = TargetEncoder._clean_column_name(column)
+            data = self._transform_column(data, column)
 
-            # Convert dtype to float because when the original dtype
-            # is of type "category", the resulting dtype is also of type
-            # "category"
-            data[new_column] = (data[column].map(self._mapping[column])
-                                .astype("float"))
+        return data
 
-            new_columns.append(new_column)
+    def _transform_column(self, data: pd.DataFrame,
+                          column_name: str) -> pd.DataFrame:
+        """Replace (e.g. encode) categories of each column with its average
+        incidence which was computed when the fit method was called
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            data to encode
+        column_name : str
+            Name of the column in data to be encoded
+
+        Returns
+        -------
+        pd.DataFrame
+            transformed data
+        """
+        new_column = TargetEncoder._clean_column_name(column_name)
+
+        # Convert dtype to float because when the original dtype
+        # is of type "category", the resulting dtype is also of type
+        # "category"
+        data[new_column] = (data[column_name].map(self._mapping[column_name])
+                            .astype("float"))
+
+        # In case of categorical data, it could be that new categories will
+        # emerge which were not present in the train set, so this will result
+        # in missing values (which should be replaced)
+        if data[new_column].isnull().sum() > 0:
+            if self.imputation_strategy == "mean":
+                data[new_column].fillna(self._global_mean, inplace=True)
+            elif self.imputation_strategy == "min":
+                data[new_column].fillna(data[new_column].min(),
+                                        inplace=True)
+            elif self.imputation_strategy == "max":
+                data[new_column].fillna(data[new_column].max(),
+                                        inplace=True)
 
         return data
 
