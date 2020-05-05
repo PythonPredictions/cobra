@@ -90,7 +90,7 @@ class TestTargetEncoder:
                            'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
 
         encoder = TargetEncoder()
-        encoder._global_mean = 0.0
+        encoder._global_mean = 0.5
         actual = encoder._fit_column(X=df.variable, y=df.target)
 
         expected = pd.Series(data=[0.333333, 0.50000, 0.666667],
@@ -160,6 +160,33 @@ class TestTargetEncoder:
         encoder = TargetEncoder()
         encoder.fit(data=df, column_names=["variable"], target_column="target")
         actual = encoder.transform(data=df, column_names=["variable"])
+
+        pd.testing.assert_frame_equal(actual, expected,
+                                      check_less_precise=5)
+
+    def test_target_encoder_transform_new_category(self):
+
+        df = pd.DataFrame({'variable': ['positive', 'positive', 'negative',
+                                        'neutral', 'negative', 'positive',
+                                        'negative', 'neutral', 'neutral',
+                                        'neutral'],
+                           'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
+
+        df_appended = df.append({"variable": "new", "target": 1},
+                                ignore_index=True)
+
+        # inputs of TargetEncoder will be of dtype category
+        df["variable"] = df["variable"].astype("category")
+        df_appended["variable"] = df_appended["variable"].astype("category")
+
+        expected = df_appended.copy()
+        expected["variable_enc"] = [0.666667, 0.666667, 0.333333, 0.50000,
+                                    0.333333, 0.666667, 0.333333, 0.50000,
+                                    0.50000, 0.50000, 0.333333]
+
+        encoder = TargetEncoder(imputation_strategy="min")
+        encoder.fit(data=df, column_names=["variable"], target_column="target")
+        actual = encoder.transform(data=df_appended, column_names=["variable"])
 
         pd.testing.assert_frame_equal(actual, expected,
                                       check_less_precise=5)

@@ -7,7 +7,8 @@ import seaborn as sns
 
 
 def plot_univariate_predictor_quality(df_auc: pd.DataFrame,
-                                      dim: tuple=(12, 8)):
+                                      dim: tuple=(12, 8),
+                                      path: str=None):
     """Plot univariate quality of the predictors
 
     Parameters
@@ -18,6 +19,8 @@ def plot_univariate_predictor_quality(df_auc: pd.DataFrame,
         criteria
     dim : tuple, optional
         tuple with width and lentgh of the plot
+    path : str, optional
+        path to store the figure
     """
 
     df = (df_auc[df_auc["preselection"]]
@@ -40,6 +43,9 @@ def plot_univariate_predictor_quality(df_auc: pd.DataFrame,
 
         # Remove white lines from the second axis
         ax.grid(False)
+
+        if path is not None:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
 
@@ -70,6 +76,7 @@ def plot_correlation_matrix(df_corr: pd.DataFrame,
 
 def plot_performance_curves(model_performance: pd.DataFrame,
                             dim: tuple=(12, 8),
+                            path: str=None,
                             colors: dict={"train": "#0099bf",
                                           "selection": "#ff9500",
                                           "validation": "#8064a2"}):
@@ -83,6 +90,8 @@ def plot_performance_curves(model_performance: pd.DataFrame,
         in the forward feature selection
     dim : tuple, optional
         tuple with width and lentgh of the plot
+    path : str, optional
+        path to store the figure
     """
     highest_auc = np.round(max(max(model_performance['train_performance']),
                                max(model_performance['selection_performance']),
@@ -113,6 +122,10 @@ def plot_performance_curves(model_performance: pd.DataFrame,
         fig.suptitle('Performance curves - forward feature selection',
                      fontsize=20)
         plt.ylabel('Model performance')
+
+        if path is not None:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
         plt.show()
 
 
