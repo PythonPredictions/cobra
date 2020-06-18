@@ -11,6 +11,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import roc_curve
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import matthews_corrcoef
 from sklearn.exceptions import NotFittedError
 
 
@@ -109,6 +110,7 @@ class Evaluator():
             "precision": precision_score(y_true, y_pred_b),
             "recall": recall_score(y_true, y_pred_b),
             "F1": f1_score(y_true, y_pred_b, average=None)[1],
+            "matthews_corrcoef": matthews_corrcoef(y_true, y_pred_b),
             "lift at  {}".format(lift_at): np.round(Evaluator
                                                     ._compute_lift(
                                                         y_true=y_true,

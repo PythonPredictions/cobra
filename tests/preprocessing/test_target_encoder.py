@@ -21,9 +21,13 @@ class TestTargetEncoder:
 
         encoder._mapping["variable"] = mapping_data
 
+        encoder._global_mean = 0.5
+
         actual = encoder.attributes_to_dict()
 
         expected = {"weight": 0.0,
+                    "imputation_strategy": "mean",
+                    "_global_mean": 0.5,
                     "_mapping": {"variable": {
                         "negative": 0.333333,
                         "neutral": 0.50000,
@@ -58,6 +62,7 @@ class TestTargetEncoder:
         encoder = TargetEncoder()
 
         data = {"weight": 0.0,
+                "_global_mean": 0.5,
                 "_mapping": {"variable": {
                     "negative": 0.333333,
                     "neutral": 0.50000,
@@ -85,8 +90,8 @@ class TestTargetEncoder:
                            'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
 
         encoder = TargetEncoder()
-        actual = encoder._fit_column(X=df.variable, y=df.target,
-                                     global_mean=0.0)
+        encoder._global_mean = 0.5
+        actual = encoder._fit_column(X=df.variable, y=df.target)
 
         expected = pd.Series(data=[0.333333, 0.50000, 0.666667],
                              index=["negative", "neutral", "positive"])
@@ -103,11 +108,10 @@ class TestTargetEncoder:
                                         'neutral'],
                            'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
 
-        global_mean = df.target.sum() / df.target.count()  # is 0.5
-
         encoder = TargetEncoder(weight=1)
-        actual = encoder._fit_column(X=df.variable, y=df.target,
-                                     global_mean=global_mean)
+        encoder._global_mean = df.target.sum() / df.target.count()  # is 0.5
+
+        actual = encoder._fit_column(X=df.variable, y=df.target)
 
         expected = pd.Series(data=[0.375, 0.500, 0.625],
                              index=["negative", "neutral", "positive"])
@@ -156,6 +160,33 @@ class TestTargetEncoder:
         encoder = TargetEncoder()
         encoder.fit(data=df, column_names=["variable"], target_column="target")
         actual = encoder.transform(data=df, column_names=["variable"])
+
+        pd.testing.assert_frame_equal(actual, expected,
+                                      check_less_precise=5)
+
+    def test_target_encoder_transform_new_category(self):
+
+        df = pd.DataFrame({'variable': ['positive', 'positive', 'negative',
+                                        'neutral', 'negative', 'positive',
+                                        'negative', 'neutral', 'neutral',
+                                        'neutral'],
+                           'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
+
+        df_appended = df.append({"variable": "new", "target": 1},
+                                ignore_index=True)
+
+        # inputs of TargetEncoder will be of dtype category
+        df["variable"] = df["variable"].astype("category")
+        df_appended["variable"] = df_appended["variable"].astype("category")
+
+        expected = df_appended.copy()
+        expected["variable_enc"] = [0.666667, 0.666667, 0.333333, 0.50000,
+                                    0.333333, 0.666667, 0.333333, 0.50000,
+                                    0.50000, 0.50000, 0.333333]
+
+        encoder = TargetEncoder(imputation_strategy="min")
+        encoder.fit(data=df, column_names=["variable"], target_column="target")
+        actual = encoder.transform(data=df_appended, column_names=["variable"])
 
         pd.testing.assert_frame_equal(actual, expected,
                                       check_less_precise=5)
