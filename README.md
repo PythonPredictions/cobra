@@ -47,6 +47,8 @@ or using conda
 conda install requirements.txt
 ```
 
+__Note__: if you want to install cobra with e.g. pip, you don't have to install all of these requirements as these are automatically installed with cobra itself.
+
 ### Installation
 
 As this package is an internal package that is not open-sourced, it is not available through `pip` or `conda`. As a result, the package has to be installed manually using the following steps:
@@ -110,9 +112,9 @@ Once the preprocessing pipeline is fitted and applied to your data, we are ready
 from cobra.evaluation import generate_pig_tables
 
 pig_tables = generate_pig_tables(basetable[basetable["split"] == "selection"],
-                                 id_column_name,
-                                 target_column_name
-                                 preprocessed_predictors)
+                                 id_column_name=id_column_name,
+                                 target_column_name=target_column_name,
+                                 preprocessed_predictors=preprocessed_predictors)
 ```
 
 Once these PIG tables are computed, we can start with the _univariate preselection_:
