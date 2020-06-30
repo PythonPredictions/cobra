@@ -73,7 +73,7 @@ from cobra.preprocessing import PreProcessor
 # Prepare data
 # create instance of PreProcessor from parameters
 # (many options possible, see source code for docs)
-path = "path/to/store/preprocessing/pipeline/as/json/file/for/later/re-use/"
+path = "path/to/store/preprocessing/pipeline/as/json/file/for/later/re-use.json"
 preprocessor = PreProcessor.from_params(serialization_path=path)
 
 # split data into train-selection-validation set
