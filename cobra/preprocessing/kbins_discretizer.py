@@ -1,13 +1,14 @@
 """
 This module is a rework of
-https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/
-_discretization.py
+https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py
 However, it is purely written in pandas instead of numpy because it is more
 intuitive
 
-Also, some custom modifications were included to allign it with our methodology
+Also, some custom modifications were included to allign it with our
+Python Predictions methodology
 
 Authors:
+
 - Geert Verstraeten (methodology)
 - Matthias Roels (implementation)
 """
@@ -30,7 +31,7 @@ from sklearn.exceptions import NotFittedError
 
 class KBinsDiscretizer(BaseEstimator):
 
-    """Bin continuous data into intervals of predefined size. This provides a
+    """Bin continuous data into intervals of predefined size. It provides a
     way to partition continuous data into discrete values, i.e. tranform
     continuous data into nominal data. This can make a linear model more
     expressive as it introduces nonlinearity to the model, while maintaining
@@ -41,26 +42,26 @@ class KBinsDiscretizer(BaseEstimator):
     auto_adapt_bins : bool
         reduces the number of bins (starting from n_bins) as a function of
         the number of missings
-    bins_by_column : dict
-        Placeholder for the fitted output
     change_endpoint_format : bool
         Whether or not to change the format of the lower and upper bins into
-        "< x" and "> y" resp.
+        ``<= x`` and ``> y`` resp.
     closed : str
         Whether to close the bins (intervals) from the left or right
     label_format : str
-        format string to display the bin labels e.g. min - max, (min, max], ...
+        format string to display the bin labels
+        e.g. ``min - max``, ``(min, max]``, ...
     n_bins : int
         Number of bins to produce. Raises ValueError if ``n_bins < 2``.
     starting_precision : int
         Initial precision for the bin edges to start from,
         can also be negative. Given a list of bin edges, the class will
         automatically choose the minimal precision required to have proper bins
-        e.g. [5.5555, 5.5744, ...] will be rounded to [5.56, 5.57, ...]. In
-        case of a negative number, an attempt will be made to round up the
-        numbers of the bin edges e.g. 5.55 -> 10, 146 -> 100, ...
+        e.g. ``[5.5555, 5.5744, ...]`` will be rounded to
+        ``[5.56, 5.57, ...]``. In case of a negative number, an attempt will be
+        made to round up the numbers of the bin edges e.g. ``5.55 -> 10``,
+        ``146 -> 100``, ...
     strategy : str
-        Binning strategy. Currently only "uniform" and "quantile"
+        Binning strategy. Currently only `uniform` and `quantile`
         e.g. equifrequency is supported
     """
 
@@ -91,7 +92,8 @@ class KBinsDiscretizer(BaseEstimator):
         self._bins_by_column = {}
 
     def _validate_n_bins(self, n_bins: int):
-        """Check if n_bins is of the proper type and if it is bigger than two
+        """Check if ``n_bins`` is of the proper type and if it is bigger
+        than two
 
         Parameters
         ----------
@@ -101,7 +103,7 @@ class KBinsDiscretizer(BaseEstimator):
         Raises
         ------
         ValueError
-            in case n_bins is not an integer or if n_bins < 2
+            in case ``n_bins`` is not an integer or if ``n_bins < 2``
         """
         if not isinstance(n_bins, numbers.Integral):
             raise ValueError("{} received an invalid n_bins type. "
@@ -144,7 +146,7 @@ class KBinsDiscretizer(BaseEstimator):
         Raises
         ------
         ValueError
-            In case _bins_by_column is not of type dict
+            In case `_bins_by_column` is not of type dict
         """
         _bins_by_column = params.pop("_bins_by_column", {})
 
@@ -175,7 +177,7 @@ class KBinsDiscretizer(BaseEstimator):
         data : pd.DataFrame
             Data to be discretized
         column_names : list
-            Columns of data to be discretized
+            Names of the columns of the DataFrame to discretize
         """
 
         if self.strategy not in self.valid_strategies:
@@ -203,9 +205,9 @@ class KBinsDiscretizer(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            Description
+            Data to be discretized
         column_name : str
-            Description
+            Name of the column of the DataFrame to discretize
 
         Returns
         -------
@@ -251,7 +253,7 @@ class KBinsDiscretizer(BaseEstimator):
         data : pd.DataFrame
             Data to be discretized
         column_names : list
-            Columns of data to be discretized
+            Names of the columns of the DataFrame to discretize
 
         Returns
         -------
@@ -326,14 +328,14 @@ class KBinsDiscretizer(BaseEstimator):
 
     def fit_transform(self, data: pd.DataFrame,
                       column_names: list) -> pd.DataFrame:
-        """Summary
+        """Fits to data, then transform it
 
         Parameters
         ----------
         data : pd.DataFrame
             Data to be discretized
         column_names : list
-            Columns of data to be discretized
+            Names of the columns of the DataFrame to discretize
 
         Returns
         -------

@@ -1,12 +1,15 @@
 """
 This class implements the Python Prediction's way of dealing with
 categorical data preprocessing. There are three steps involved here:
+
 - An optional regrouping of the different categories based on category size
   and significance of the category w.r.t. the target
-- Missing value replacement with the additional category "Missing"
-- Change of dtype to "category" (could potentially lead to memory optimization)
+- Missing value replacement with the additional category ``Missing``
+- Change of dtype to ``category`` (could potentially lead to memory
+  optimization)
 
 Authors:
+
 - Geert Verstraeten (methodology)
 - Jan Benisek (implementation)
 - Matthias Roels (implementation)
@@ -37,8 +40,8 @@ class CategoricalDataProcessor(BaseEstimator):
     category_size_threshold : int
         minimal size of a category to keep it as a separate category
     forced_categories : dict
-        Map to prevent certain categories from being group into "Other"
-        for each colum - dict of the form {col:[forced vars]}.
+        Map to prevent certain categories from being group into ``Other``
+        for each colum - dict of the form ``{col:[forced vars]}``.
     keep_missing : bool
         Whether or not to keep missing as a separate category
     p_value_threshold : float
@@ -226,19 +229,20 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def transform(self, data: pd.DataFrame,
                   column_names: list) -> pd.DataFrame:
-        """Summary
+        """Transform the data
 
         Parameters
         ----------
         data : pd.DataFrame
-            Data to be discretized
+            data used to compute the mapping to encode the categorical
+            variables with.
         column_names : list
-            Columns of data to be discretized
+            Columns of data to be processed
 
         Returns
         -------
         pd.DataFrame
-            data with additional discretized variables
+            data with additional transformed variables
         """
 
         if self.regroup and len(self._cleaned_categories_by_column) == 0:
@@ -309,22 +313,26 @@ class CategoricalDataProcessor(BaseEstimator):
 
         return data
 
-    def fit_transform(self, data: pd.DataFrame,
-                      column_names: list) -> pd.DataFrame:
-        """Summary
+    def fit_transform(self, data: pd.DataFrame, column_names: list,
+                      target_column: str) -> pd.DataFrame:
+        """Fits to data, then transform it
 
-        Parameters
+         Parameters
         ----------
         data : pd.DataFrame
-            Data to be discretized
+            data used to compute the mapping to encode the categorical
+            variables with.
         column_names : list
-            Columns of data to be discretized
+            Columns of data to be processed
+        target_column : str
+            Column name of the target
 
         Returns
         -------
         pd.DataFrame
-            data with additional discretized variables
+            data with additional transformed variables
         """
+
         self.fit(data, column_names)
         return self.transform(data, column_names)
 
