@@ -1,28 +1,34 @@
-cobra package
-=============
+Module contents
+===============
 
-Subpackages
------------
+cobra.preprocessing module
+--------------------------
 
-.. toctree::
-   :maxdepth: 4
+.. automodule:: cobra.preprocessing
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   cobra.evaluation
-   cobra.model_building
-   cobra.preprocessing
+cobra.model\_building module
+----------------------------
+
+.. automodule:: cobra.model_building
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cobra.evaluation module
+-----------------------
+
+.. automodule:: cobra.evaluation
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 cobra.utils module
 ------------------
 
 .. automodule:: cobra.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: cobra
    :members:
    :undoc-members:
    :show-inheritance:
