@@ -3,22 +3,28 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+*********************************
 Welcome to cobra's documentation!
-=================================
+*********************************
+
+.. include:: ../../README.rst
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Contents:
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Readme
+   :maxdepth: 4
+   :hidden:
+   :caption: Tutorial
 
-   readme
+   tutorial
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Docstring
+   :maxdepth: 4
+   :hidden:
+   :caption: API Reference
 
    docstring/modules
 
