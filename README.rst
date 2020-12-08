@@ -74,4 +74,13 @@ The preferred way to contribute to cobra is to fork the main repository on GitHu
 **Notes**
 
 - Make sure to follow the *PEP 8* styleguide if you make any changes to cobra. You should also write or modify unit test for your changes.
-- To avoid duplicating work, it is highly recommended that you search through the issue tracker and/or the PR list. If in doubt, you can always reach out to us through email (TO DO)
+- To avoid duplicating work, it is highly recommended that you search through the issue tracker and/or the PR list. If in doubt, you can always reach out to us through email (cobra@pythonpredictions.com)
+
+Help and Support
+================
+
+Documentation
+-------------
+
+- HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_
+- A step-by-step `tutorial <https://pythonpredictions.github.io/cobra.io/tutorial.html>`_

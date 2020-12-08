@@ -32,7 +32,7 @@ from sklearn.exceptions import NotFittedError
 
 class CategoricalDataProcessor(BaseEstimator):
     """
-    Regroups categories in categorical variables based on significance
+    Regroups the categories of categorical variables based on significance
     with target variable.
 
     Attributes
@@ -45,7 +45,7 @@ class CategoricalDataProcessor(BaseEstimator):
     keep_missing : bool
         Whether or not to keep missing as a separate category
     p_value_threshold : float
-        Significance threshold for regroupping.
+        Significance threshold for regrouping.
     regroup : bool
         Whether or not to regroup categories
     regroup_name : str

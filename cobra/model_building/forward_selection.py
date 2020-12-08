@@ -9,7 +9,7 @@ from cobra.model_building import LogisticRegressionModel as MLModel
 class ForwardFeatureSelection:
 
     """Perform forward feature selection for a given dataset using a given
-    model.
+    algorithm.
 
     Attributes
     ----------
@@ -60,12 +60,11 @@ class ForwardFeatureSelection:
                                    splits: list=["train", "selection",
                                                  "validation"]
                                    ) -> pd.DataFrame:
-        """Compute for each model the performance for
-           train-selection-validation sets and return them along with a list
-           of predictors used in the model.
-           Note that the computation of the performance for each split is
-           cached inside the model itself, so it is inexpensive to perform
-           it multiple times!
+        """Compute for each model the performance for different sets (e.g.
+           train-selection-validation) and return them along with a list
+           of predictors used in the model. Note that the computation of the
+           performance for each split is cached inside the model itself, so it
+           is inexpensive to perform it multiple times!
 
         Parameters
         ----------

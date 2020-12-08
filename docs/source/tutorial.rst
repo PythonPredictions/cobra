@@ -1,7 +1,7 @@
 Tutorial
 ========
 
-This section we will walk you through all the required steps to build a predictive model using cobra. All classes and functions used here contain detailed documentation. In case you want more information on a class or function, simply read the corresponding parts in the documentation or run the following python snippet from e.g. a notebook:
+This section we will walk you through all the required steps to build a predictive model using cobra. All classes and functions used here are well-documented. In case you want more information on a class or function, simply read the corresponding parts in the documentation or run the following python snippet from e.g. a notebook:
 
 .. code-block:: python
 
@@ -9,9 +9,9 @@ This section we will walk you through all the required steps to build a predicti
 
 Building a good model involves three steps
 
-    - preprocessing: properly prepare the predictors (a synonym for "feature" or variable that we use throught this tutorial) for modelling
-    - feature selection: TO DO
-    - model evaluation: TO DO
+    - preprocessing: properly prepare the predictors (a synonym for "feature" or variable that we use throughout this tutorial) for modelling.
+    - feature selection: automatically select a subset of predictors which contribute most to the target variable or output in which you are interested.
+    - model evaluation: once a model has been build, a detailed evaluation can be performed by computing all sorts of evaluation metrics.
 
 In the examples below, we assume the data for model building is available in a pandas DataFrame called ``basetable``. This DataFrame should at least contain an ID column (e.g. "customernumber"), a target column (e.g. "TARGET") and a number of candidate predictors (features) to build a model with.
 
@@ -20,11 +20,13 @@ Preprocessing
 
 The first part focusses on preparing the predictors for modelling by:
 
-- Split dataset into training, selection and validation datasets.
+- Splitting the dataset into training, selection and validation datasets.
 - binning continuous variables into discrete intervals
-- Replace missing values of both categorical and continuous variables (which are now binned) with an additional "Missing" bin/category
-- Regroup categories in new category "other"
-- Replace bins/categories with their corresponding incidence rate per category/bin.
+- Replacing missing values of both categorical and continuous variables (which are now binned) with an additional "Missing" bin/category
+- Regrouping categories in new category "other"
+- Replacing bins/categories with their corresponding incidence rate per category/bin.
+
+This will be taken care of by the ``PreProcessor`` class, which has a scikit-learn like interface (i.e. ``fit`` & ``transform``)
 
 .. code-block:: python
 
@@ -46,7 +48,7 @@ The first part focusses on preparing the predictors for modelling by:
                     validation_prop=0.2)
 
     # create list containing the column names of the discrete resp.
-    # continiuous variables
+    # continuous variables
     continuous_vars = []
     discrete_vars = []
 
@@ -68,6 +70,8 @@ Feature selection
 -----------------
 
 Once the predictors are properly prepared, we can start building a predictive model, which boils down to selecting the right predictors from the dataset to train a model on. As a dataset typically contains many predictors, we can first perform a univariate preselection to rule out any predictor with little to no predictive power.
+
+This preselection is based on an AUC threshold of a univariate model on the train and selection datasets. As the AUC just calculates the quality of a ranking, all monotonous transformations of a given ranking (i.e. transformations that do not alter the ranking itself) will lead to the same AUC. Hence, pushing a categorical variable (incl. a binned continuous variable) through a logistic regression will produce exactly the same ranking as using target encoding, as it will produce the exact same output: a ranking of the categories on the training/selection set. Therefore, no univariate model is trained here as the target encoded train and selection data is used as predicted scores to compute the AUC with against the target.
 
 .. code-block:: python
 
@@ -103,7 +107,7 @@ Once the predictors are properly prepared, we can start building a predictive mo
     preselected_predictors = (univariate_selection
                               .get_preselected_predictors(df_auc))
 
-After an initial preselection on the predictors, we can start building the model itself using forward feature selection to choose the right set of predictors:
+After an initial preselection on the predictors, we can start building the model itself using forward feature selection to choose the right set of predictors. Since we use target encoding on all our predictors, we will only consider models with positive coefficients (no sign flip should occur) as this makes the model more interpretable.
 
 .. code-block:: python
 
@@ -127,7 +131,7 @@ After an initial preselection on the predictors, we can start building the model
     # plot performance curves
     plot_performance_curves(performances)
 
-Based on the performance curves, a final model can then be choosen and the variables importance can be plotted:
+Based on the performance curves (AUC per model with a particular number of predictors in case of logistic regression), a final model can then be chosen and the variables importance can be plotted:
 
 .. code-block:: python
 
@@ -144,7 +148,7 @@ Based on the performance curves, a final model can then be choosen and the varia
     )
     plot_variable_importance(variable_importance)
 
-**Note**: variable importance is based on correlation of the predictor with the model scores.
+**Note**: variable importance is based on correlation of the predictor with the *model scores* (and not the true labels!).
 
 Evaluation
 ----------
@@ -176,7 +180,7 @@ Now that we have build and selected a final model, it is time to evaluate it aga
 
     evaluator.plot_cumulative_response_curve()
 
-Additionally, we can also compute the DataFrame needed to plot the so-called Predictor Insights Graphs (PIGs in short):
+Additionally, we can also compute the output needed to plot the so-called Predictor Insights Graphs (PIGs in short). These are graphs that represents the insights of the relationship between a single predictor (e.g. age) and the target (e.g. burnouts). This is a graph where the predictor is binned into groups, and where we represent group size in bars and group (target) incidence in a colored line.
 
 .. code-block:: python
 
@@ -186,5 +190,3 @@ Additionally, we can also compute the DataFrame needed to plot the so-called Pre
                                      id_column_name=id_column_name,
                                      target_column_name=target_column_name,
                                      preprocessed_predictors=preprocessed_predictors)
-
-TO DO: explain what a PIG graph is!

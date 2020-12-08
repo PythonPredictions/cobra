@@ -32,12 +32,17 @@ from cobra.preprocessing import CategoricalDataProcessor
 
 class PreProcessor(BaseEstimator):
 
-    """Summary
+    """This class implements a so-called facade pattern to define a
+    higher-level interface to work with the CategoricalDataProcessor,
+    KBinsDiscretizer and TargetEncoder classes, so that their fit and transform
+    methods are called in the correct order. Additionally, it provides features
+    such as (de)serialization to/from JSON so that preprocessing pipelines can
+    be stored and reloaded.
 
     Attributes
     ----------
     categorical_data_processor : CategoricalDataProcessor
-        Instance of CategoricalDataProcessor to do the prepocessing of
+        Instance of CategoricalDataProcessor to do the preprocessing of
         categorical variables
     discretizer : KBinsDiscretizer
         Instance of KBinsDiscretizer to do the prepocessing of continuous
@@ -84,7 +89,8 @@ class PreProcessor(BaseEstimator):
                     imputation_strategy: str="mean",
                     serialization_path: Optional[str]=None):
         """Constructor to instantiate PreProcessor from all the parameters
-        that can be set in all its required (attribute) classes.
+        that can be set in all its required (attribute) classes
+        along with good default values.
 
         Parameters
         ----------
@@ -121,10 +127,10 @@ class PreProcessor(BaseEstimator):
         category_size_threshold : int
             minimal size of a category to keep it as a separate category
         p_value_threshold : float
-            Significance threshold for regroupping.
+            Significance threshold for regrouping.
         forced_categories : dict
             Map to prevent certain categories from being group into ``Other``
-            for each colum - dict of the form ``{col:[forced vars]}``.
+            for each column - dict of the form ``{col:[forced vars]}``.
         scale_contingency_table : bool
             Whether contingency table should be scaled before chi^2.'
         weight : float, optional
@@ -218,7 +224,7 @@ class PreProcessor(BaseEstimator):
         discrete_vars : list
             list of discrete variables
         target_column_name : str
-            Name of the target column
+            Column name of the target
         """
 
         # get list of all variables
@@ -317,7 +323,8 @@ class PreProcessor(BaseEstimator):
         return data
 
     def fit_transform(self, train_data: pd.DataFrame, continuous_vars: list,
-                      discrete_vars: list, target_column_name: str):
+                      discrete_vars: list,
+                      target_column_name: str) -> pd.DataFrame:
         """Fit preprocessing pipeline and transform the data
 
         Parameters
@@ -329,7 +336,12 @@ class PreProcessor(BaseEstimator):
         discrete_vars : list
             list of discrete variables
         target_column_name : str
-            Name of the target column
+            Column name of the target
+
+        Returns
+        -------
+        pd.DataFrame
+            Transformed (preprocessed) data
         """
 
         self.fit(train_data, continuous_vars, discrete_vars,
@@ -366,7 +378,7 @@ class PreProcessor(BaseEstimator):
         Returns
         -------
         pd.DataFrame
-            Description
+            DataFrame with additional split column
         """
 
         if train_prop + selection_prop + validation_prop > 1:

@@ -171,9 +171,6 @@ class TargetEncoder(BaseEstimator):
         """
         stats = y.groupby(X).agg(["mean", "count"])
 
-        # To do: add Gaussian noise to the estimate
-        # Q: do we need to do this here or during the transform phase???
-
         # Note if self.weight = 0, we have the ordinary incidence replacement
         numerator = (stats["count"]*stats["mean"]
                      + self.weight * self._global_mean)
