@@ -25,10 +25,6 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-stage_docs:
-	cp -r $(BUILDDIR)/html/. ../web
-	git add ../web/*
-
 clean:
 	-rm -rf $(BUILDDIR)/*
 
