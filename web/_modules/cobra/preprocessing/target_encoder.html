@@ -1,0 +1,515 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cobra.preprocessing.target_encoder &mdash; cobra 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> cobra
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../docstring/modules.html">cobra</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">cobra</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>cobra.preprocessing.target_encoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cobra.preprocessing.target_encoder</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Incidence Replacement Module. The implementation is inspired by</span>
+<span class="sd">https://contrib.scikit-learn.org/categorical-encoding/index.html</span>
+
+<span class="sd">Authors:</span>
+
+<span class="sd">- Geert Verstraeten (methodology)</span>
+<span class="sd">- Matthias Roels (implementation)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1">#import numpy as np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">BaseEstimator</span>
+<span class="kn">from</span> <span class="nn">sklearn.exceptions</span> <span class="kn">import</span> <span class="n">NotFittedError</span>
+
+
+<div class="viewcode-block" id="TargetEncoder"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.TargetEncoder">[docs]</a><span class="k">class</span> <span class="nc">TargetEncoder</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Target encoding for categorical features.</span>
+
+<span class="sd">    Replace each value of the categorical feature with the average of the</span>
+<span class="sd">    target values (in case of a binary target, this is the incidence of the</span>
+<span class="sd">    group). This encoding scheme is also called Mean encoding.</span>
+
+<span class="sd">    The main problem with Target encoding is overfitting; the fact that we are</span>
+<span class="sd">    encoding the feature based on target classes may lead to data leakage,</span>
+<span class="sd">    rendering the feature biased. This can be solved using some type of</span>
+<span class="sd">    regularization. A popular way to handle this is to use cross-validation</span>
+<span class="sd">    and compute the means in each out-of-fold. However, the approach</span>
+<span class="sd">    implemented here makes use of additive smoothing</span>
+<span class="sd">    (https://en.wikipedia.org/wiki/Additive_smoothing)</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    imputation_strategy : str</span>
+<span class="sd">        in case there is a particular column which contains new categories,</span>
+<span class="sd">        the encoding will lead to NULL values which should be imputed.</span>
+<span class="sd">        Valid strategies are to replace with the global mean of the train</span>
+<span class="sd">        set or the min (resp. max) incidence of the categories of that</span>
+<span class="sd">        particular variable.</span>
+<span class="sd">    weight : float</span>
+<span class="sd">        Smoothing parameters (non-negative). The higher the value of the</span>
+<span class="sd">        parameter, the bigger the contribution of the overall mean. When set to</span>
+<span class="sd">        zero, there is no smoothing (e.g. the pure target incidence is used).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">valid_strategies</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weight</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">imputation_strategy</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The value of weight cannot be smaller than zero&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">imputation_strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_strategies</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Valid options for &#39;imputation_strategy&#39; are </span><span class="si">{}</span><span class="s2">.&quot;</span>
+                             <span class="s2">&quot; Got imputation_strategy=</span><span class="si">{!r}</span><span class="s2"> instead&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_strategies</span><span class="p">,</span>
+                                     <span class="n">imputation_strategy</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imputation_strategy</span> <span class="o">=</span> <span class="n">imputation_strategy</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># placeholder for fitted output</span>
+        <span class="c1"># placeholder for the global incidence of the data used for fitting</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_mean</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="TargetEncoder.attributes_to_dict"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.TargetEncoder.attributes_to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">attributes_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the attributes of TargetEncoder in a dictionary</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Contains the attributes of TargetEncoder instance with the names</span>
+<span class="sd">            as keys</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_params</span><span class="p">()</span>
+
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;_mapping&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;_global_mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_mean</span>
+
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="TargetEncoder.set_attributes_from_dict"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.TargetEncoder.set_attributes_from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">set_attributes_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set instance attributes from a dictionary of values with key the</span>
+<span class="sd">        name of the attribute.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : dict</span>
+<span class="sd">            Contains the attributes of TargetEncoder with their</span>
+<span class="sd">            names as key.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;weight&quot;</span> <span class="ow">in</span> <span class="n">params</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;imputation_strategy&quot;</span> <span class="ow">in</span> <span class="n">params</span> <span class="ow">and</span>
+                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;imputation_strategy&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_strategies</span><span class="p">):</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">imputation_strategy</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;imputation_strategy&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;_global_mean&quot;</span> <span class="ow">in</span> <span class="n">params</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;_global_mean&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_global_mean</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;_global_mean&quot;</span><span class="p">]</span>
+
+        <span class="n">_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s2">&quot;_mapping&quot;</span> <span class="ow">in</span> <span class="n">params</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;_mapping&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="n">_mapping</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;_mapping&quot;</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">dict_to_series</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="k">return</span> <span class="n">s</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">dict_to_series</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">_mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="TargetEncoder.fit"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.TargetEncoder.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+            <span class="n">target_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the TargetEncoder to the data</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            data used to compute the mapping to encode the categorical</span>
+<span class="sd">            variables with.</span>
+<span class="sd">        column_names : list</span>
+<span class="sd">            Columns of data to be encoded</span>
+<span class="sd">        target_column : str</span>
+<span class="sd">            Column name of the target</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># compute global mean (target incidence in case of binary target)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">target_column</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_mean</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">column_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DataFrame has no column &#39;</span><span class="si">{}</span><span class="s2">&#39;, so it will be &quot;</span>
+                            <span class="s2">&quot;skipped in fitting&quot;</span> <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_column</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">y</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_fit_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.Series</span>
+<span class="sd">            data used to compute the encoding mapping for an individual</span>
+<span class="sd">            categorical variable.</span>
+<span class="sd">        y : pd.Series</span>
+<span class="sd">            series containing the targets for each observation</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.Series</span>
+<span class="sd">            Mapping containing the value to replace each group of the</span>
+<span class="sd">            categorical with.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">])</span>
+
+        <span class="c1"># To do: add Gaussian noise to the estimate</span>
+        <span class="c1"># Q: do we need to do this here or during the transform phase???</span>
+
+        <span class="c1"># Note if self.weight = 0, we have the ordinary incidence replacement</span>
+        <span class="n">numerator</span> <span class="o">=</span> <span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span><span class="o">*</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+                     <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_mean</span><span class="p">)</span>
+
+        <span class="n">denominator</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span>
+
+        <span class="k">return</span> <span class="n">numerator</span><span class="o">/</span><span class="n">denominator</span>
+
+<div class="viewcode-block" id="TargetEncoder.transform"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.TargetEncoder.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                  <span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Replace (e.g. encode) categories of each column with its average</span>
+<span class="sd">        incidence which was computed when the fit method was called</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.DataFrame</span>
+<span class="sd">            data to encode</span>
+<span class="sd">        column_names : list</span>
+<span class="sd">             Columns of data to be encoded</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            transformed data</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotFittedError</span>
+<span class="sd">            Exception when TargetEncoder was not fitted before calling this</span>
+<span class="sd">            method</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_global_mean</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;This </span><span class="si">{}</span><span class="s2"> instance is not fitted yet. Call &#39;fit&#39; with &quot;</span>
+                   <span class="s2">&quot;appropriate arguments before using this method.&quot;</span><span class="p">)</span>
+
+            <span class="k">raise</span> <span class="n">NotFittedError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">column_names</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unknown column &#39;</span><span class="si">{}</span><span class="s2">&#39; will be skipped&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;</span><span class="si">{}</span><span class="s2">&#39; is not in fitted output &quot;</span>
+                            <span class="s2">&quot;and will be skipped&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_column</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+    <span class="k">def</span> <span class="nf">_transform_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                          <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Replace (e.g. encode) categories of each column with its average</span>
+<span class="sd">        incidence which was computed when the fit method was called</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : pd.DataFrame</span>
+<span class="sd">            data to encode</span>
+<span class="sd">        column_name : str</span>
+<span class="sd">            Name of the column in data to be encoded</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            transformed data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_column</span> <span class="o">=</span> <span class="n">TargetEncoder</span><span class="o">.</span><span class="n">_clean_column_name</span><span class="p">(</span><span class="n">column_name</span><span class="p">)</span>
+
+        <span class="c1"># Convert dtype to float because when the original dtype</span>
+        <span class="c1"># is of type &quot;category&quot;, the resulting dtype is also of type</span>
+        <span class="c1"># &quot;category&quot;</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">new_column</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span><span class="p">[</span><span class="n">column_name</span><span class="p">])</span>
+                            <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">))</span>
+
+        <span class="c1"># In case of categorical data, it could be that new categories will</span>
+        <span class="c1"># emerge which were not present in the train set, so this will result</span>
+        <span class="c1"># in missing values (which should be replaced)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">new_column</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">imputation_strategy</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">new_column</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_global_mean</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">imputation_strategy</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">new_column</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">new_column</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                                        <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">imputation_strategy</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">new_column</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">new_column</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                                        <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="TargetEncoder.fit_transform"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.TargetEncoder.fit_transform">[docs]</a>    <span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                      <span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                      <span class="n">target_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Fit the encoder and transform the data</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Data to be encoded</span>
+<span class="sd">        column_names : list</span>
+<span class="sd">            Columns of data to be encoded</span>
+<span class="sd">        target_column : str</span>
+<span class="sd">            Column name of the target</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            data with additional discretized variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_names</span><span class="p">,</span> <span class="n">target_column</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_names</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_clean_column_name</span><span class="p">(</span><span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Clean column name string by removing &quot;_bin&quot; and adding &quot;_enc&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        column_name : str</span>
+<span class="sd">            column name to be cleaned</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            cleaned column name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;_bin&quot;</span> <span class="ow">in</span> <span class="n">column_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">column_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_bin&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_enc&quot;</span>
+        <span class="k">elif</span> <span class="s2">&quot;_processed&quot;</span> <span class="ow">in</span> <span class="n">column_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">column_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_processed&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_enc&quot;</span>
+        <span class="k">elif</span> <span class="s2">&quot;_cleaned&quot;</span> <span class="ow">in</span> <span class="n">column_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">column_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_cleaned&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_enc&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s2">&quot;_enc&quot;</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Python Predictions
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

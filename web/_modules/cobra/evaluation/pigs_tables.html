@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cobra.evaluation.pigs_tables &mdash; cobra 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> cobra
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../docstring/modules.html">cobra</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">cobra</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>cobra.evaluation.pigs_tables</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cobra.evaluation.pigs_tables</h1><div class="highlight"><pre>
+<span></span><span class="c1"># third party imports</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="c1">#import matplotlib.pyplot as plt</span>
+<span class="c1">#import seaborn as sns</span>
+
+<span class="kn">import</span> <span class="nn">cobra.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+
+
+<div class="viewcode-block" id="generate_pig_tables"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.evaluation.generate_pig_tables">[docs]</a><span class="k">def</span> <span class="nf">generate_pig_tables</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                        <span class="n">id_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                        <span class="n">target_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                        <span class="n">preprocessed_predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Compute PIG tables for all predictors in preprocessed_predictors. The</span>
+<span class="sd">    output is a DataFrame with columns &quot;variable&quot;, &quot;label&quot;, &quot;pop_size&quot;,</span>
+<span class="sd">    &quot;avg_incidence&quot; and &quot;incidence&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pd.DataFrame</span>
+<span class="sd">        basetable to compute PIG tables of</span>
+<span class="sd">    id_column_name : str</span>
+<span class="sd">        column name of the id (e.g. customernumber)</span>
+<span class="sd">    target_column_name : str</span>
+<span class="sd">        column name of the target</span>
+<span class="sd">    predictors: list</span>
+<span class="sd">        list of preprocessed predictor names</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        DataFrame containing a PIG table for all predictors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pigs</span> <span class="o">=</span> <span class="p">[</span><span class="n">compute_pig_table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">target_column_name</span><span class="p">,</span>
+                              <span class="n">id_column_name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">preprocessed_predictors</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">column_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">id_column_name</span><span class="p">,</span> <span class="n">target_column_name</span><span class="p">]]</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">pigs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="compute_pig_table"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.evaluation.compute_pig_table">[docs]</a><span class="k">def</span> <span class="nf">compute_pig_table</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                      <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                      <span class="n">target_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                      <span class="n">id_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Compute the pig table of a given predictor for a given target</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pd.DataFrame</span>
+<span class="sd">        input data from which to compute the pig table</span>
+<span class="sd">    column_name : str</span>
+<span class="sd">        predictor name of which to compute the pig table</span>
+<span class="sd">    target_column_name : str</span>
+<span class="sd">        name of the target variable</span>
+<span class="sd">    id_column_name : str</span>
+<span class="sd">        name of the id column (used to count population size)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        pig table as a DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">avg_incidence</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">target_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="c1"># group by the binned variable, compute the incidence</span>
+    <span class="c1"># (=mean of the target for the given bin) and compute the bin size</span>
+    <span class="c1"># (e.g. COUNT(id_column_name)). After that, rename the columns</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">column_name</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="n">target_column_name</span><span class="p">:</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">id_column_name</span><span class="p">:</span> <span class="s2">&quot;size&quot;</span><span class="p">})</span>
+               <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+               <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">column_name</span><span class="p">:</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span>
+                                <span class="n">target_column_name</span><span class="p">:</span> <span class="s2">&quot;incidence&quot;</span><span class="p">,</span>
+                                <span class="n">id_column_name</span><span class="p">:</span> <span class="s2">&quot;pop_size&quot;</span><span class="p">}))</span>
+
+    <span class="c1"># add the column name to a variable column</span>
+    <span class="c1"># add the average incidence</span>
+    <span class="c1"># replace population size by a percentage of total population</span>
+    <span class="n">res</span><span class="p">[</span><span class="s2">&quot;variable&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">clean_predictor_name</span><span class="p">(</span><span class="n">column_name</span><span class="p">)</span>
+    <span class="n">res</span><span class="p">[</span><span class="s2">&quot;avg_incidence&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_incidence</span>
+    <span class="n">res</span><span class="p">[</span><span class="s2">&quot;pop_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;pop_size&quot;</span><span class="p">]</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="c1"># make sure to always return the data with the proper column order</span>
+    <span class="n">column_order</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;pop_size&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;avg_incidence&quot;</span><span class="p">,</span> <span class="s2">&quot;incidence&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="n">column_order</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="plot_pig_graph"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.evaluation.plot_pig_graph">[docs]</a><span class="k">def</span> <span class="nf">plot_pig_graph</span><span class="p">(</span><span class="n">pig_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                   <span class="n">dim</span><span class="p">:</span> <span class="nb">tuple</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+                   <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the Predictor Insights Graphs from a PIG table</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pig_table : pd.DataFrame</span>
+<span class="sd">        Description</span>
+<span class="sd">    dim : tuple, optional</span>
+<span class="sd">        Tuple with width and lentgh of the plot</span>
+<span class="sd">    save_path : str, optional</span>
+<span class="sd">        path to store the plot on disk</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Python Predictions
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

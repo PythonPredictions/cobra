@@ -1,0 +1,396 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tutorial &mdash; cobra 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cobra" href="docstring/modules.html" />
+    <link rel="prev" title="Welcome to cobra’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> cobra
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#preprocessing">Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#feature-selection">Feature selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#evaluation">Evaluation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docstring/modules.html">cobra</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">cobra</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Tutorial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This section we will walk you through all the required steps to build a predictive model using cobra. All classes and functions used here contain detailed documentation. In case you want more information on a class or function, simply read the corresponding parts in the documentation or run the following python snippet from e.g. a notebook:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">help</span><span class="p">(</span><span class="n">function_or_class_you_want_info_from</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Building a good model involves three steps</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>preprocessing: properly prepare the predictors (a synonym for “feature” or variable that we use throught this tutorial) for modelling</p></li>
+<li><p>feature selection: TO DO</p></li>
+<li><p>model evaluation: TO DO</p></li>
+</ul>
+</div></blockquote>
+<p>In the examples below, we assume the data for model building is available in a pandas DataFrame called <code class="docutils literal notranslate"><span class="pre">basetable</span></code>. This DataFrame should at least contain an ID column (e.g. “customernumber”), a target column (e.g. “TARGET”) and a number of candidate predictors (features) to build a model with.</p>
+<div class="section" id="preprocessing">
+<h2>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h2>
+<p>The first part focusses on preparing the predictors for modelling by:</p>
+<ul class="simple">
+<li><p>Split dataset into training, selection and validation datasets.</p></li>
+<li><p>binning continuous variables into discrete intervals</p></li>
+<li><p>Replace missing values of both categorical and continuous variables (which are now binned) with an additional “Missing” bin/category</p></li>
+<li><p>Regroup categories in new category “other”</p></li>
+<li><p>Replace bins/categories with their corresponding incidence rate per category/bin.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cobra.preprocessing</span> <span class="kn">import</span> <span class="n">PreProcessor</span>
+
+<span class="c1"># Prepare data</span>
+<span class="c1"># create instance of PreProcessor from parameters</span>
+<span class="c1"># (many options possible, see source code for docs)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;path/to/store/preprocessing/pipeline/as/json/file/for/later/re-use.json&quot;</span>
+<span class="n">preprocessor</span> <span class="o">=</span> <span class="n">PreProcessor</span><span class="o">.</span><span class="n">from_params</span><span class="p">(</span><span class="n">serialization_path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+
+<span class="c1"># split data into train-selection-validation set</span>
+<span class="c1"># in the result, an additional column &quot;split&quot; will be created</span>
+<span class="c1"># containing each of those values</span>
+<span class="n">basetable</span> <span class="o">=</span> <span class="n">preprocessor</span><span class="o">.</span><span class="n">train_selection_validation_split</span><span class="p">(</span>
+                <span class="n">basetable</span><span class="p">,</span>
+                <span class="n">target_column_name</span><span class="o">=</span><span class="n">target_column_name</span><span class="p">,</span>
+                <span class="n">train_prop</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">selection_prop</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                <span class="n">validation_prop</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+<span class="c1"># create list containing the column names of the discrete resp.</span>
+<span class="c1"># continiuous variables</span>
+<span class="n">continuous_vars</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">discrete_vars</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># fit the pipeline (will automatically be stored to &quot;path&quot; variable)</span>
+<span class="n">preprocessor</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;train&quot;</span><span class="p">],</span>
+                 <span class="n">continuous_vars</span><span class="o">=</span><span class="n">continuous_vars</span><span class="p">,</span>
+                 <span class="n">discrete_vars</span><span class="o">=</span><span class="n">discrete_vars</span><span class="p">,</span>
+                 <span class="n">target_column_name</span><span class="o">=</span><span class="n">target_column_name</span><span class="p">)</span>
+
+<span class="c1"># When you want to reuse the pipeline the next time, simply run</span>
+<span class="c1"># preprocessor = PreProcessor.from_pipeline(path) and you&#39;re good to go!</span>
+
+<span class="c1"># transform the data (e.g. perform discretisation, incidence replacement, ...)</span>
+<span class="n">basetable</span> <span class="o">=</span> <span class="n">preprocessor</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">basetable</span><span class="p">,</span>
+                                   <span class="n">continuous_vars</span><span class="o">=</span><span class="n">continuous_vars</span><span class="p">,</span>
+                                   <span class="n">discrete_vars</span><span class="o">=</span><span class="n">discrete_vars</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="feature-selection">
+<h2>Feature selection<a class="headerlink" href="#feature-selection" title="Permalink to this headline">¶</a></h2>
+<p>Once the predictors are properly prepared, we can start building a predictive model, which boils down to selecting the right predictors from the dataset to train a model on. As a dataset typically contains many predictors, we can first perform a univariate preselection to rule out any predictor with little to no predictive power.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cobra.model_building</span> <span class="kn">import</span> <span class="n">univariate_selection</span>
+<span class="kn">from</span> <span class="nn">cobra.evaluation</span> <span class="kn">import</span> <span class="n">plot_univariate_predictor_quality</span>
+<span class="kn">from</span> <span class="nn">cobra.evaluation</span> <span class="kn">import</span> <span class="n">plot_correlation_matrix</span>
+
+<span class="c1"># Get list of predictor names to use for univariate_selection</span>
+<span class="n">preprocessed_predictors</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">basetable</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_enc&quot;</span><span class="p">)]</span>
+
+<span class="c1"># perform univariate selection on preprocessed predictors:</span>
+<span class="n">df_auc</span> <span class="o">=</span> <span class="n">univariate_selection</span><span class="o">.</span><span class="n">compute_univariate_preselection</span><span class="p">(</span>
+    <span class="n">target_enc_train_data</span><span class="o">=</span><span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">],</span>
+    <span class="n">target_enc_selection_data</span><span class="o">=</span><span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;selection&quot;</span><span class="p">],</span>
+    <span class="n">predictors</span><span class="o">=</span><span class="n">preprocessed_predictors</span><span class="p">,</span>
+    <span class="n">target_column</span><span class="o">=</span><span class="n">target_column_name</span><span class="p">,</span>
+    <span class="n">preselect_auc_threshold</span><span class="o">=</span><span class="mf">0.53</span><span class="p">,</span>  <span class="c1"># if auc_selection &lt;= 0.53 exclude predictor</span>
+    <span class="n">preselect_overtrain_threshold</span><span class="o">=</span><span class="mf">0.05</span>  <span class="c1"># if (auc_train - auc_selection) &gt;= 0.05 --&gt; overfitting!</span>
+    <span class="p">)</span>
+
+<span class="c1"># Plot df_auc to get a horizontal barplot:</span>
+<span class="n">plot_univariate_predictor_quality</span><span class="p">(</span><span class="n">df_auc</span><span class="p">)</span>
+
+<span class="c1"># compute correlations between preprocessed predictors:</span>
+<span class="n">df_corr</span> <span class="o">=</span> <span class="p">(</span><span class="n">univariate_selection</span>
+           <span class="o">.</span><span class="n">compute_correlations</span><span class="p">(</span><span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">],</span>
+                                 <span class="n">preprocessed_predictors</span><span class="p">))</span>
+
+<span class="c1"># plot correlation matrix</span>
+<span class="n">plot_correlation_matrix</span><span class="p">(</span><span class="n">df_corr</span><span class="p">)</span>
+
+<span class="c1"># get a list of predictors selection by the univariate selection</span>
+<span class="n">preselected_predictors</span> <span class="o">=</span> <span class="p">(</span><span class="n">univariate_selection</span>
+                          <span class="o">.</span><span class="n">get_preselected_predictors</span><span class="p">(</span><span class="n">df_auc</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>After an initial preselection on the predictors, we can start building the model itself using forward feature selection to choose the right set of predictors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cobra.model_building</span> <span class="kn">import</span> <span class="n">ForwardFeatureSelection</span>
+<span class="kn">from</span> <span class="nn">cobra.evaluation</span> <span class="kn">import</span> <span class="n">plot_performance_curves</span>
+<span class="kn">from</span> <span class="nn">cobra.evaluation</span> <span class="kn">import</span> <span class="n">plot_variable_importance</span>
+
+<span class="n">forward_selection</span> <span class="o">=</span> <span class="n">ForwardFeatureSelection</span><span class="p">(</span><span class="n">max_predictors</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                                            <span class="n">pos_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># fit the forward feature selection on the train data</span>
+<span class="c1"># has optional parameters to force and/or exclude certain predictors (see docs)</span>
+<span class="n">forward_selection</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">],</span>
+                      <span class="n">target_column_name</span><span class="p">,</span>
+                      <span class="n">preselected_predictors</span><span class="p">)</span>
+
+<span class="c1"># compute model performance (e.g. AUC for train-selection-validation)</span>
+<span class="n">performances</span> <span class="o">=</span> <span class="p">(</span><span class="n">forward_selection</span>
+                <span class="o">.</span><span class="n">compute_model_performances</span><span class="p">(</span><span class="n">basetable</span><span class="p">,</span> <span class="n">target_column_name</span><span class="p">))</span>
+
+<span class="c1"># plot performance curves</span>
+<span class="n">plot_performance_curves</span><span class="p">(</span><span class="n">performances</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Based on the performance curves, a final model can then be choosen and the variables importance can be plotted:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># After plotting the performances and selecting the model,</span>
+<span class="c1"># we can extract this model from the forward_selection class:</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">forward_selection</span><span class="o">.</span><span class="n">get_model_from_step</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># Note that chosen model has 6 variables (python lists start with index 0),</span>
+<span class="c1"># which can be obtained as follows:</span>
+<span class="n">final_predictors</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predictors</span>
+<span class="c1"># We can also compute and plot the importance of each predictor in the model:</span>
+<span class="n">variable_importance</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">compute_variable_importance</span><span class="p">(</span>
+    <span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;selection&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">plot_variable_importance</span><span class="p">(</span><span class="n">variable_importance</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Note</strong>: variable importance is based on correlation of the predictor with the model scores.</p>
+</div>
+<div class="section" id="evaluation">
+<h2>Evaluation<a class="headerlink" href="#evaluation" title="Permalink to this headline">¶</a></h2>
+<p>Now that we have build and selected a final model, it is time to evaluate it against various evaluation metrics:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cobra.evaluation</span> <span class="kn">import</span> <span class="n">Evaluator</span>
+
+<span class="c1"># get numpy array of True target labels and predicted scores:</span>
+<span class="n">y_true</span> <span class="o">=</span> <span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;selection&quot;</span><span class="p">][</span><span class="n">target_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+<span class="n">y_pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">score_model</span><span class="p">(</span><span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;selection&quot;</span><span class="p">])</span>
+
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">Evaluator</span><span class="p">()</span>
+<span class="n">evaluator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>  <span class="c1"># Automatically find the best cut-off probability</span>
+
+<span class="c1"># Get various scalar metrics such as accuracy, AUC, precision, recall, ...</span>
+<span class="n">evaluator</span><span class="o">.</span><span class="n">scalar_metrics</span>
+
+<span class="c1"># Plot non-scalar evaluation metrics:</span>
+<span class="n">evaluator</span><span class="o">.</span><span class="n">plot_roc_curve</span><span class="p">()</span>
+
+<span class="n">evaluator</span><span class="o">.</span><span class="n">plot_confusion_matrix</span><span class="p">()</span>
+
+<span class="n">evaluator</span><span class="o">.</span><span class="n">plot_cumulative_gains</span><span class="p">()</span>
+
+<span class="n">evaluator</span><span class="o">.</span><span class="n">plot_lift_curve</span><span class="p">()</span>
+
+<span class="n">evaluator</span><span class="o">.</span><span class="n">plot_cumulative_response_curve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Additionally, we can also compute the DataFrame needed to plot the so-called Predictor Insights Graphs (PIGs in short):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cobra.evaluation</span> <span class="kn">import</span> <span class="n">generate_pig_tables</span>
+
+<span class="n">pig_tables</span> <span class="o">=</span> <span class="n">generate_pig_tables</span><span class="p">(</span><span class="n">basetable</span><span class="p">[</span><span class="n">basetable</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;selection&quot;</span><span class="p">],</span>
+                                 <span class="n">id_column_name</span><span class="o">=</span><span class="n">id_column_name</span><span class="p">,</span>
+                                 <span class="n">target_column_name</span><span class="o">=</span><span class="n">target_column_name</span><span class="p">,</span>
+                                 <span class="n">preprocessed_predictors</span><span class="o">=</span><span class="n">preprocessed_predictors</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>TO DO: explain what a PIG graph is!</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="docstring/modules.html" class="btn btn-neutral float-right" title="cobra" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to cobra’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Python Predictions
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

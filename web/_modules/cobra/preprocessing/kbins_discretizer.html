@@ -1,0 +1,738 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cobra.preprocessing.kbins_discretizer &mdash; cobra 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> cobra
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../docstring/modules.html">cobra</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">cobra</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>cobra.preprocessing.kbins_discretizer</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cobra.preprocessing.kbins_discretizer</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module is a rework of</span>
+<span class="sd">https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py</span>
+<span class="sd">However, it is purely written in pandas instead of numpy because it is more</span>
+<span class="sd">intuitive</span>
+
+<span class="sd">Also, some custom modifications were included to allign it with our</span>
+<span class="sd">Python Predictions methodology</span>
+
+<span class="sd">Authors:</span>
+
+<span class="sd">- Geert Verstraeten (methodology)</span>
+<span class="sd">- Matthias Roels (implementation)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># standard lib imports</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">numbers</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># third party imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">BaseEstimator</span>
+<span class="kn">from</span> <span class="nn">sklearn.exceptions</span> <span class="kn">import</span> <span class="n">NotFittedError</span>
+<span class="c1">#from sklearn.cluster import KMeans</span>
+
+
+<div class="viewcode-block" id="KBinsDiscretizer"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.KBinsDiscretizer">[docs]</a><span class="k">class</span> <span class="nc">KBinsDiscretizer</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Bin continuous data into intervals of predefined size. It provides a</span>
+<span class="sd">    way to partition continuous data into discrete values, i.e. tranform</span>
+<span class="sd">    continuous data into nominal data. This can make a linear model more</span>
+<span class="sd">    expressive as it introduces nonlinearity to the model, while maintaining</span>
+<span class="sd">    the interpretability of the model afterwards.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    auto_adapt_bins : bool</span>
+<span class="sd">        reduces the number of bins (starting from n_bins) as a function of</span>
+<span class="sd">        the number of missings</span>
+<span class="sd">    change_endpoint_format : bool</span>
+<span class="sd">        Whether or not to change the format of the lower and upper bins into</span>
+<span class="sd">        ``&lt;= x`` and ``&gt; y`` resp.</span>
+<span class="sd">    closed : str</span>
+<span class="sd">        Whether to close the bins (intervals) from the left or right</span>
+<span class="sd">    label_format : str</span>
+<span class="sd">        format string to display the bin labels</span>
+<span class="sd">        e.g. ``min - max``, ``(min, max]``, ...</span>
+<span class="sd">    n_bins : int</span>
+<span class="sd">        Number of bins to produce. Raises ValueError if ``n_bins &lt; 2``.</span>
+<span class="sd">    starting_precision : int</span>
+<span class="sd">        Initial precision for the bin edges to start from,</span>
+<span class="sd">        can also be negative. Given a list of bin edges, the class will</span>
+<span class="sd">        automatically choose the minimal precision required to have proper bins</span>
+<span class="sd">        e.g. ``[5.5555, 5.5744, ...]`` will be rounded to</span>
+<span class="sd">        ``[5.56, 5.57, ...]``. In case of a negative number, an attempt will be</span>
+<span class="sd">        made to round up the numbers of the bin edges e.g. ``5.55 -&gt; 10``,</span>
+<span class="sd">        ``146 -&gt; 100``, ...</span>
+<span class="sd">    strategy : str</span>
+<span class="sd">        Binning strategy. Currently only `uniform` and `quantile`</span>
+<span class="sd">        e.g. equifrequency is supported</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">valid_strategies</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span> <span class="s2">&quot;quantile&quot;</span><span class="p">)</span>
+    <span class="n">valid_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;strategy&quot;</span><span class="p">,</span> <span class="s2">&quot;closed&quot;</span><span class="p">,</span> <span class="s2">&quot;auto_adapt_bins&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;starting_precision&quot;</span><span class="p">,</span> <span class="s2">&quot;label_format&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;change_endpoint_format&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;quantile&quot;</span><span class="p">,</span>
+                 <span class="n">closed</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>
+                 <span class="n">auto_adapt_bins</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">starting_precision</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">label_format</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> - </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+                 <span class="n">change_endpoint_format</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="c1"># validate number of bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_n_bins</span><span class="p">(</span><span class="n">n_bins</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_bins</span> <span class="o">=</span> <span class="n">n_bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closed</span> <span class="o">=</span> <span class="n">closed</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_adapt_bins</span> <span class="o">=</span> <span class="n">auto_adapt_bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">starting_precision</span> <span class="o">=</span> <span class="n">starting_precision</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_format</span> <span class="o">=</span> <span class="n">label_format</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">change_endpoint_format</span> <span class="o">=</span> <span class="n">change_endpoint_format</span>
+
+        <span class="c1"># dict to store fitted output in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bins_by_column</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">_validate_n_bins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if ``n_bins`` is of the proper type and if it is bigger</span>
+<span class="sd">        than two</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n_bins : int</span>
+<span class="sd">            Number of bins KBinsDiscretizer has to produce for each variable</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            in case ``n_bins`` is not an integer or if ``n_bins &lt; 2``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_bins</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> received an invalid n_bins type. &quot;</span>
+                             <span class="s2">&quot;Received </span><span class="si">{}</span><span class="s2">, expected int.&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">KBinsDiscretizer</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                     <span class="nb">type</span><span class="p">(</span><span class="n">n_bins</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">n_bins</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> received an invalid number &quot;</span>
+                             <span class="s2">&quot;of bins. Received </span><span class="si">{}</span><span class="s2">, expected at least 2.&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">KBinsDiscretizer</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">))</span>
+
+<div class="viewcode-block" id="KBinsDiscretizer.attributes_to_dict"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.KBinsDiscretizer.attributes_to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">attributes_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the attributes of KBinsDiscretizer in a dictionary</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Contains the attributes of KBinsDiscretizer instance with the names</span>
+<span class="sd">            as keys</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_params</span><span class="p">()</span>
+
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;_bins_by_column&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bins_by_column</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="KBinsDiscretizer.set_attributes_from_dict"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.KBinsDiscretizer.set_attributes_from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">set_attributes_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set instance attributes from a dictionary of values with key the</span>
+<span class="sd">        name of the attribute.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : dict</span>
+<span class="sd">            Contains the attributes of KBinsDiscretizer with their</span>
+<span class="sd">            names as key.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            In case `_bins_by_column` is not of type dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_bins_by_column</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;_bins_by_column&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">_bins_by_column</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;_bins_by_column is expected to be a dict &quot;</span>
+                             <span class="s2">&quot;but is of type </span><span class="si">{}</span><span class="s2"> instead&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">_bins_by_column</span><span class="p">)))</span>
+
+        <span class="c1"># Clean out params dictionary to remove unknown keys (for safety!)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">params</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_keys</span><span class="p">}</span>
+
+        <span class="c1"># We cannot turn this method into a classmethod as we want to make use</span>
+        <span class="c1"># of the following method from BaseEstimator:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bins_by_column</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">_bins_by_column</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="KBinsDiscretizer.fit"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.KBinsDiscretizer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fits the estimator</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Data to be discretized</span>
+<span class="sd">        column_names : list</span>
+<span class="sd">            Names of the columns of the DataFrame to discretize</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_strategies</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: valid options for &#39;strategy&#39; are </span><span class="si">{}</span><span class="s2">. &quot;</span>
+                             <span class="s2">&quot;Got strategy=</span><span class="si">{!r}</span><span class="s2"> instead.&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">KBinsDiscretizer</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">valid_strategies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="n">column_names</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">column_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DataFrame has no column &#39;</span><span class="si">{}</span><span class="s2">&#39;, so it will be &quot;</span>
+                            <span class="s2">&quot;skipped in fitting&quot;</span> <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column_name</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+            <span class="n">bins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_column</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_name</span><span class="p">)</span>
+
+            <span class="c1"># Add to bins_by_column for later use</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bins_by_column</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">bins</span></div>
+
+    <span class="k">def</span> <span class="nf">_fit_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                    <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Compute bins for a specific column in data</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Data to be discretized</span>
+<span class="sd">        column_name : str</span>
+<span class="sd">            Name of the column of the DataFrame to discretize</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[tuple]</span>
+<span class="sd">            list of bins as tuples</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">col_min</span><span class="p">,</span> <span class="n">col_max</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">col_min</span> <span class="o">==</span> <span class="n">col_max</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Predictor &#39;</span><span class="si">{}</span><span class="s2">&#39; is constant and &quot;</span>
+                        <span class="s2">&quot;will be ignored in computation&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column_name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">n_bins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bins</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_adapt_bins</span><span class="p">:</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">missing_pct</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">size</span>
+            <span class="n">n_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">missing_pct</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_bins</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+
+        <span class="n">bin_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_bin_edges</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">,</span>
+                                            <span class="n">col_min</span><span class="p">,</span> <span class="n">col_max</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Only 1 bin was found for predictor &#39;</span><span class="si">{}</span><span class="s2">&#39; so it will &quot;</span>
+                        <span class="s2">&quot;be ignored in computation&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column_name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The number of actual bins for predictor &#39;</span><span class="si">{}</span><span class="s2">&#39; is </span><span class="si">{}</span><span class="s2"> &quot;</span>
+                        <span class="s2">&quot;which is smaller than the requested number of bins &quot;</span>
+                        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column_name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_bins_from_edges</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">)</span>
+
+<div class="viewcode-block" id="KBinsDiscretizer.transform"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.KBinsDiscretizer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                  <span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Discretizes the data in the given list of columns by mapping each</span>
+<span class="sd">        number to the appropriate bin computed by the fit method</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Data to be discretized</span>
+<span class="sd">        column_names : list</span>
+<span class="sd">            Names of the columns of the DataFrame to discretize</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            data with additional discretized variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bins_by_column</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> instance is not fitted yet. Call &#39;fit&#39; with &quot;</span>
+                   <span class="s2">&quot;appropriate arguments before using this method.&quot;</span><span class="p">)</span>
+
+            <span class="k">raise</span> <span class="n">NotFittedError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="n">column_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">column_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bins_by_column</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;</span><span class="si">{}</span><span class="s2">&#39; is not in fitted output &quot;</span>
+                            <span class="s2">&quot;and will be skipped&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column_name</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># can be None for a column with a constant value!</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bins_by_column</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">bins</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_column</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">bins</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+    <span class="k">def</span> <span class="nf">_transform_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                          <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                          <span class="n">bins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given a DataFrame, a column name and a list of bins,</span>
+<span class="sd">        create an additional column which determines the bin in which the value</span>
+<span class="sd">        of column_name lies in.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Original data to be discretized</span>
+<span class="sd">        column_name : str</span>
+<span class="sd">            name of the column to discretize</span>
+<span class="sd">        bins : List[tuple]</span>
+<span class="sd">            bins to discretize the data into</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            original DataFrame with an added binned column</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">interval_idx</span> <span class="o">=</span> <span class="n">KBinsDiscretizer</span><span class="o">.</span><span class="n">_create_index</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span><span class="p">)</span>
+
+        <span class="n">column_name_bin</span> <span class="o">=</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s2">&quot;_bin&quot;</span>
+
+        <span class="c1"># use pd.cut to compute bins</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">column_name_bin</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">column_name</span><span class="p">],</span>
+                                              <span class="n">bins</span><span class="o">=</span><span class="n">interval_idx</span><span class="p">)</span>
+
+        <span class="c1"># Rename bins so that the output has a proper format</span>
+        <span class="n">bin_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_bin_labels</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">column_name_bin</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column_name_bin</span><span class="p">]</span>
+                                        <span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">rename_categories</span><span class="p">(</span><span class="n">bin_labels</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">column_name_bin</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="c1"># Add an additional bin for missing values</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">column_name_bin</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">add_categories</span><span class="p">([</span><span class="s2">&quot;Missing&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Replace NULL with &quot;Missing&quot;</span>
+            <span class="c1"># Otherwise these will be ignored in groupby</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">column_name_bin</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;Missing&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="KBinsDiscretizer.fit_transform"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.preprocessing.KBinsDiscretizer.fit_transform">[docs]</a>    <span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                      <span class="n">column_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Fits to data, then transform it</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Data to be discretized</span>
+<span class="sd">        column_names : list</span>
+<span class="sd">            Names of the columns of the DataFrame to discretize</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            data with additional discretized variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_names</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">column_names</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_compute_bin_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                           <span class="n">n_bins</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">col_min</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                           <span class="n">col_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute the bin edges for a given column, a DataFrame and the number</span>
+<span class="sd">        of required bins</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Data to be discretized</span>
+<span class="sd">        column_name : str</span>
+<span class="sd">             name of the column to discretize</span>
+<span class="sd">        n_bins : int</span>
+<span class="sd">            Number of bins to produce.</span>
+<span class="sd">        col_min : float</span>
+<span class="sd">            min value of the variable</span>
+<span class="sd">        col_max : float</span>
+<span class="sd">            max value of the variable</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            list of bin edges from which to compute the bins</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">bin_edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;quantile&quot;</span><span class="p">:</span>
+            <span class="n">bin_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span>
+                             <span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                                       <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;uniform&quot;</span><span class="p">:</span>
+            <span class="n">bin_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">col_min</span><span class="p">,</span> <span class="n">col_max</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># elif self.strategy == &quot;kmeans&quot;:</span>
+
+        <span class="c1">#     if data[column_name].isnull().sum() &gt; 0:</span>
+        <span class="c1">#         raise ValueError(&quot;{}: kmeans strategy cannot handle NULL &quot;</span>
+        <span class="c1">#                          &quot;values in the data.&quot;</span>
+        <span class="c1">#                          .format(KBinsDiscretizer.__name__))</span>
+
+        <span class="c1">#     # Deterministic initialization with uniform spacing</span>
+        <span class="c1">#     uniform_edges = np.linspace(col_min, col_max, n_bins + 1)</span>
+        <span class="c1">#     init = (uniform_edges[1:] + uniform_edges[:-1])[:, None] * 0.5</span>
+
+        <span class="c1">#     # 1D k-means</span>
+        <span class="c1">#     kmeans = KMeans(n_clusters=n_bins, init=init, n_init=1)</span>
+        <span class="c1">#     centers = (kmeans.fit(data[column_name][:, None])</span>
+        <span class="c1">#                      .cluster_centers_[:, 0])</span>
+
+        <span class="c1">#     # Make sure to sort centers as they may be unsorted,</span>
+        <span class="c1">#     # even with sorted init!</span>
+        <span class="c1">#     centers.sort()</span>
+
+        <span class="c1">#     # compute bin_edges from centers</span>
+        <span class="c1">#     bin_edges = (centers[1:] + centers[:-1]) * 0.5</span>
+        <span class="c1">#     bin_edges = np.r_[col_min, bin_edges, col_max]</span>
+
+        <span class="c1"># Make sure the bin_edges are unique and sorted</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">_compute_minimal_precision_of_bin_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bin_edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute the minimal precision of a list of bin_edges so that we end</span>
+<span class="sd">        up with a strictly ascending sequence of numbers.</span>
+<span class="sd">        The starting_precision attribute will be used as the initial precision.</span>
+<span class="sd">        In case of a negative starting_precision, the bin edges will be rounded</span>
+<span class="sd">        to the nearest 10, 100, ... (e.g. 5.55 -&gt; 10, 246 -&gt; 200, ...)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bin_edges : list</span>
+<span class="sd">            The bin edges for binning a continuous variable</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            minimal precision for the bin edges</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">starting_precision</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">cont</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">,</span> <span class="n">bin_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="n">b</span> <span class="ow">and</span> <span class="nb">round</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span> <span class="o">==</span> <span class="nb">round</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">precision</span><span class="p">):</span>
+                    <span class="c1"># precision is not high enough, so increase</span>
+                    <span class="n">precision</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">cont</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># set cont to True to keep looping</span>
+                    <span class="k">break</span>  <span class="c1"># break out of the for loop</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cont</span><span class="p">:</span>
+                <span class="c1"># if minimal precision was found,</span>
+                <span class="c1"># return to break out of while loop</span>
+                <span class="k">return</span> <span class="n">precision</span>
+
+    <span class="k">def</span> <span class="nf">_compute_bins_from_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bin_edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Given a list of bin edges, compute the minimal precision for which</span>
+<span class="sd">        we can make meaningful bins and make those bins</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bin_edges : list</span>
+<span class="sd">            The bin edges for binning a continuous variable</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[tuple]</span>
+<span class="sd">            A (sorted) list of bins as tuples</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># compute the minimal precision of the bin_edges</span>
+        <span class="c1"># this can be a negative number, which then</span>
+        <span class="c1"># rounds numbers to the nearest 10, 100, ...</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_minimal_precision_of_bin_edges</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">)</span>
+
+        <span class="n">bins</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">,</span> <span class="n">bin_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">fmt_a</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span>
+            <span class="n">fmt_b</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span>
+
+            <span class="n">bins</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fmt_a</span><span class="p">,</span> <span class="n">fmt_b</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">bins</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_create_index</span><span class="p">(</span><span class="n">intervals</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span>
+                      <span class="n">closed</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">IntervalIndex</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create an pd.IntervalIndex based on a list of tuples.</span>
+<span class="sd">        This is basically a wrapper around pd.IntervalIndex.from_tuples</span>
+<span class="sd">        However, the lower bound of the first entry in the list (the lower bin)</span>
+<span class="sd">        is replaced by -np.inf. Similarly, the upper bound of the last entry in</span>
+<span class="sd">        the list (upper bin) is replaced by np.inf.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        intervals : List[tuple]</span>
+<span class="sd">            a list of tuples describing the intervals</span>
+<span class="sd">        closed : str, optional</span>
+<span class="sd">            Whether the intervals should be closed on the left-side,</span>
+<span class="sd">            right-side, both or neither.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.IntervalIndex</span>
+<span class="sd">            Description</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># check if closed is of the proper form</span>
+        <span class="k">if</span> <span class="n">closed</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: valid options for &#39;closed&#39; are </span><span class="si">{}</span><span class="s2">. &quot;</span>
+                             <span class="s2">&quot;Got strategy=</span><span class="si">{!r}</span><span class="s2"> instead.&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">KBinsDiscretizer</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                     <span class="p">[</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="n">closed</span><span class="p">))</span>
+
+        <span class="c1"># deepcopy variable because we do not want to modify the content</span>
+        <span class="c1"># of intervals (which is still used outside of this function)</span>
+        <span class="n">_intervals</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span>
+        <span class="c1"># Replace min and max with -np.inf and np.inf resp. so that these</span>
+        <span class="c1"># values are guaranteed to be included when transforming the data</span>
+        <span class="n">_intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">_intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">_intervals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">_intervals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">IntervalIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">_intervals</span><span class="p">,</span> <span class="n">closed</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_bin_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given a list of bins, create a list of string containing the bins</span>
+<span class="sd">        as a string with a specific format (e.g. bin labels)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bins : List[tuple]</span>
+<span class="sd">            list of tuple containing for each bin the upper and lower bound</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            list of (formatted) bin labels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bin_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="n">bins</span><span class="p">:</span>
+            <span class="n">bin_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_format</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">interval</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                       <span class="n">interval</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1"># Format first and last bin as &lt; x and &gt; y resp.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">change_endpoint_format</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span> <span class="o">==</span> <span class="s2">&quot;left&quot;</span><span class="p">:</span>
+                <span class="n">bin_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&lt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">bin_labels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&gt;= </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bin_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&lt;= </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">bin_labels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">bin_labels</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Python Predictions
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

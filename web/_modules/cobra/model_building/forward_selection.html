@@ -1,0 +1,483 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cobra.model_building.forward_selection &mdash; cobra 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> cobra
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../docstring/modules.html">cobra</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">cobra</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>cobra.model_building.forward_selection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cobra.model_building.forward_selection</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">cobra.model_building</span> <span class="kn">import</span> <span class="n">LogisticRegressionModel</span> <span class="k">as</span> <span class="n">MLModel</span>
+
+
+<div class="viewcode-block" id="ForwardFeatureSelection"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.model_building.ForwardFeatureSelection">[docs]</a><span class="k">class</span> <span class="nc">ForwardFeatureSelection</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Perform forward feature selection for a given dataset using a given</span>
+<span class="sd">    model.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    max_predictors : int</span>
+<span class="sd">        maximum number of predictors allowed in any model. This corresponds</span>
+<span class="sd">        more or less with the maximum number of steps in the forward feature</span>
+<span class="sd">        selection</span>
+<span class="sd">    model_name : str</span>
+<span class="sd">        name of the model to use for forward feature selection</span>
+<span class="sd">    pos_only : bool</span>
+<span class="sd">        whether or not the model coefficients should all be positive</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_predictors</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                 <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;logistic-regression&quot;</span><span class="p">,</span> <span class="n">pos_only</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_only</span> <span class="o">=</span> <span class="n">pos_only</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_predictors</span> <span class="o">=</span> <span class="n">max_predictors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fitted_models</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="ForwardFeatureSelection.get_model_from_step"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.model_building.ForwardFeatureSelection.get_model_from_step">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MLModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get fitted model from a particular step</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        step : int</span>
+<span class="sd">            Particular step in the forward selection</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MLModel</span>
+<span class="sd">            Fitted model from the given step</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            in case step is larger than the number of available models</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fitted_models</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">step</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No model available for step </span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fitted_models</span><span class="p">[</span><span class="n">step</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ForwardFeatureSelection.compute_model_performances"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.model_building.ForwardFeatureSelection.compute_model_performances">[docs]</a>    <span class="k">def</span> <span class="nf">compute_model_performances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                                   <span class="n">target_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                   <span class="n">splits</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;selection&quot;</span><span class="p">,</span>
+                                                 <span class="s2">&quot;validation&quot;</span><span class="p">]</span>
+                                   <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute for each model the performance for</span>
+<span class="sd">           train-selection-validation sets and return them along with a list</span>
+<span class="sd">           of predictors used in the model.</span>
+<span class="sd">           Note that the computation of the performance for each split is</span>
+<span class="sd">           cached inside the model itself, so it is inexpensive to perform</span>
+<span class="sd">           it multiple times!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            dataset for which to compute performance of each model</span>
+<span class="sd">        target_column_name : str</span>
+<span class="sd">            name of the target column</span>
+<span class="sd">        splits : list, optional</span>
+<span class="sd">            list of splits to compute performance on</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            A list containing for each model the performance for</span>
+<span class="sd">            train-selection-validation sets as well as the set of predictors</span>
+<span class="sd">            used in this model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">predictor_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fitted_models</span><span class="p">:</span>
+
+            <span class="n">last_added_predictor</span> <span class="o">=</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">predictors</span><span class="p">)</span>
+                                    <span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">predictor_set</span><span class="p">))</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;predictors&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">predictors</span><span class="p">,</span>
+                <span class="s2">&quot;last_added_predictor&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">last_added_predictor</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Evaluate model on each data set split,</span>
+            <span class="c1"># e.g. train-selection-validation</span>
+            <span class="n">tmp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">split</span><span class="si">}</span><span class="s2">_performance&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">split</span><span class="p">],</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">split</span><span class="p">][</span><span class="n">target_column_name</span><span class="p">],</span>
+                    <span class="n">split</span><span class="o">=</span><span class="n">split</span>  <span class="c1"># parameter used for caching</span>
+                    <span class="p">)</span>
+                <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">splits</span>
+            <span class="p">})</span>
+
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+            <span class="n">predictor_set</span> <span class="o">=</span> <span class="n">predictor_set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">predictors</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ForwardFeatureSelection.fit"><a class="viewcode-back" href="../../../docstring/cobra.html#cobra.model_building.ForwardFeatureSelection.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">target_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">forced_predictors</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">excluded_predictors</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the forward feature selection estimator</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : pd.DataFrame</span>
+<span class="sd">            Data on which to fit the model</span>
+<span class="sd">        target_column_name : str</span>
+<span class="sd">            Name of the target column</span>
+<span class="sd">        predictors : list</span>
+<span class="sd">            List of predictors on which to train the estimator</span>
+<span class="sd">        forced_predictors : list, optional</span>
+<span class="sd">            List of predictors to force in the estimator</span>
+<span class="sd">        excluded_predictors : list, optional</span>
+<span class="sd">            List of predictors to exclude from the estimator</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            In case the number of forced predictors is larger than the maximum</span>
+<span class="sd">            number of allowed predictors in the model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># remove excluded predictors from predictor lists</span>
+        <span class="n">filterd_predictors</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">predictors</span>
+                              <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">excluded_predictors</span><span class="p">]</span>
+
+        <span class="c1"># checks on predictor lists and self.max_predictors attr</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">forced_predictors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_predictors</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Size or forced_predictors cannot be bigger than &quot;</span>
+                             <span class="s2">&quot;max_predictors&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">forced_predictors</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_predictors</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Size of forced_predictors equals max_predictors &quot;</span>
+                     <span class="s2">&quot;only one model will be trained...&quot;</span><span class="p">)</span>
+            <span class="c1"># train model with all forced_predictors (only)</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fitted_models</span>
+             <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_train_model</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span>
+                                       <span class="n">target_column_name</span><span class="p">,</span>
+                                       <span class="n">forced_predictors</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_forward_selection</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">target_column_name</span><span class="p">,</span>
+                                    <span class="n">filterd_predictors</span><span class="p">,</span>
+                                    <span class="n">forced_predictors</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_forward_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                           <span class="n">target_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                           <span class="n">forced_predictors</span><span class="p">:</span> <span class="nb">list</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Perform the forward feature selection algoritm to compute a list</span>
+<span class="sd">        of models (with increasing performance?). The length of the list,</span>
+<span class="sd">        i.e. the number of models is bounded by the max_predictors class</span>
+<span class="sd">        attribute.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_data : pd.DataFrame</span>
+<span class="sd">            Data on which to fit the model</span>
+<span class="sd">        target_column_name : str</span>
+<span class="sd">            Name of the target column</span>
+<span class="sd">        predictors : list</span>
+<span class="sd">            List of predictors on which to train the models</span>
+<span class="sd">        forced_predictors : list, optional</span>
+<span class="sd">            List of predictors to force in the models</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_predictors</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">max_steps</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_predictors</span><span class="p">,</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">predictors</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">forced_predictors</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">step</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">forced_predictors</span><span class="p">):</span>
+                <span class="c1"># first, we go through forced predictors</span>
+                <span class="n">candidate_predictors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">forced_predictors</span><span class="p">)</span>
+                                            <span class="o">.</span><span class="n">difference</span><span class="p">(</span>
+                                                <span class="nb">set</span><span class="p">(</span><span class="n">current_predictors</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">candidate_predictors</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="p">(</span><span class="n">predictors</span>
+                                                        <span class="o">+</span> <span class="n">forced_predictors</span><span class="p">)</span>
+                                        <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_predictors</span><span class="p">]</span>
+
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_next_best_model</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span>
+                                               <span class="n">target_column_name</span><span class="p">,</span>
+                                               <span class="n">candidate_predictors</span><span class="p">,</span>
+                                               <span class="n">current_predictors</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Add new model predictors to the list of current predictors</span>
+                <span class="n">current_predictors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">current_predictors</span><span class="p">)</span>
+                                          <span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">predictors</span><span class="p">)))</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fitted_models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fitted_models</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No models found in forward selection&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_find_next_best_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                              <span class="n">target_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                              <span class="n">candidate_predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                              <span class="n">current_predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MLModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given a list of current predictors which are already to selected to</span>
+<span class="sd">        be include in the model, Find amongst a list candidate predictors</span>
+<span class="sd">        the predictor to add to the selected list so that the resulting model</span>
+<span class="sd">        has the best performance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_data : pd.DataFrame</span>
+<span class="sd">            Data on which to fit the model</span>
+<span class="sd">        target_column_name : str</span>
+<span class="sd">            Name of the target column</span>
+<span class="sd">        candidate_predictors : list</span>
+<span class="sd">            List of candidate predictors to test</span>
+<span class="sd">        current_predictors : list</span>
+<span class="sd">            List of predictors on which to train the models</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MLModel</span>
+<span class="sd">            Best performing model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># placeholders</span>
+        <span class="n">best_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">best_performance</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">pred</span> <span class="ow">in</span> <span class="n">candidate_predictors</span><span class="p">:</span>
+
+            <span class="c1"># train model with additional predictor</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_train_model</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">target_column_name</span><span class="p">,</span>
+                                      <span class="p">(</span><span class="n">current_predictors</span> <span class="o">+</span> <span class="p">[</span><span class="n">pred</span><span class="p">]))</span>
+            <span class="c1"># Evaluate model</span>
+            <span class="n">performance</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span>
+                           <span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">train_data</span><span class="p">[</span><span class="n">current_predictors</span> <span class="o">+</span> <span class="p">[</span><span class="n">pred</span><span class="p">]],</span>
+                                     <span class="n">train_data</span><span class="p">[</span><span class="n">target_column_name</span><span class="p">],</span>
+                                     <span class="n">split</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_only</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_coef</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())):</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># check if model is better than current best model</span>
+            <span class="c1"># and if yes, replace current best!</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">performance</span> <span class="o">&gt;=</span> <span class="n">best_performance</span><span class="p">):</span>
+                <span class="n">best_performance</span> <span class="o">=</span> <span class="n">performance</span>
+                <span class="n">best_model</span> <span class="o">=</span> <span class="n">model</span>
+
+        <span class="k">return</span> <span class="n">best_model</span>
+
+    <span class="k">def</span> <span class="nf">_train_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">target_column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                     <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MLModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Train the model with a given set of predictors</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_data : pd.DataFrame</span>
+<span class="sd">            Data on which to fit the model</span>
+<span class="sd">        target_column_name : str</span>
+<span class="sd">            Name of the target column</span>
+<span class="sd">        predictors : list</span>
+<span class="sd">            List of predictors on which to train the models</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MLModel</span>
+<span class="sd">            trained model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">MLModel</span><span class="p">()</span>
+
+        <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_data</span><span class="p">[</span><span class="n">predictors</span><span class="p">],</span> <span class="n">train_data</span><span class="p">[</span><span class="n">target_column_name</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">model</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Python Predictions
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
