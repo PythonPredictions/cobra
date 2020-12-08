@@ -1,10 +1,8 @@
 =====
-Cobra
+cobra
 =====
 
-**Cobra** is a Python package that implements the Python Predictions methodology for predictive analytics. It consists of a main script/notebook that can be used to build and save a predictive model only by setting several parameters. The main scripts itself consists of several modules that can be used independently of one another to build custom scripts.
-
-Note that this package is a refactored version of the back-end of the original web-based cobra.
+**cobra** is a Python package to build predictive models with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology is largely inspired by the one used in credit risk scoring, but it has been tweaked, tested and optimized over the years in close collaboration with people from academia.
 
 
 Main Features
@@ -64,7 +62,7 @@ How to contribute code
 
 The preferred way to contribute to cobra is to fork the main repository on GitHub, then submit a "pull request" (PR). The first step is to get a local development copy by installing cobra from source through the following steps:
 
-- Fork the `project repository <https://github.com/PythonPredictions/Cobra>`_. For more details on how to fork a repository see `this guide <https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo>`__
+- Fork the `project repository <https://github.com/PythonPredictions/cobra>`_. For more details on how to fork a repository see `this guide <https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo>`__
 - Clone your fork of cobra's repo.
 - Open a shell and navigate to the folder where this repo was cloned in.
 - Once you are in the folder, execute ``pip install --editable .``.
