@@ -317,7 +317,7 @@ class CategoricalDataProcessor(BaseEstimator):
                       target_column: str) -> pd.DataFrame:
         """Fits to data, then transform it
 
-         Parameters
+        Parameters
         ----------
         data : pd.DataFrame
             data used to compute the mapping to encode the categorical
