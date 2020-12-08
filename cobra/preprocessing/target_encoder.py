@@ -3,6 +3,7 @@ Incidence Replacement Module. The implementation is inspired by
 https://contrib.scikit-learn.org/categorical-encoding/index.html
 
 Authors:
+
 - Geert Verstraeten (methodology)
 - Matthias Roels (implementation)
 """
@@ -29,7 +30,7 @@ class TargetEncoder(BaseEstimator):
     rendering the feature biased. This can be solved using some type of
     regularization. A popular way to handle this is to use cross-validation
     and compute the means in each out-of-fold. However, the approach
-    implemented makes use of additive smoothing
+    implemented here makes use of additive smoothing
     (https://en.wikipedia.org/wiki/Additive_smoothing)
 
     Attributes
@@ -65,11 +66,6 @@ class TargetEncoder(BaseEstimator):
         self._mapping = {}  # placeholder for fitted output
         # placeholder for the global incidence of the data used for fitting
         self._global_mean = None
-
-        # not implemented yet!
-        # randomized: bool=False, sigma=0.05
-        # self.randomized = randomized
-        # self.sigma = sigma
 
     def attributes_to_dict(self) -> dict:
         """Return the attributes of TargetEncoder in a dictionary
@@ -131,7 +127,7 @@ class TargetEncoder(BaseEstimator):
 
     def fit(self, data: pd.DataFrame, column_names: list,
             target_column: str):
-        """Fit the TargetEncoder to data and y
+        """Fit the TargetEncoder to the data
 
         Parameters
         ----------
@@ -174,9 +170,6 @@ class TargetEncoder(BaseEstimator):
             categorical with.
         """
         stats = y.groupby(X).agg(["mean", "count"])
-
-        # To do: add Gaussian noise to the estimate
-        # Q: do we need to do this here or during the transform phase???
 
         # Note if self.weight = 0, we have the ordinary incidence replacement
         numerator = (stats["count"]*stats["mean"]
@@ -274,7 +267,7 @@ class TargetEncoder(BaseEstimator):
     def fit_transform(self, data: pd.DataFrame,
                       column_names: list,
                       target_column: str) -> pd.DataFrame:
-        """Summary
+        """Fit the encoder and transform the data
 
         Parameters
         ----------

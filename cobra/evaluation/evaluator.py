@@ -53,7 +53,16 @@ class Evaluator():
         self.cumulative_gains = None
 
     def fit(self, y_true: np.ndarray, y_pred: np.ndarray):
+        """Fit the evaluator by computing the relevant evaluation metrics on
+        the inputs
 
+        Parameters
+        ----------
+        y_true : np.ndarray
+            true labels
+        y_pred : np.ndarray
+            model scores (as probability)
+        """
         fpr, tpr, thresholds = roc_curve(y_true=y_true, y_score=y_pred)
 
         # if probability_cutoff is not set, take the optimal cut off

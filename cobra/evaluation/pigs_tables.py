@@ -11,8 +11,8 @@ def generate_pig_tables(data: pd.DataFrame,
                         target_column_name: str,
                         preprocessed_predictors: list) -> pd.DataFrame:
     """Compute PIG tables for all predictors in preprocessed_predictors. The
-    output is a DataFrame with columns "variable", "label", "pop_size",
-    "avg_incidence" and "incidence"
+    output is a DataFrame with columns ``variable``, ``label``, ``pop_size``,
+    ``avg_incidence`` and ``incidence``
 
     Parameters
     ----------
@@ -87,20 +87,3 @@ def compute_pig_table(data: pd.DataFrame,
                     "avg_incidence", "incidence"]
 
     return res[column_order]
-
-
-def plot_pig_graph(pig_table: pd.DataFrame,
-                   dim: tuple=(12, 8),
-                   save_path: str=None):
-    """Create the Predictor Insights Graphs from a PIG table
-
-    Parameters
-    ----------
-    pig_table : pd.DataFrame
-        Description
-    dim : tuple, optional
-        Tuple with width and lentgh of the plot
-    save_path : str, optional
-        path to store the plot on disk
-    """
-    pass

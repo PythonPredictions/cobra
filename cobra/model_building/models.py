@@ -50,12 +50,12 @@ class LogisticRegressionModel:
         return self.logit.intercept_[0]
 
     def get_coef_by_predictor(self) -> dict:
-        """Returns a map predictor -> coefficient
+        """Returns a dictionary mapping predictor (key) to coefficient (value)
 
         Returns
         -------
         dict
-            map predictor -> coefficient
+            map ``{predictor: coefficient}``
         """
         return dict(zip(self.predictors, self.logit.coef_[0]))
 

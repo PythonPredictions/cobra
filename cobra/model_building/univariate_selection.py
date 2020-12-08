@@ -54,8 +54,8 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     -------
     pd.DataFrame
         DataFrame containing for each variable the train auc and
-    selection auc allong with a boolean indicating whether or not it is
-    selected based on the criteria
+        selection auc allong with a boolean indicating whether or not it is
+        selected based on the criteria
     """
     result = []
 
