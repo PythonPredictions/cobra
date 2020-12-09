@@ -381,9 +381,12 @@ class PreProcessor(BaseEstimator):
             DataFrame with additional split column
         """
 
-        if train_prop + selection_prop + validation_prop > 1:
+        if train_prop + selection_prop + validation_prop != 1.0:
             raise ValueError("The sum of train_prop, selection_prop and "
-                             "validation_prop cannot be larger than 1")
+                             "validation_prop cannot differ from 1.0")
+
+        if selection_prop == 0.0:
+            raise ValueError("selection_prop cannot be zero!")
 
         column_names = list(data.columns)
 
