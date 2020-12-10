@@ -61,10 +61,10 @@ class ForwardFeatureSelection:
                                                  "validation"]
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
-           train-selection-validation) and return them along with a list
-           of predictors used in the model. Note that the computation of the
-           performance for each split is cached inside the model itself, so it
-           is inexpensive to perform it multiple times!
+        train-selection-validation) and return them along with a list of
+        predictors used in the model. Note that the computation of the
+        performance for each split is cached inside the model itself, so it
+        is inexpensive to perform it multiple times!
 
         Parameters
         ----------
@@ -77,10 +77,9 @@ class ForwardFeatureSelection:
 
         Returns
         -------
-        list
-            A list containing for each model the performance for
-            train-selection-validation sets as well as the set of predictors
-            used in this model
+        DatFrame
+            contains for each model the performance for train, selection and
+            validation sets as well as the set of predictors used in this model
         """
         results = []
         predictor_set = set([])
@@ -135,12 +134,13 @@ class ForwardFeatureSelection:
             number of allowed predictors in the model
         """
         # remove excluded predictors from predictor lists
-        filterd_predictors = [var for var in predictors
-                              if var not in excluded_predictors]
+        filtered_predictors = [var for var in predictors
+                               if (var not in excluded_predictors and
+                                   var not in forced_predictors)]
 
         # checks on predictor lists and self.max_predictors attr
         if len(forced_predictors) > self.max_predictors:
-            raise ValueError("Size or forced_predictors cannot be bigger than "
+            raise ValueError("Size of forced_predictors cannot be bigger than "
                              "max_predictors")
         elif len(forced_predictors) == self.max_predictors:
             log.info("Size of forced_predictors equals max_predictors "
@@ -151,13 +151,14 @@ class ForwardFeatureSelection:
                                        target_column_name,
                                        forced_predictors)))
         else:
-            self._forward_selection(train_data, target_column_name,
-                                    filterd_predictors,
-                                    forced_predictors)
+            self._fitted_models = self._forward_selection(train_data,
+                                                          target_column_name,
+                                                          filtered_predictors,
+                                                          forced_predictors)
 
     def _forward_selection(self, train_data: pd.DataFrame,
                            target_column_name: str, predictors: list,
-                           forced_predictors: list=[]):
+                           forced_predictors: list=[]) -> list:
         """Perform the forward feature selection algoritm to compute a list
         of models (with increasing performance?). The length of the list,
         i.e. the number of models is bounded by the max_predictors class
@@ -173,7 +174,14 @@ class ForwardFeatureSelection:
             List of predictors on which to train the models
         forced_predictors : list, optional
             List of predictors to force in the models
+
+        Returns
+        -------
+        list
+            List of fitted models where the index of the list indicates the
+            number of predictors minus one (as indices start from 0)
         """
+        fitted_models = []
         current_predictors = []
 
         max_steps = 1 + min(self.max_predictors,
@@ -181,9 +189,8 @@ class ForwardFeatureSelection:
         for step in range(1, max_steps):
             if step <= len(forced_predictors):
                 # first, we go through forced predictors
-                candidate_predictors = list(set(forced_predictors)
-                                            .difference(
-                                                set(current_predictors)))
+                candidate_predictors = [var for var in forced_predictors
+                                        if var not in current_predictors]
             else:
                 candidate_predictors = [var for var in (predictors
                                                         + forced_predictors)
@@ -199,10 +206,12 @@ class ForwardFeatureSelection:
                 current_predictors = list(set(current_predictors)
                                           .union(set(model.predictors)))
 
-                self._fitted_models.append(model)
+                fitted_models.append(model)
 
-        if not self._fitted_models:
+        if not fitted_models:
             log.error("No models found in forward selection")
+
+        return fitted_models
 
     def _find_next_best_model(self, train_data: pd.DataFrame,
                               target_column_name: str,
