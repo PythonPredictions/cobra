@@ -77,8 +77,7 @@ class TestTargetEncoder:
 
         actual = encoder._mapping["variable"]
 
-        pd.testing.assert_series_equal(actual, expected,
-                                       check_less_precise=5)
+        pd.testing.assert_series_equal(actual, expected)
 
     # Tests for _fit_column
     def test_target_encoder_fit_column(self):
@@ -97,8 +96,7 @@ class TestTargetEncoder:
                              index=["negative", "neutral", "positive"])
         expected.index.name = "variable"
 
-        pd.testing.assert_series_equal(actual, expected,
-                                       check_less_precise=5)
+        pd.testing.assert_series_equal(actual, expected)
 
     def test_target_encoder_fit_column_global_mean(self):
 
@@ -117,8 +115,7 @@ class TestTargetEncoder:
                              index=["negative", "neutral", "positive"])
         expected.index.name = "variable"
 
-        pd.testing.assert_series_equal(actual, expected,
-                                       check_less_precise=3)
+        pd.testing.assert_series_equal(actual, expected)
 
     # Tests for fit method
     def test_target_encoder_fit(self):
@@ -137,8 +134,7 @@ class TestTargetEncoder:
         expected.index.name = "variable"
         actual = encoder._mapping["variable"]
 
-        pd.testing.assert_series_equal(actual, expected,
-                                       check_less_precise=5)
+        pd.testing.assert_series_equal(actual, expected)
 
     # Tests for transform method
     def test_target_encoder_transform(self):
@@ -161,8 +157,7 @@ class TestTargetEncoder:
         encoder.fit(data=df, column_names=["variable"], target_column="target")
         actual = encoder.transform(data=df, column_names=["variable"])
 
-        pd.testing.assert_frame_equal(actual, expected,
-                                      check_less_precise=5)
+        pd.testing.assert_frame_equal(actual, expected)
 
     def test_target_encoder_transform_new_category(self):
 
@@ -188,8 +183,7 @@ class TestTargetEncoder:
         encoder.fit(data=df, column_names=["variable"], target_column="target")
         actual = encoder.transform(data=df_appended, column_names=["variable"])
 
-        pd.testing.assert_frame_equal(actual, expected,
-                                      check_less_precise=5)
+        pd.testing.assert_frame_equal(actual, expected)
 
     # Tests for _clean_column_name
     def test_target_encoder_clean_column_name(self):
