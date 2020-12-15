@@ -29,11 +29,12 @@ Requirements
 
 This package requires the usual Python packages for data science:
 
-- pandas (>=0.25.1)
-- scipy (>=1.2.0)
-- scikit_learn (>=0.22.1)
-- matplotlib (>=3.0.2)
-- seaborn (>=0.9.0)
+- numpy (>=1.19.4)
+- pandas (>=1.1.5)
+- scipy (>=1.5.4)
+- scikit-learn (>=0.23.1)
+- matplotlib (>=3.3.3)
+- seaborn (>=0.11.0)
 
 
 These packages, along with their versions are listed in ``requirements.txt`` and can be installed using ``pip``:    ::
@@ -49,7 +50,7 @@ Installation
 
 The easiest way to install cobra is using ``pip``   ::
 
-  pip install -U cobra
+  pip install -U pythonpredictions-cobra
 
 Contributing to cobra
 =====================
