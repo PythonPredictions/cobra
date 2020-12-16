@@ -25,9 +25,61 @@ class LogisticRegressionModel:
     def __init__(self):
         self.logit = LogisticRegression(fit_intercept=True, C=1e9,
                                         solver='liblinear', random_state=42)
+        self._is_fitted = False
         # placeholder to keep track of a list of predictors
         self.predictors = []
         self._eval_metrics_by_split = {}
+
+    def serialize(self) -> dict:
+        """Serialize model as JSON
+
+        Returns
+        -------
+        dict
+            dictionary containing the serialized JSON
+        """
+        serialized_model = {
+            "meta": "logistic-regression",
+            "predictors": self.predictors,
+            "_eval_metrics_by_split": self._eval_metrics_by_split,
+            "params": self.logit.get_params()
+        }
+
+        if self._is_fitted:
+            serialized_model.update({
+                "classes_": self.logit.classes_.tolist(),
+                "coef_": self.logit.coef_.tolist(),
+                "intercept_": self.logit.intercept_.tolist(),
+                "n_iter_": self.logit.n_iter_.tolist(),
+            })
+
+        return serialized_model
+
+    def deserialize(self, model_dict: dict):
+        """Deserialize a model previously stored as JSON
+
+        Parameters
+        ----------
+        model_dict : dict
+            Serialized JSON file as a dict
+
+        Raises
+        ------
+        ValueError
+            In case JSON file is no valid serialized model
+        """
+
+        if not self._is_valid_dict(model_dict):
+            raise ValueError("No valid serialized model")
+
+        self.logit = LogisticRegression()
+        self.logit.set_params(**model_dict["params"])
+        self.logit.classes_ = np.array(model_dict['classes_'])
+        self.logit.coef_ = np.array(model_dict['coef_'])
+        self.logit.intercept_ = np.array(model_dict['intercept_'])
+        self.logit.n_iter_ = np.array(model_dict['intercept_'])
+        self.predictors = model_dict["predictors"]
+        self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
     def get_coef(self) -> np.array:
         """Returns the model coefficients
@@ -71,6 +123,7 @@ class LogisticRegressionModel:
         """
         self.predictors = list(X_train.columns)
         self.logit.fit(X_train, y_train)
+        self._is_fitted = True
 
     def score_model(self, X: pd.DataFrame) -> np.ndarray:
         """Score a model on a (new) dataset
@@ -155,3 +208,20 @@ class LogisticRegressionModel:
 
         return (df.sort_values(by="importance", ascending=False)
                 .reset_index(drop=True))
+
+    def _is_valid_dict(self, model_dict: dict) -> bool:
+
+        if ("meta" not in model_dict
+                or model_dict["meta"] != "logistic-regression"):
+            return False
+
+        attr = ["classes_", "coef_", "intercept_", "n_iter_", "predictors"]
+        for key in attr:
+            if not (key in model_dict or type(model_dict[key]) != list):
+                return False
+
+        if ("params" not in model_dict
+                or "_eval_metrics_by_split" not in model_dict):
+            return False
+
+        return True

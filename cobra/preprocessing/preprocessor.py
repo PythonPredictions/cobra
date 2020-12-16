@@ -11,8 +11,6 @@ Authors:
 - Matthias Roels (implementation)
 """
 # std lib imports
-import json
-from typing import Optional
 import inspect
 from datetime import datetime
 import time
@@ -58,10 +56,7 @@ class PreProcessor(BaseEstimator):
     def __init__(self, categorical_data_processor: CategoricalDataProcessor,
                  discretizer: KBinsDiscretizer,
                  target_encoder: TargetEncoder,
-                 serialization_path: str=None,
                  is_fitted: bool=False):
-
-        self.serialization_path = serialization_path
 
         self._categorical_data_processor = categorical_data_processor
         self._discretizer = discretizer
@@ -86,8 +81,7 @@ class PreProcessor(BaseEstimator):
                     scale_contingency_table: bool=True,
                     forced_categories: dict={},
                     weight: float=0.0,
-                    imputation_strategy: str="mean",
-                    serialization_path: Optional[str]=None):
+                    imputation_strategy: str="mean"):
         """Constructor to instantiate PreProcessor from all the parameters
         that can be set in all its required (attribute) classes
         along with good default values.
@@ -144,8 +138,6 @@ class PreProcessor(BaseEstimator):
             Valid strategies are to replace with the global mean of the train
             set or the min (resp. max) incidence of the categories of that
             particular variable.
-        serialization_path : str, optional
-            path to save the pipeline to
 
         Returns
         -------
@@ -168,18 +160,17 @@ class PreProcessor(BaseEstimator):
 
         target_encoder = TargetEncoder(weight)
 
-        return cls(categorical_data_processor, discretizer, target_encoder,
-                   serialization_path)
+        return cls(categorical_data_processor, discretizer, target_encoder)
 
     @classmethod
-    def from_pipeline(cls, pipeline_path: str):
-        """Constructor to instantiate PreProcessor from a (fitted) pipeline,
-        stored as a JSON file.
+    def from_pipeline(cls, pipeline: dict):
+        """Constructor to instantiate PreProcessor from a (fitted) pipeline
+        which was stored as a JSON file and passed to this function as a dict.
 
         Parameters
         ----------
-        pipeline_path : str
-            path to the (fitted) pipeline
+        pipeline : dict
+            The (fitted) pipeline as a dictionary
 
         Returns
         -------
@@ -191,8 +182,6 @@ class PreProcessor(BaseEstimator):
         ValueError
             Description
         """
-        with open(pipeline_path, "r") as file:
-            pipeline = json.load(file)
 
         if not PreProcessor._is_valid_pipeline(pipeline):
             raise ValueError("Invalid pipeline")  # To do: specify error
@@ -264,11 +253,8 @@ class PreProcessor(BaseEstimator):
                  .format(time.time() - begin))
 
         self._is_fitted = True  # set fitted boolean to True
-        # serialize the pipeline to store the fitted output along with the
-        # various parameters that were used
-        self._serialize()
 
-        log.info("Fitting and serializing pipeline took {} seconds"
+        log.info("Fitting pipeline took {} seconds"
                  .format(time.time() - start))
 
     def transform(self, data: pd.DataFrame, continuous_vars: list,
@@ -449,9 +435,9 @@ class PreProcessor(BaseEstimator):
         return (pd.concat([df_train, df_selection, df_validation])
                 .reset_index(drop=True))
 
-    def _serialize(self) -> dict:
+    def serialize_pipeline(self) -> dict:
         """Serialize the preprocessing pipeline by writing all its required
-        parameters to a JSON file.
+        parameters to a dictionary to later store it as a JSON file.
 
         Returns
         -------
@@ -473,14 +459,6 @@ class PreProcessor(BaseEstimator):
                                       .attributes_to_dict())
 
         pipeline["_is_fitted"] = True
-
-        if self.serialization_path:
-            path = self.serialization_path
-        else:
-            path = "./pipeline_tmp.json"
-
-        with open(path, "w") as file:
-            json.dump(pipeline, file)
 
         return pipeline
 
