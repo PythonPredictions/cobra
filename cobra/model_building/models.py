@@ -60,7 +60,7 @@ class LogisticRegressionModel:
 
         Parameters
         ----------
-        path : dict
+        model_dict : dict
             Serialized JSON file as a dict
 
         Raises
