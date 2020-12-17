@@ -214,7 +214,9 @@ Additionally, we can also compute the output needed to plot the so-called Predic
 
     from cobra.evaluation import generate_pig_tables
 
+    predictor_list = [col for col in basetable.columns
+                      if col.endswith("_bin") or col.endswith("_processed")]
     pig_tables = generate_pig_tables(basetable[basetable["split"] == "selection"],
                                      id_column_name=id_column_name,
                                      target_column_name=target_column_name,
-                                     preprocessed_predictors=preprocessed_predictors)
+                                     preprocessed_predictors=predictor_list)
