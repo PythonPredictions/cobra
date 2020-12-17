@@ -2,7 +2,7 @@
 cobra
 =====
 
-**cobra** is a Python package to build predictive models using linear/logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology is largely inspired by the one used in credit risk scoring, but it has been tweaked, tested and optimized over the years in close collaboration with people from academia.
+**cobra** is a Python package to build predictive models using linear/logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
 
 
 Main Features
