@@ -112,8 +112,7 @@ def plot_performance_curves(model_performance: pd.DataFrame,
                  markersize=20, linewidth=3, label='AUC validation',
                  color=colors["validation"])
         # Set x/yticks
-        ax.set_xticks(np.arange(len(model_performance['last_added_predictor'])
-                                + 1))
+        ax.set_xticks(np.arange(len(model_performance['last_added_predictor'])))
         ax.set_xticklabels(model_performance['last_added_predictor'].tolist(),
                            rotation=40, ha='right')
         ax.set_yticks(np.arange(0.5, highest_auc + 0.02, 0.05))
