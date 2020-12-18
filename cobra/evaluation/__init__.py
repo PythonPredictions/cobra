@@ -1,5 +1,6 @@
 from .pigs_tables import generate_pig_tables
 from .pigs_tables import compute_pig_table
+from .pigs_tables import plotIncidence
 
 from .plotting_utils import plot_performance_curves
 from .plotting_utils import plot_variable_importance
@@ -12,6 +13,7 @@ from .evaluator import Evaluator
 
 __all__ = ["generate_pig_tables",
            "compute_pig_table",
+           "plotIncidence",
            "plot_performance_curves",
            "plot_variable_importance",
            "plot_univariate_predictor_quality",
