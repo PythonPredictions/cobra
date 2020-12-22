@@ -14,7 +14,7 @@ def mock_data():
 
 class TestEvaluation:
 
-    def test_plotIncidence(self):
+    def test_plot_incidence(self):
         data = mock_data()
         column_order = ['1st-4th', '5th-6th', '7th-8th']
         with pytest.raises(Exception):

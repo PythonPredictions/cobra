@@ -90,8 +90,8 @@ def compute_pig_table(data: pd.DataFrame,
     return res[column_order]
 
 
-def plotIncidence(df: pd.DataFrame, variable: str,
-                  column_order: list = None, dim: tuple = (12, 8)):
+def plot_incidence(df: pd.DataFrame, variable: str,
+                   column_order: list=None, dim: tuple=(12, 8)):
     """Function plots Predictor Incidence Graphs (PIGs).
     Bins are ordered in descening order of bin incidence
     unless specified otherwise with `column_order` list.
