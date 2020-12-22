@@ -123,9 +123,8 @@ def compute_correlations(target_enc_train_data: pd.DataFrame,
     target_enc_train_data : pd.DataFrame
         data to compute correlation
     predictors : list
-        List of column names of the DataFrame between which
-    matrix from
-    to compute correlations
+        List of column names of the DataFrame between which to compute
+        the correlation matrix
 
     Returns
     -------

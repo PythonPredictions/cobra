@@ -1,7 +1,8 @@
 # third party imports
 import pandas as pd
-#import matplotlib.pyplot as plt
-#import seaborn as sns
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
 import cobra.utils as utils
 
@@ -87,3 +88,84 @@ def compute_pig_table(data: pd.DataFrame,
                     "avg_incidence", "incidence"]
 
     return res[column_order]
+
+
+def plot_incidence(df: pd.DataFrame, variable: str,
+                   column_order: list=None, dim: tuple=(12, 8)):
+    """Function plots Predictor Incidence Graphs (PIGs).
+    Bins are ordered in descening order of bin incidence
+    unless specified otherwise with `column_order` list.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        dataframe with cleaned, binned, partitioned and prepared data
+
+    variable: str
+        variable for which the incidence plot will be shown
+
+    column_order: list, default=None
+        explicit order of variable
+
+    dim: tuple, default=(12, 8)
+        tuple with width and lentgh of the plot
+    """
+    df_plot = df[df['variable'] == variable]
+
+    if column_order is not None:
+
+        if not set(df_plot['label']) == set(column_order):
+            raise ValueError(
+                'Variables in column_order and dataframe are not equal')
+
+        df_plot['label'] = df_plot['label'].astype('category')
+        df_plot['label'].cat.reorder_categories(column_order,
+                                                inplace=True)
+
+        df_plot.sort_values(by=['label'], ascending=True, inplace=True)
+        df_plot.reset_index(inplace=True)
+    else:
+        df_plot.sort_values(by=['incidence'], ascending=False, inplace=True)
+        df_plot.reset_index(inplace=True)
+
+    with plt.style.context("seaborn-ticks"):
+        fig, ax = plt.subplots(figsize=dim)
+
+        # First Axis
+        ax.bar(df_plot['label'], df_plot['pop_size'],
+               align='center', color="cornflowerblue")
+        ax.set_ylabel('population size', fontsize=16)
+        ax.set_xlabel('{} bins' ''.format(variable), fontsize=16)
+        ax.xaxis.set_tick_params(rotation=45, labelsize=14)
+        ax.yaxis.set_tick_params(labelsize=14)
+
+        max_inc = max(df_plot['incidence'])
+
+        # Second Axis
+        ax2 = ax.twinx()
+
+        plt.plot(df_plot['incidence'], color="darkorange", marker=".",
+                 markersize=20, linewidth=3, label='incidence rate per bin')
+        plt.plot(df_plot['avg_incidence'], color="dimgrey", linewidth=4,
+                 linestyle='--',
+                 label='average incidence rate')
+
+        # dummy line to have label on second axis from first
+        ax2.plot(np.nan, "cornflowerblue", linewidth=6, label='bin size')
+        ax2.set_yticks(np.arange(0, max_inc+0.05, 0.05))
+        ax2.set_yticklabels(
+            ['{:3.1f}%'.format(x*100) for x in ax2.get_yticks()])
+        ax2.yaxis.set_tick_params(labelsize=14)
+        ax2.set_ylabel('incidence', fontsize=16)
+
+        sns.despine(ax=ax, right=True, left=True)
+        sns.despine(ax=ax2, left=True, right=False)
+        ax2.spines['right'].set_color('white')
+
+        ax2.grid(False)
+
+        fig.suptitle('Incidence Plot - ' + variable, fontsize=22, y=1.02)
+        ax2.legend(frameon=False, bbox_to_anchor=(0., 1.01, 1., .102),
+                   loc=3, ncol=1, mode="expand", borderaxespad=0.,
+                   prop={"size": 14})
+        plt.show()
