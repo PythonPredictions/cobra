@@ -194,4 +194,4 @@ Additionally, we can also compute the output needed to plot the so-called Predic
                                      target_column_name=target_column_name,
                                      preprocessed_predictors=predictor_list)
     # Plot PIGs
-	plot_incidence(pig_tables, 'predictor_name', predictor_order)                                     
+    plot_incidence(pig_tables, 'predictor_name', predictor_order)                                     
