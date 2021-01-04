@@ -180,11 +180,12 @@ Now that we have build and selected a final model, it is time to evaluate it aga
 
     evaluator.plot_cumulative_response_curve()
 
-Additionally, we can also compute the output needed to plot the so-called Predictor Insights Graphs (PIGs in short). These are graphs that represents the insights of the relationship between a single predictor (e.g. age) and the target (e.g. burnouts). This is a graph where the predictor is binned into groups, and where we represent group size in bars and group (target) incidence in a colored line.
+Additionally, we can also compute the output needed to plot the so-called Predictor Insights Graphs (PIGs in short). These are graphs that represents the insights of the relationship between a single predictor (e.g. age) and the target (e.g. burnouts). This is a graph where the predictor is binned into groups, and where we represent group size in bars and group (target) incidence in a colored line. We have the option to force order of predictor values.
 
 .. code-block:: python
 
     from cobra.evaluation import generate_pig_tables
+    from cobra.evaluation import plot_incidence
 
     predictor_list = [col for col in basetable.columns
                       if col.endswith("_bin") or col.endswith("_processed")]
@@ -192,3 +193,5 @@ Additionally, we can also compute the output needed to plot the so-called Predic
                                      id_column_name=id_column_name,
                                      target_column_name=target_column_name,
                                      preprocessed_predictors=predictor_list)
+    # Plot PIGs
+	plot_incidence(pig_tables, 'predictor_name', predictor_order)                                     
