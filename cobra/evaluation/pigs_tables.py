@@ -151,7 +151,7 @@ def plot_incidence(df: pd.DataFrame, variable: str,
 
         ax.set_yticks(np.arange(0, max(df_plot['incidence'])+0.05, 0.05))
         ax.yaxis.set_major_formatter(
-            FuncFormatter(lambda y, _: '{:.3%}'.format(y)))
+            FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
 
         # removes ticks but keeps the labels
         ax.tick_params(axis='both', which='both', length=0)
@@ -172,7 +172,7 @@ def plot_incidence(df: pd.DataFrame, variable: str,
         ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
         ax2.yaxis.set_tick_params(labelsize=14)
         ax2.yaxis.set_major_formatter(
-            FuncFormatter(lambda y, _: '{:.3%}'.format(y)))
+            FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
 
         ax2.tick_params(axis='y', colors="#939598")
         ax2.yaxis.label.set_color('#939598')
