@@ -8,16 +8,18 @@ cobra
 Main Features
 =============
 
-  * Prepare a given pandas DataFrame for predictive modelling:
-     - partition into train/selection/validation sets
-     - create bins from continuous variables
-     - regroup categorical variables based on statistical significance
-     - replace missing values and
-     - add columns with incidence rate per category/bin.
-  * Perform univariate feature selection based on AUC
-  * Compute correlation matrix of predictors
-  * Find the suitable variables using forward feature selection
-  * Evaluate model performance and visualize the results
+- Prepare a given pandas DataFrame for predictive modelling:
+
+   - partition into train/selection/validation sets
+   - create bins from continuous variables
+   - regroup categorical variables based on statistical significance
+   - replace missing values and
+   - add columns with incidence rate per category/bin
+ 
+- Perform univariate feature selection based on AUC
+- Compute correlation matrix of predictors
+- Find the suitable variables using forward feature selection
+- Evaluate model performance and visualize the results
 
 Getting started
 ===============
