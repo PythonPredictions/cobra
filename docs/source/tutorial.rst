@@ -30,13 +30,14 @@ This will be taken care of by the ``PreProcessor`` class, which has a scikit-lea
 
 .. code-block:: python
 
+    import json
     from cobra.preprocessing import PreProcessor
 
     # Prepare data
     # create instance of PreProcessor from parameters
-    # (many options possible, see source code for docs)
-    path = "path/to/store/preprocessing/pipeline/as/json/file/for/later/re-use.json"
-    preprocessor = PreProcessor.from_params(serialization_path=path)
+    # There are many options possible, see API reference, but here
+    # we will use all the defaults
+    preprocessor = PreProcessor.from_params()
 
     # split data into train-selection-validation set
     # in the result, an additional column "split" will be created
@@ -52,19 +53,30 @@ This will be taken care of by the ``PreProcessor`` class, which has a scikit-lea
     continuous_vars = []
     discrete_vars = []
 
-    # fit the pipeline (will automatically be stored to "path" variable)
+    # fit the pipeline
     preprocessor.fit(basetable[basetable["split"]=="train"],
                      continuous_vars=continuous_vars,
                      discrete_vars=discrete_vars,
                      target_column_name=target_column_name)
 
-    # When you want to reuse the pipeline the next time, simply run
-    # preprocessor = PreProcessor.from_pipeline(path) and you're good to go!
+    # store fitted preprocessing pipeline as a JSON file
+    pipeline = preprocessor.serialize_pipeline()
+
+    # I/O outside of PreProcessor to allow flexibility (e.g. upload to S3, ...)
+    path = "path/to/store/preprocessing/pipeline/as/json/file/for/later/re-use.json"
+    with open(path, "w") as file:
+        json.dump(pipeline, file)
 
     # transform the data (e.g. perform discretisation, incidence replacement, ...)
     basetable = preprocessor.transform(basetable,
                                        continuous_vars=continuous_vars,
                                        discrete_vars=discrete_vars)
+
+    # When you want to reuse the pipeline the next time, simply load it back in again
+    # using the following snippet:
+    # with open(path, "r") as file:
+    #     pipeline = json.load(file)
+    # preprocessor = PreProcessor.from_pipeline(pipeline) and you're good to go!
 
 Feature selection
 -----------------
@@ -149,6 +161,22 @@ Based on the performance curves (AUC per model with a particular number of predi
     plot_variable_importance(variable_importance)
 
 **Note**: variable importance is based on correlation of the predictor with the *model scores* (and not the true labels!).
+
+Finally, we can again export the model to a dictionary to store it as JSON
+
+.. code-block:: python
+
+    model_dict = model.serialize()
+
+    with open(path, "w") as file:
+        json.dump(model_dict, file)
+
+    # To reload the model again from a JSON file, run the following snippet:
+    # from cobra.model_building import LogisticRegressionModel
+    # with open(path, "r") as file:
+    #     model_dict = json.load(file)
+    # model = LogisticRegressionModel()
+    # model.deserialize(model_dict)
 
 Evaluation
 ----------
