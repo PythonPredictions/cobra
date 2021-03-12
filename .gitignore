@@ -106,6 +106,9 @@ ENV/
 # vscode settings
 .vscode/
 
+# JetBrains IDEs (PyCharm etc.)
+.idea/
+
 # Other ignore files
 *.pptx
 *.ppt
