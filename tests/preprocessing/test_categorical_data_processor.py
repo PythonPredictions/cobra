@@ -116,6 +116,138 @@ class TestCategoricalDataProcessor:
         data = pd.Series(data=["c1", "c2", "c3", "c4"])
 
         actual = (CategoricalDataProcessor
-                  ._replace_categories(data, cleaned_categories))
+                  ._replace_categories(data, cleaned_categories, 'Other'))
 
         pd.testing.assert_series_equal(actual, expected)
+
+    def test_all_cats_not_significant(self):
+        # Expected
+        e = {'categorical_var': ['A', 'A', 'A', 'A',
+                                 'B', 'B', 'B', 'B',
+                                 'C', 'C', 'C', 'C'],
+             'target': [1, 1, 1, 1,
+                        0, 0, 0, 0,
+                        1, 0, 1, 0],
+             'categorical_var_processed': ['A', 'A', 'A', 'A',
+                                           'B', 'B', 'B', 'B',
+                                           'C', 'C', 'C', 'C']}
+
+        # data -> actual
+        d = {'categorical_var': ['A', 'A', 'A', 'A',
+                                 'B', 'B', 'B', 'B',
+                                 'C', 'C', 'C', 'C'],
+             'target': [1, 1, 1, 1,
+                        0, 0, 0, 0,
+                        1, 0, 1, 0]}
+
+        discrete_vars = ['categorical_var']
+        target_column_name = 'target'
+
+        data = pd.DataFrame(d, columns=['categorical_var', 'target'])
+        expected = pd.DataFrame(e, columns=['categorical_var',
+                                            'target',
+                                            'categorical_var_processed'])
+
+        categorical_data_processor = CategoricalDataProcessor(
+                    category_size_threshold=0,
+                    p_value_threshold=0.0001)
+
+        categorical_data_processor.fit(data,
+                                       discrete_vars,
+                                       target_column_name)
+
+        actual = categorical_data_processor.transform(data,
+                                                      discrete_vars)
+
+        pd.testing.assert_frame_equal(actual, expected)
+
+    def test_regroup_name(self):
+        # Expected
+        e = {'categorical_var': ['A', 'A', 'A', 'A', 'A', 'A',
+                                 'B', 'B', 'B', 'B', 'B', 'B',
+                                 'C', 'C', 'C', 'C', 'C', 'C'],
+             'target': [1, 1, 1, 1, 1, 1,
+                        0, 0, 0, 0, 0, 0,
+                        1, 0, 1, 0, 1, 0],
+             'categorical_var_processed': [
+                'A', 'A', 'A', 'A', 'A', 'A',
+                'B', 'B', 'B', 'B', 'B', 'B',
+                'OTH', 'OTH', 'OTH', 'OTH', 'OTH', 'OTH']}
+
+        # data -> actual
+        d = {'categorical_var': ['A', 'A', 'A', 'A', 'A', 'A',
+                                 'B', 'B', 'B', 'B', 'B', 'B',
+                                 'C', 'C', 'C', 'C', 'C', 'C'],
+             'target': [1, 1, 1, 1, 1, 1,
+                        0, 0, 0, 0, 0, 0,
+                        1, 0, 1, 0, 1, 0]}
+
+        discrete_vars = ['categorical_var']
+        target_column_name = 'target'
+
+        data = pd.DataFrame(d, columns=['categorical_var', 'target'])
+        expected = pd.DataFrame(e, columns=['categorical_var',
+                                            'target',
+                                            'categorical_var_processed'])
+
+        expected['categorical_var_processed'] = (
+            expected['categorical_var_processed'].astype("category"))
+
+        categorical_data_processor = CategoricalDataProcessor(
+                    category_size_threshold=0,
+                    regroup_name='OTH',
+                    p_value_threshold=0.05)
+
+        categorical_data_processor.fit(data,
+                                       discrete_vars,
+                                       target_column_name)
+
+        actual = categorical_data_processor.transform(data,
+                                                      discrete_vars)
+
+        pd.testing.assert_frame_equal(actual, expected)
+
+    def test_force_category(self):
+        # Expected
+        e = {'categorical_var': ['A', 'A', 'A', 'A', 'A', 'A',
+                                 'B', 'B', 'B', 'B', 'B', 'B',
+                                 'C', 'C', 'C', 'C', 'C', 'C'],
+             'target': [1, 1, 1, 1, 1, 1,
+                        0, 0, 0, 0, 0, 0,
+                        1, 0, 1, 0, 1, 0],
+             'categorical_var_processed': ['A', 'A', 'A', 'A', 'A', 'A',
+                                           'B', 'B', 'B', 'B', 'B', 'B',
+                                           'C', 'C', 'C', 'C', 'C', 'C']}
+
+        # data -> actual
+        d = {'categorical_var': ['A', 'A', 'A', 'A', 'A', 'A',
+                                 'B', 'B', 'B', 'B', 'B', 'B',
+                                 'C', 'C', 'C', 'C', 'C', 'C'],
+             'target': [1, 1, 1, 1, 1, 1,
+                        0, 0, 0, 0, 0, 0,
+                        1, 0, 1, 0, 1, 0]}
+
+        discrete_vars = ['categorical_var']
+        target_column_name = 'target'
+
+        data = pd.DataFrame(d, columns=['categorical_var', 'target'])
+        expected = pd.DataFrame(e, columns=['categorical_var',
+                                            'target',
+                                            'categorical_var_processed'])
+
+        expected['categorical_var_processed'] = (
+            expected['categorical_var_processed'].astype("category"))
+
+        categorical_data_processor = CategoricalDataProcessor(
+                    category_size_threshold=0,
+                    forced_categories={'categorical_var': ['C']},
+                    p_value_threshold=0.05)
+
+        categorical_data_processor.fit(data,
+                                       discrete_vars,
+                                       target_column_name)
+
+        actual = categorical_data_processor.transform(data,
+                                                      discrete_vars)
+
+        pd.testing.assert_frame_equal(actual, expected)
