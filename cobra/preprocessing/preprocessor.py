@@ -15,8 +15,6 @@ import inspect
 from datetime import datetime
 import time
 
-import logging
-log = logging.getLogger(__name__)
 # third party imports
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -26,6 +24,9 @@ from sklearn.exceptions import NotFittedError
 from cobra.preprocessing import KBinsDiscretizer
 from cobra.preprocessing import TargetEncoder
 from cobra.preprocessing import CategoricalDataProcessor
+
+import logging
+log = logging.getLogger(__name__)
 
 
 class PreProcessor(BaseEstimator):
@@ -56,7 +57,7 @@ class PreProcessor(BaseEstimator):
     def __init__(self, categorical_data_processor: CategoricalDataProcessor,
                  discretizer: KBinsDiscretizer,
                  target_encoder: TargetEncoder,
-                 is_fitted: bool=False):
+                 is_fitted: bool = False):
 
         self._categorical_data_processor = categorical_data_processor
         self._discretizer = discretizer
@@ -66,22 +67,22 @@ class PreProcessor(BaseEstimator):
 
     @classmethod
     def from_params(cls,
-                    n_bins: int=10,
-                    strategy: str="quantile",
-                    closed: str="right",
-                    auto_adapt_bins: bool=False,
-                    starting_precision: int=0,
-                    label_format: str="{} - {}",
-                    change_endpoint_format: bool=False,
-                    regroup: bool=True,
-                    regroup_name: str="Other",
-                    keep_missing: bool=True,
-                    category_size_threshold: int=5,
-                    p_value_threshold: float=0.001,
-                    scale_contingency_table: bool=True,
-                    forced_categories: dict={},
-                    weight: float=0.0,
-                    imputation_strategy: str="mean"):
+                    n_bins: int = 10,
+                    strategy: str = "quantile",
+                    closed: str = "right",
+                    auto_adapt_bins: bool = False,
+                    starting_precision: int = 0,
+                    label_format: str = "{} - {}",
+                    change_endpoint_format: bool = False,
+                    regroup: bool = True,
+                    regroup_name: str = "Other",
+                    keep_missing: bool = True,
+                    category_size_threshold: int = 5,
+                    p_value_threshold: float = 0.001,
+                    scale_contingency_table: bool = True,
+                    forced_categories: dict = {},
+                    weight: float = 0.0,
+                    imputation_strategy: str = "mean"):
         """Constructor to instantiate PreProcessor from all the parameters
         that can be set in all its required (attribute) classes
         along with good default values.
@@ -338,10 +339,10 @@ class PreProcessor(BaseEstimator):
     @staticmethod
     def train_selection_validation_split(data: pd.DataFrame,
                                          target_column_name: str,
-                                         train_prop: float=0.6,
-                                         selection_prop: float=0.2,
-                                         validation_prop: float=0.2,
-                                         stratify_split=True)->pd.DataFrame:
+                                         train_prop: float = 0.6,
+                                         selection_prop: float = 0.2,
+                                         validation_prop: float = 0.2,
+                                         stratify_split=True) -> pd.DataFrame:
         """Split dataset into train-selection-validation datasets and merge
         them into one big DataFrame with an additional column "split"
         indicating to which dataset the corresponding row belongs to.
