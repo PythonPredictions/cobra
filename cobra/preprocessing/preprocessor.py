@@ -14,6 +14,7 @@ Authors:
 import inspect
 from datetime import datetime
 import time
+import math
 
 import logging
 log = logging.getLogger(__name__)
@@ -367,7 +368,7 @@ class PreProcessor(BaseEstimator):
             DataFrame with additional split column
         """
 
-        if train_prop + selection_prop + validation_prop != 1.0:
+        if not math.isclose(train_prop + selection_prop + validation_prop, 1.0):
             raise ValueError("The sum of train_prop, selection_prop and "
                              "validation_prop cannot differ from 1.0")
 

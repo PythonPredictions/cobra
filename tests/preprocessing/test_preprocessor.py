@@ -64,6 +64,30 @@ class TestPreProcessor:
                                                           selection_prop,
                                                           error_msg)
 
+    def test_train_selection_validation_split_error_correct_prop_no_rounding_error(self):
+        error_msg = ("The sum of train_prop, selection_prop and "
+                     "validation_prop cannot differ from 1.0")
+        train_prop = 0.7
+        selection_prop = 0.2
+        validation_prop = 0.1
+
+        # 0.7+0.2+0.1 = 0.99999999999999 instead of just 1.0, however error_msg should not be raised by the following:
+        try:
+            PreProcessor.train_selection_validation_split(data=pd.DataFrame(),
+                                                          target_column_name="",
+                                                          train_prop=train_prop,
+                                                          selection_prop=selection_prop,
+                                                          validation_prop=validation_prop)
+        except ValueError as error:
+            if str(error) == error_msg:
+                pytest.fail()
+            else:
+                # Swallow whatever other error if the message is not error_msg, other unit tests will test for that.
+                pass
+        except Exception:
+            # Swallow whatever other error if the message is not error_msg, other unit tests will test for that.
+            pass
+
     def test_train_selection_validation_split_error_zero_selection_prop(self):
 
         error_msg = "selection_prop cannot be zero!"
