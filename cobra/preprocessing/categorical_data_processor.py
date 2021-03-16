@@ -182,6 +182,11 @@ class CategoricalDataProcessor(BaseEstimator):
         list
             list of categories to combine into a category "Other"
         """
+        if len(data[column_name].unique()) == 1:
+            log.warning(f"Predictor {column_name} is constant"
+                        " and will be ignored in computation.")
+            return set(data[column_name].unique())
+
         y = data[target_column]
         incidence = y.mean()
 
