@@ -185,7 +185,7 @@ class CategoricalDataProcessor(BaseEstimator):
         if len(data[column_name].unique()) == 1:
             log.warning(f"Predictor {column_name} is constant"
                         " and will be ignored in computation.")
-            return None
+            return set(data[column_name].unique())
 
         y = data[target_column]
         incidence = y.mean()
