@@ -17,16 +17,16 @@ from copy import deepcopy
 from typing import List
 import numbers
 
-import logging
-log = logging.getLogger(__name__)
-
 # third party imports
 import numpy as np
 import pandas as pd
+import math
 
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
-#from sklearn.cluster import KMeans
+
+import logging
+log = logging.getLogger(__name__)
 
 
 class KBinsDiscretizer(BaseEstimator):
@@ -70,12 +70,12 @@ class KBinsDiscretizer(BaseEstimator):
                   "starting_precision", "label_format",
                   "change_endpoint_format"]
 
-    def __init__(self, n_bins: int=10, strategy: str="quantile",
-                 closed: str="right",
-                 auto_adapt_bins: bool=False,
-                 starting_precision: int=0,
-                 label_format: str="{} - {}",
-                 change_endpoint_format: bool=False):
+    def __init__(self, n_bins: int = 10, strategy: str = "quantile",
+                 closed: str = "right",
+                 auto_adapt_bins: bool = False,
+                 starting_precision: int = 0,
+                 label_format: str = "{} - {}",
+                 change_endpoint_format: bool = False):
 
         # validate number of bins
         self._validate_n_bins(n_bins)
@@ -163,7 +163,7 @@ class KBinsDiscretizer(BaseEstimator):
         self.set_params(**params)
 
         self._bins_by_column = {
-            key: ([tuple(l) for l in value] if value else None)
+            key: ([tuple(v) for v in value] if value else None)
             for key, value in _bins_by_column.items()
         }
 
@@ -214,7 +214,6 @@ class KBinsDiscretizer(BaseEstimator):
         List[tuple]
             list of bins as tuples
         """
-
         col_min, col_max = data[column_name].min(), data[column_name].max()
 
         if col_min == col_max:
@@ -402,8 +401,22 @@ class KBinsDiscretizer(BaseEstimator):
         #     bin_edges = (centers[1:] + centers[:-1]) * 0.5
         #     bin_edges = np.r_[col_min, bin_edges, col_max]
 
-        # Make sure the bin_edges are unique and sorted
-        return sorted(list(set(bin_edges)))
+        # nans lead to unexpecte behavior during sorting
+        # by replacing with inf we ensure these stay at the
+        # outermost edges
+        if math.isnan(bin_edges[0]):
+            bin_edges[0] = -np.inf
+
+        if math.isnan(bin_edges[-1]):
+            bin_edges[-1] = np.inf
+
+        if np.isnan(bin_edges).sum() > 0:
+            log.warning(f"Column {column_name} "
+                        "has NaNs present in bin definitions")
+
+        # Make sure the bin_edges are unique
+        # and order remains the same
+        return list(dict.fromkeys(bin_edges))
 
     def _compute_minimal_precision_of_bin_edges(self, bin_edges: list) -> int:
         """Compute the minimal precision of a list of bin_edges so that we end
@@ -467,7 +480,7 @@ class KBinsDiscretizer(BaseEstimator):
 
     @staticmethod
     def _create_index(intervals: List[tuple],
-                      closed: str="right") -> pd.IntervalIndex:
+                      closed: str = "right") -> pd.IntervalIndex:
         """Create an pd.IntervalIndex based on a list of tuples.
         This is basically a wrapper around pd.IntervalIndex.from_tuples
         However, the lower bound of the first entry in the list (the lower bin)

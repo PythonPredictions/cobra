@@ -3,6 +3,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+import math
 
 from cobra.preprocessing.kbins_discretizer import KBinsDiscretizer
 
@@ -14,7 +15,7 @@ def does_not_raise():
 
 class TestKBinsDiscretizer:
 
-    ################# Test for public methods #################
+    # ---------------- Test for public methods ----------------
     def test_attributes_to_dict(self):
 
         discretizer = KBinsDiscretizer()
@@ -118,7 +119,7 @@ class TestKBinsDiscretizer:
             actual = discretizer.transform(data, ["variable"])
             pd.testing.assert_frame_equal(actual, expected)
 
-    ################# Test for private methods #################
+    # ---------------- Test for private methods ----------------
     @pytest.mark.parametrize("n_bins, expectation",
                              [(1, pytest.raises(ValueError)),
                               (10.5, pytest.raises(ValueError)),
@@ -218,7 +219,9 @@ class TestKBinsDiscretizer:
 
     @pytest.mark.parametrize("bin_edges, expected",
                              [([0, 1, 1.5, 2], [(0, 1), (1, 1.5), (1.5, 2)]),
-                              ([0, 1, 1.5, 3], [(0, 1), (1, 2), (2, 3)])])
+                              ([0, 1, 1.5, 3], [(0, 1), (1, 2), (2, 3)]),
+                              ([np.inf, 0.0, -np.inf],
+                               [(np.inf, 0.0), (0.0, -np.inf)])])
     def test_compute_bins_from_edges(self, bin_edges, expected):
 
         discretizer = KBinsDiscretizer()
