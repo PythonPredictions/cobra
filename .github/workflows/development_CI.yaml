@@ -31,3 +31,7 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --cov=cobra tests/
+        
+    - name: Lint check with pylint
+      run: |
+        pylint cobra
