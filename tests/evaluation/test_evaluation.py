@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from cobra.evaluation import plotIncidence
+from cobra.evaluation import plot_incidence
 
 
 def mock_data():
@@ -18,4 +18,4 @@ class TestEvaluation:
         data = mock_data()
         column_order = ['1st-4th', '5th-6th', '7th-8th']
         with pytest.raises(Exception):
-            plotIncidence(data, 'education', column_order)
+            plot_incidence(data, 'education', column_order)
