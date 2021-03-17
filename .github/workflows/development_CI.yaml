@@ -1,7 +1,7 @@
 # Runs CI when pushing to develop branch
 # runs pylint and pytest
 
-name: Python package
+name: CI_develop_action
 
 on:
   push:
