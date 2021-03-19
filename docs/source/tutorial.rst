@@ -44,7 +44,6 @@ This will be taken care of by the ``PreProcessor`` class, which has a scikit-lea
     # containing each of those values
     basetable = preprocessor.train_selection_validation_split(
                     basetable,
-                    target_column_name=target_column_name,
                     train_prop=0.6, selection_prop=0.2,
                     validation_prop=0.2)
 
@@ -222,4 +221,4 @@ Additionally, we can also compute the output needed to plot the so-called Predic
                                      target_column_name=target_column_name,
                                      preprocessed_predictors=predictor_list)
     # Plot PIGs
-    plot_incidence(pig_tables, 'predictor_name', predictor_order)                                     
+    plot_incidence(pig_tables, 'predictor_name', predictor_order)
