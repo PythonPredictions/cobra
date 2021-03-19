@@ -16,6 +16,7 @@ Authors:
 from copy import deepcopy
 from typing import List
 import numbers
+import logging
 
 # third party imports
 import numpy as np
@@ -25,7 +26,6 @@ import math
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
-import logging
 log = logging.getLogger(__name__)
 
 
@@ -220,6 +220,13 @@ class KBinsDiscretizer(BaseEstimator):
             log.warning("Predictor '{}' is constant and "
                         "will be ignored in computation".format(column_name))
             return None
+
+        prop_nan = data[column_name].isna().sum() / data[column_name].shape[0]
+
+        if prop_nan >= 0.99:
+            log.warning(f"Column {column_name} is"
+                        " {prop_nan:.1%}% NaNs, "
+                        "consider dropping or transforming it.")
 
         n_bins = self.n_bins
         if self.auto_adapt_bins:
