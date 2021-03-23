@@ -204,7 +204,7 @@ class Evaluator():
 
         plt.show()
 
-    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8):
+    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8)):
         """Plot cumulative response curve
 
         Parameters
