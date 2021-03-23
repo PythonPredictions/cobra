@@ -35,15 +35,20 @@ class Evaluator():
     probability_cutoff : float
         probability cut off to convert probability scores to a binary score
     roc_curve : dict
-        map containing true-positive-rate, false-positve-rate at various
+        map containing true-positive-rate, false-positive-rate at various
         thresholds (also incl.)
+    n_bins : int, optional
+        defines the number of bins used to calculate the lift curve for
+        (by default 10, so deciles)
     """
 
     def __init__(self, probability_cutoff: float=None,
-                 lift_at: float=0.05):
+                 lift_at: float=0.05,
+                 n_bins: int = 10):
 
         self.lift_at = lift_at
         self.probability_cutoff = probability_cutoff
+        self.n_bins = n_bins
 
         # Placeholder to store fitted output
         self.scalar_metrics = None
@@ -85,7 +90,7 @@ class Evaluator():
 
         self.roc_curve = {"fpr": fpr, "tpr": tpr, "thresholds": thresholds}
         self.confusion_matrix = confusion_matrix(y_true, y_pred_b)
-        self.lift_curve = Evaluator._compute_lift_per_decile(y_true, y_pred)
+        self.lift_curve = Evaluator._compute_lift_per_bin(y_true, y_pred, self.n_bins)
         self.cumulative_gains = Evaluator._compute_cumulative_gains(y_true,
                                                                     y_pred)
 
@@ -199,8 +204,7 @@ class Evaluator():
 
         plt.show()
 
-    def plot_cumulative_response_curve(self, path: str=None,
-                                       dim: tuple=(12, 8)):
+    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8):
         """Plot cumulative response curve
 
         Parameters
@@ -430,10 +434,11 @@ class Evaluator():
         return percentages, gains
 
     @staticmethod
-    def _compute_lift_per_decile(y_true: np.ndarray,
-                                 y_pred: np.ndarray) -> tuple:
-        """Compute lift of the model per decile, returns x-labels, lifts and
-        the target incidence to create cummulative response curves
+    def _compute_lift_per_bin(y_true: np.ndarray,
+                              y_pred: np.ndarray,
+                              n_bins: int = 10) -> tuple:
+        """Compute lift of the model for a given number of bins, returns x-labels,
+        lifts and the target incidence to create cumulative response curves
 
         Parameters
         ----------
@@ -441,6 +446,9 @@ class Evaluator():
             True binary target data labels
         y_pred : np.ndarray
             Target scores of the model
+        n_bins : int, optional
+            defines the number of bins used to calculate the lift curve for
+            (by default 10, so deciles)
 
         Returns
         -------
@@ -451,7 +459,7 @@ class Evaluator():
         lifts = [Evaluator._compute_lift(y_true=y_true,
                                          y_pred=y_pred,
                                          lift_at=perc_lift)
-                 for perc_lift in np.arange(0.1, 1.1, 0.1)]
+                 for perc_lift in np.linspace(1/n_bins, 1, num=n_bins, endpoint=True)]
 
         x_labels = [len(lifts)-x for x in np.arange(0, len(lifts), 1)]
 
