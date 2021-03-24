@@ -1,7 +1,8 @@
 import pytest
 import pandas as pd
-from cobra.evaluation import plotIncidence
-
+import numpy as np
+# from cobra.evaluation import plotIncidence
+from cobra.evaluation import Evaluator
 
 def mock_data():
     d = {'variable': ['education', 'education', 'education', 'education'],
@@ -11,6 +12,13 @@ def mock_data():
          'incidence': [0.047, 0.0434, 0.054, 0.069]}
     return pd.DataFrame(d)
 
+def mock_preds(n, seed = 505):
+    np.random.seed(seed)
+
+    y_true = np.random.uniform(size=n)
+    y_pred = np.random.uniform(size=n)
+
+    return y_true, y_pred
 
 class TestEvaluation:
 
@@ -19,3 +27,17 @@ class TestEvaluation:
         column_order = ['1st-4th', '5th-6th', '7th-8th']
         with pytest.raises(Exception):
             plotIncidence(data, 'education', column_order)
+
+    def test_lift_curve_n_bins(self):
+        n_bins_test = [5, 10, 15, 35]
+
+        y_true, y_pred = mock_preds(50)
+
+        n_bins_out = []
+        for n_bins in n_bins_test:
+            e = Evaluator(n_bins = n_bins)
+            out = e._compute_lift_per_bin(y_true, y_pred, e.n_bins)
+            lifts = out[1]
+            n_bins_out.append(len(lifts))
+
+        assert n_bins_test == n_bins_out
