@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-# from cobra.evaluation import plotIncidence
+from cobra.evaluation import plotIncidence
 from cobra.evaluation import Evaluator
 
 def mock_data():
