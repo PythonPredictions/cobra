@@ -14,9 +14,9 @@ Authors:
 import inspect
 from datetime import datetime
 import time
-
 import logging
-log = logging.getLogger(__name__)
+from random import shuffle
+
 # third party imports
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -26,6 +26,8 @@ from sklearn.exceptions import NotFittedError
 from cobra.preprocessing import KBinsDiscretizer
 from cobra.preprocessing import TargetEncoder
 from cobra.preprocessing import CategoricalDataProcessor
+
+log = logging.getLogger(__name__)
 
 
 class PreProcessor(BaseEstimator):
@@ -56,7 +58,7 @@ class PreProcessor(BaseEstimator):
     def __init__(self, categorical_data_processor: CategoricalDataProcessor,
                  discretizer: KBinsDiscretizer,
                  target_encoder: TargetEncoder,
-                 is_fitted: bool=False):
+                 is_fitted: bool = False):
 
         self._categorical_data_processor = categorical_data_processor
         self._discretizer = discretizer
@@ -66,22 +68,22 @@ class PreProcessor(BaseEstimator):
 
     @classmethod
     def from_params(cls,
-                    n_bins: int=10,
-                    strategy: str="quantile",
-                    closed: str="right",
-                    auto_adapt_bins: bool=False,
-                    starting_precision: int=0,
-                    label_format: str="{} - {}",
-                    change_endpoint_format: bool=False,
-                    regroup: bool=True,
-                    regroup_name: str="Other",
-                    keep_missing: bool=True,
-                    category_size_threshold: int=5,
-                    p_value_threshold: float=0.001,
-                    scale_contingency_table: bool=True,
-                    forced_categories: dict={},
-                    weight: float=0.0,
-                    imputation_strategy: str="mean"):
+                    n_bins: int = 10,
+                    strategy: str = "quantile",
+                    closed: str = "right",
+                    auto_adapt_bins: bool = False,
+                    starting_precision: int = 0,
+                    label_format: str = "{} - {}",
+                    change_endpoint_format: bool = False,
+                    regroup: bool = True,
+                    regroup_name: str = "Other",
+                    keep_missing: bool = True,
+                    category_size_threshold: int = 5,
+                    p_value_threshold: float = 0.001,
+                    scale_contingency_table: bool = True,
+                    forced_categories: dict = {},
+                    weight: float = 0.0,
+                    imputation_strategy: str = "mean"):
         """Constructor to instantiate PreProcessor from all the parameters
         that can be set in all its required (attribute) classes
         along with good default values.
@@ -337,103 +339,55 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def train_selection_validation_split(data: pd.DataFrame,
-                                         target_column_name: str,
-                                         train_prop: float=0.6,
-                                         selection_prop: float=0.2,
-                                         validation_prop: float=0.2,
-                                         stratify_split=True)->pd.DataFrame:
-        """Split dataset into train-selection-validation datasets and merge
-        them into one big DataFrame with an additional column "split"
-        indicating to which dataset the corresponding row belongs to.
+                                         train_prop: float = 0.6,
+                                         selection_prop: float = 0.2,
+                                         validation_prop: float = 0.2)-> pd.DataFrame:
+        """Adds `split` column with train/selection/validation values
+        to the dataset.
 
         Parameters
         ----------
         data : pd.DataFrame
             Input dataset to split into train-selection and validation sets
-        target_column_name : str
-            Name of the target column
         train_prop : float, optional
             Percentage data to put in train set
         selection_prop : float, optional
             Percentage data to put in selection set
         validation_prop : float, optional
             Percentage data to put in validation set
-        stratify_split : bool, optional
-            Whether or not to stratify the train-test split
 
         Returns
         -------
         pd.DataFrame
             DataFrame with additional split column
         """
-
         if train_prop + selection_prop + validation_prop != 1.0:
             raise ValueError("The sum of train_prop, selection_prop and "
                              "validation_prop cannot differ from 1.0")
 
+        if train_prop == 0.0:
+            raise ValueError("train_prop cannot be zero!")
+
         if selection_prop == 0.0:
             raise ValueError("selection_prop cannot be zero!")
 
-        column_names = list(data.columns)
+        nrows = data.shape[0]
+        size_train = int(train_prop * nrows)
+        size_select = int(selection_prop * nrows)
+        size_valid = int(validation_prop * nrows)
+        correction = nrows - (size_train+size_select+size_valid)
 
-        predictors = [col for col in column_names if col != target_column_name]
+        split = ['train'] * size_train \
+                + ['train'] * correction \
+                + ['selection'] * size_select \
+                + ['validation'] * size_valid
 
-        # for the first split, take sum of selection & validation pct as
-        # test pct
-        test_prop = selection_prop + validation_prop
-        # To further split our test set into selection + validation set,
-        # we have to modify validation pct because we only have test_prop of
-        # the data available anymore for further splitting!
-        validation_prop_modif = validation_prop / test_prop
+        shuffle(split)
 
-        X = data[predictors]
-        y = data[target_column_name]
+        data['split'] = split
 
-        stratify = None
-        if stratify_split:
-            stratify = y
+        return data
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y,
-            test_size=test_prop,
-            random_state=42,
-            stratify=stratify
-            )
-
-        df_train = pd.DataFrame(X_train, columns=predictors)
-        df_train[target_column_name] = y_train
-        df_train["split"] = "train"
-
-        # If there is no validation percentage, return train-selection sets
-        # only
-        if validation_prop == 0.0:
-            df_selection = pd.DataFrame(X_test, columns=predictors)
-            df_selection[target_column_name] = y_test
-            df_selection["split"] = "selection"
-
-            return (pd.concat([df_train, df_selection])
-                    .reset_index(drop=True))
-
-        if stratify_split:
-            stratify = y_test
-
-        X_sel, X_val, y_sel, y_val = train_test_split(
-            X_test, y_test,
-            test_size=validation_prop_modif,
-            random_state=42,
-            stratify=stratify
-            )
-
-        df_selection = pd.DataFrame(X_sel, columns=predictors)
-        df_selection[target_column_name] = y_sel
-        df_selection["split"] = "selection"
-
-        df_validation = pd.DataFrame(X_val, columns=predictors)
-        df_validation[target_column_name] = y_val
-        df_validation["split"] = "validation"
-
-        return (pd.concat([df_train, df_selection, df_validation])
-                .reset_index(drop=True))
 
     def serialize_pipeline(self) -> dict:
         """Serialize the preprocessing pipeline by writing all its required

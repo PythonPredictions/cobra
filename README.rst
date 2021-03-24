@@ -1,3 +1,9 @@
+[![CI_develop_action](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml/badge.svg?branch=develop)](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml)
+
+[CI_develop_action](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml/badge.svg?branch=develop)
+
+------------------------------------------------------------------------------------------------------------------------------------ 
+
 =====
 cobra
 =====
@@ -60,22 +66,7 @@ Contributing to cobra
 We'd love you to contribute to the development of cobra! There are many ways in which you can contribute, the most common of which is to contribute to the source code or documentation of the project. However, there are many other ways you can contribute (report issues, improve code coverage by adding unit tests, ...).
 We use GitHub issue to track all bugs and feature requests. Feel free to open an issue in case you found a bug or in case you wish to see a new feature added.
 
-How to contribute code
-----------------------
-
-The preferred way to contribute to cobra is to fork the main repository on GitHub, then submit a "pull request" (PR). The first step is to get a local development copy by installing cobra from source through the following steps:
-
-- Fork the `project repository <https://github.com/PythonPredictions/cobra>`_. For more details on how to fork a repository see `this guide <https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo>`__
-- Clone your fork of cobra's repo.
-- Open a shell and navigate to the folder where this repo was cloned in.
-- Once you are in the folder, execute ``pip install --editable .``.
-- Create a *feature branch* to do your development.
-- Once your are finished developing, you can create a *pull request* from your fork (see `this guide <https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork>`__ for detailed instructions).
-
-**Notes**
-
-- Make sure to follow the *PEP 8* styleguide if you make any changes to cobra. You should also write or modify unit test for your changes.
-- To avoid duplicating work, it is highly recommended that you search through the issue tracker and/or the PR list. If in doubt, you can always reach out to us through email (cobra@pythonpredictions.com)
+For more details, check our `wiki <https://github.com/PythonPredictions/cobra/wiki/Contributing-guidelines-&-workflows>`_
 
 Help and Support
 ================

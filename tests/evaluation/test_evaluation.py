@@ -4,6 +4,7 @@ import numpy as np
 from cobra.evaluation import plot_incidence
 from cobra.evaluation import Evaluator
 
+
 def mock_data():
     d = {'variable': ['education', 'education', 'education', 'education'],
          'label': ['1st-4th', '5th-6th', '7th-8th', '9th'],
