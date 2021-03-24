@@ -36,7 +36,7 @@ class TestEvaluation:
         n_bins_out = []
         for n_bins in n_bins_test:
             e = Evaluator(n_bins = n_bins)
-            out = e._compute_lift_per_bin(y_true, y_pred, e.n_bins)
+            out = Evaluator._compute_lift_per_bin(y_true, y_pred, e.n_bins)
             lifts = out[1]
             n_bins_out.append(len(lifts))
 
