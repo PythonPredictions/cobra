@@ -14,17 +14,17 @@ def plot_univariate_predictor_quality(df_auc: pd.DataFrame,
     Parameters
     ----------
     df_auc : pd.DatFrame
-        Contains for each variable the train auc and selection auc allong with
+        Contains for each variable the train auc and selection auc along with
         a boolean indicating whether or not it is selected based on the
         criteria
     dim : tuple, optional
-        tuple with width and lentgh of the plot
+        tuple with width and length of the plot
     path : str, optional
         path to store the figure
     """
 
     df = (df_auc[df_auc["preselection"]]
-          .sort_values(by='AUC train', ascending=False))
+          .sort_values(by='AUC selection', ascending=False))
 
     df = pd.melt(df, id_vars=["predictor"],
                  value_vars=["AUC train", "AUC selection"],
@@ -60,7 +60,7 @@ def plot_correlation_matrix(df_corr: pd.DataFrame,
     df_corr : pd.DataFrame
         Correlation matrix
     dim : tuple, optional
-        tuple with width and lentgh of the plot
+        tuple with width and length of the plot
     path : str, optional
         path to store the figure
     """
@@ -89,7 +89,7 @@ def plot_performance_curves(model_performance: pd.DataFrame,
         contains train-selection-validation performance for each model trained
         in the forward feature selection
     dim : tuple, optional
-        tuple with width and lentgh of the plot
+        tuple with width and length of the plot
     path : str, optional
         path to store the figure
     """
@@ -141,7 +141,7 @@ def plot_variable_importance(df_variable_importance: pd.DataFrame,
     title : str, optional
         Title of the plot
     dim : tuple, optional
-        tuple with width and lentgh of the plot
+        tuple with width and length of the plot
     path : str, optional
         path to store the figure
     """
