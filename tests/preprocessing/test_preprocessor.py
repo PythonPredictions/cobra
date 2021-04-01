@@ -165,7 +165,9 @@ class TestPreProcessor:
         - disable the skip marking of this test and debug it
         - call this test from a python console (this will print progress
         messages, the first option won't):
-        from
+        from tests.preprocessing.test_preprocessor import TestPreProcessor
+        tpp = TestPreProcessor()
+        tpp.test_preprocessor_performance_on_large_dataset(data_folder='./datasets/argentina-venta-de-propiedades')
         """
         print("Creating basetable...")
         basetable = make_large_house_prices_dataset(
