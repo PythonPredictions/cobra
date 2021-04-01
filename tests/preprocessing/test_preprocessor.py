@@ -56,7 +56,7 @@ class TestPreProcessor:
     def test_train_selection_validation_split_error_wrong_prop(self):
 
         error_msg = ("The sum of train_prop, selection_prop and "
-                     "validation_prop cannot differ from 1.0")
+                     "validation_prop must be 1.0.")
         train_prop = 0.7
         selection_prop = 0.3
 
