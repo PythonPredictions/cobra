@@ -1,4 +1,4 @@
-#Ignoired directories in root folder
+#Ignored directories in root folder
 
 
 # Byte-compiled / optimized / DLL files
@@ -112,3 +112,4 @@ ENV/
 # Other ignore files
 *.pptx
 *.ppt
+.idea/
