@@ -31,19 +31,13 @@ class TestPreProcessor:
         data = pd.DataFrame(X, columns=[f"c{i+1}" for i in range(10)])
         data.loc[:, "target"] = np.array([0] * 7 + [1] * 3)
 
-        # No stratified split here because sample size is to low to make
-        # it work. This feature is already well-tested in scikit-learn and
-        # needs no further testing here
         actual = PreProcessor.train_selection_validation_split(data,
-                                                               "target",
                                                                train_prop,
                                                                selection_prop,
-                                                               validation_prop,
-                                                               False)
+                                                               validation_prop)
 
         # check for the output schema
-        expected_schema = list(data.columns) + ["split"]
-        assert list(actual.columns) == expected_schema
+        assert list(actual.columns) == list(data.columns)
 
         # check that total size of input & output is the same!
         assert len(actual.index) == len(data.index)
@@ -103,10 +97,9 @@ class TestPreProcessor:
                                                      selection_prop: float,
                                                      error_msg: str):
         df = pd.DataFrame()
-        cname = ""
         with pytest.raises(ValueError, match=error_msg):
             (PreProcessor
-             .train_selection_validation_split(df, cname,
+             .train_selection_validation_split(df,
                                                train_prop=train_prop,
                                                selection_prop=selection_prop,
                                                validation_prop=0.1))

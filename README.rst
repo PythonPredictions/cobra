@@ -1,3 +1,9 @@
+[![CI_develop_action](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml/badge.svg?branch=develop)](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml)
+
+[CI_develop_action](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml/badge.svg?branch=develop)
+
+------------------------------------------------------------------------------------------------------------------------------------ 
+
 =====
 cobra
 =====
