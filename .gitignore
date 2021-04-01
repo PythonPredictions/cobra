@@ -109,6 +109,9 @@ ENV/
 # JetBrains IDEs (PyCharm etc.)
 .idea/
 
+# Downloaded datasets (see cobra.datasets module):
+datasets/
+
 # Other ignore files
 *.pptx
 *.ppt
