@@ -83,3 +83,8 @@ Documentation
 
 - HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_
 - A step-by-step `tutorial <https://pythonpredictions.github.io/cobra.io/tutorial.html>`_
+
+Outreach
+-------------
+
+- Check out the Data Science Leuven Meetup `talk <https://www.youtube.com/watch?v=w7ceZZqMEaA&feature=youtu.be>`_ by one of the core developers (second presentation)
