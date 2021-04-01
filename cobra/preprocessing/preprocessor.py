@@ -364,7 +364,7 @@ class PreProcessor(BaseEstimator):
         """
         if not math.isclose(train_prop + selection_prop + validation_prop, 1.0):
             raise ValueError("The sum of train_prop, selection_prop and "
-                             "validation_prop cannot differ from 1.0")
+                             "validation_prop must be 1.0.")
 
         if train_prop == 0.0:
             raise ValueError("train_prop cannot be zero!")

@@ -16,13 +16,19 @@ def does_not_raise():
 
 class TestPreProcessor:
 
-    @pytest.mark.parametrize(("train_prop, selection_prop, "
-                              "validation_prop, expected_sizes"),
+    @pytest.mark.parametrize("train_prop, selection_prop, validation_prop, "
+                             "expected_sizes",
                              [(0.6, 0.2, 0.2, {"train": 6,
                                                "selection": 2,
                                                "validation": 2}),
                               (0.7, 0.3, 0.0, {"train": 7,
-                                               "selection": 3})])
+                                               "selection": 3}),
+                              # Error "The sum of train_prop, selection_prop and
+                              # validation_prop must be 1.0." should not be
+                              # raised:
+                              (0.7, 0.2, 0.1, {"train": 7,
+                                               "selection": 2,
+                                               "validation": 1})])
     def test_train_selection_validation_split(self, train_prop: float,
                                               selection_prop: float,
                                               validation_prop: float,
@@ -57,30 +63,6 @@ class TestPreProcessor:
         self._test_train_selection_validation_split_error(train_prop,
                                                           selection_prop,
                                                           error_msg)
-
-    def test_train_selection_validation_split_error_correct_prop_no_rounding_error(self):
-        error_msg = ("The sum of train_prop, selection_prop and "
-                     "validation_prop cannot differ from 1.0")
-        train_prop = 0.7
-        selection_prop = 0.2
-        validation_prop = 0.1
-
-        # 0.7+0.2+0.1 = 0.99999999999999 instead of just 1.0, however error_msg should not be raised by the following:
-        try:
-            PreProcessor.train_selection_validation_split(data=pd.DataFrame(),
-                                                          target_column_name="",
-                                                          train_prop=train_prop,
-                                                          selection_prop=selection_prop,
-                                                          validation_prop=validation_prop)
-        except ValueError as error:
-            if str(error) == error_msg:
-                pytest.fail()
-            else:
-                # Swallow whatever other error if the message is not error_msg, other unit tests will test for that.
-                pass
-        except Exception:
-            # Swallow whatever other error if the message is not error_msg, other unit tests will test for that.
-            pass
 
     def test_train_selection_validation_split_error_zero_selection_prop(self):
 
