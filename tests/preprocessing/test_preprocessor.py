@@ -16,13 +16,19 @@ def does_not_raise():
 
 class TestPreProcessor:
 
-    @pytest.mark.parametrize(("train_prop, selection_prop, "
-                              "validation_prop, expected_sizes"),
+    @pytest.mark.parametrize("train_prop, selection_prop, validation_prop, "
+                             "expected_sizes",
                              [(0.6, 0.2, 0.2, {"train": 6,
                                                "selection": 2,
                                                "validation": 2}),
                               (0.7, 0.3, 0.0, {"train": 7,
-                                               "selection": 3})])
+                                               "selection": 3}),
+                              # Error "The sum of train_prop, selection_prop and
+                              # validation_prop must be 1.0." should not be
+                              # raised:
+                              (0.7, 0.2, 0.1, {"train": 7,
+                                               "selection": 2,
+                                               "validation": 1})])
     def test_train_selection_validation_split(self, train_prop: float,
                                               selection_prop: float,
                                               validation_prop: float,
@@ -50,7 +56,7 @@ class TestPreProcessor:
     def test_train_selection_validation_split_error_wrong_prop(self):
 
         error_msg = ("The sum of train_prop, selection_prop and "
-                     "validation_prop cannot differ from 1.0")
+                     "validation_prop must be 1.0.")
         train_prop = 0.7
         selection_prop = 0.3
 
