@@ -164,9 +164,12 @@ class TestKBinsDiscretizer:
                               (10, False,
                                # almost constant
                                pd.DataFrame({"variable": [0] + ([1] * 100)}),
+                               None),
+                              (2, False,
+                               pd.DataFrame({"variable": [5.4, 9.3, np.inf]}),
                                None)],
                              ids=["regular", "auto_adapt_bins",
-                                  "two bin edges"])
+                                  "two bin edges", "infs"])
     def test_fit_column(self, n_bins, auto_adapt_bins, data, expected):
         discretizer = KBinsDiscretizer(n_bins=n_bins,
                                        auto_adapt_bins=auto_adapt_bins)
