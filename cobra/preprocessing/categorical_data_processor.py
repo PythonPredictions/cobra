@@ -17,16 +17,16 @@ Authors:
 # standard lib imports
 import re
 from typing import Optional
+import logging
 
 # third party imports
 import numpy as np
 import pandas as pd
 from scipy import stats
-
+from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
-import logging
 log = logging.getLogger(__name__)
 
 
@@ -149,7 +149,8 @@ class CategoricalDataProcessor(BaseEstimator):
             log.info("regroup was set to False, so no fitting is required")
             return None
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Fitting category "
+                                                   "regrouping..."):
 
             if column_name not in data.columns:
                 log.warning("DataFrame has no column '{}', so it will be "

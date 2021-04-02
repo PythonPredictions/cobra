@@ -1,9 +1,11 @@
 import logging
-log = logging.getLogger(__name__)
 
 import pandas as pd
+from tqdm.auto import tqdm
 
 from cobra.model_building import LogisticRegressionModel as MLModel
+
+log = logging.getLogger(__name__)
 
 
 class ForwardFeatureSelection:
@@ -159,7 +161,7 @@ class ForwardFeatureSelection:
     def _forward_selection(self, train_data: pd.DataFrame,
                            target_column_name: str, predictors: list,
                            forced_predictors: list=[]) -> list:
-        """Perform the forward feature selection algoritm to compute a list
+        """Perform the forward feature selection algorithm to compute a list
         of models (with increasing performance?). The length of the list,
         i.e. the number of models is bounded by the max_predictors class
         attribute.
@@ -186,7 +188,8 @@ class ForwardFeatureSelection:
 
         max_steps = 1 + min(self.max_predictors,
                             len(predictors) + len(forced_predictors))
-        for step in range(1, max_steps):
+        for step in tqdm(range(1, max_steps), desc="Sequentially adding best "
+                                                   "predictor..."):
             if step <= len(forced_predictors):
                 # first, we go through forced predictors
                 candidate_predictors = [var for var in forced_predictors

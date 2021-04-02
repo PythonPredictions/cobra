@@ -16,17 +16,17 @@ Authors:
 from copy import deepcopy
 from typing import List
 import numbers
-
 import logging
-log = logging.getLogger(__name__)
 
 # third party imports
 import numpy as np
 import pandas as pd
-
+from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 #from sklearn.cluster import KMeans
+
+log = logging.getLogger(__name__)
 
 
 class KBinsDiscretizer(BaseEstimator):
@@ -186,7 +186,8 @@ class KBinsDiscretizer(BaseEstimator):
                              .format(KBinsDiscretizer.__name__,
                                      self.valid_strategies, self.strategy))
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Computing "
+                                                   "discretization bins..."):
 
             if column_name not in data.columns:
                 log.warning("DataFrame has no column '{}', so it will be "
@@ -266,7 +267,7 @@ class KBinsDiscretizer(BaseEstimator):
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Discretizing columns..."):
             if column_name not in self._bins_by_column:
                 log.warning("Column '{}' is not in fitted output "
                             "and will be skipped".format(column_name))
