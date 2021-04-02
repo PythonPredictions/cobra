@@ -1,6 +1,11 @@
-[![CI_develop_action](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml/badge.svg?branch=develop)](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml)
 
-[CI_develop_action](https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml/badge.svg?branch=develop)
+
+.. image:: https://img.shields.io/pypi/v/pythonpredictions-cobra.svg
+    :target: https://pypi.org/project/pythonpredictions-cobra/
+.. image:: https://img.shields.io/pypi/dm/pythonpredictions-cobra.svg
+    :target: https://pypistats.org/packages/pythonpredictions-cobra
+.. image:: https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml/badge.svg?branch=develop
+    :target: https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml
 
 ------------------------------------------------------------------------------------------------------------------------------------ 
 
@@ -8,8 +13,10 @@
 cobra
 =====
 
-**cobra** is a Python package to build predictive models using linear/logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
+.. image:: material\logo.png
+    :width: 300
 
+**cobra** is a Python package to build predictive models using linear/logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
 
 Main Features
 =============
@@ -76,3 +83,8 @@ Documentation
 
 - HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_
 - A step-by-step `tutorial <https://pythonpredictions.github.io/cobra.io/tutorial.html>`_
+
+Outreach
+-------------
+
+- Check out the Data Science Leuven Meetup `talk <https://www.youtube.com/watch?v=w7ceZZqMEaA&feature=youtu.be>`_ by one of the core developers (second presentation)
