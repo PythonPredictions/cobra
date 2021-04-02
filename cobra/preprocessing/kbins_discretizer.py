@@ -17,11 +17,11 @@ from copy import deepcopy
 from typing import List
 import numbers
 import logging
+import math
 
 # third party imports
 import numpy as np
 import pandas as pd
-import math
 
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
@@ -221,12 +221,21 @@ class KBinsDiscretizer(BaseEstimator):
                         "will be ignored in computation".format(column_name))
             return None
 
+        prop_inf = (np.sum(np.isinf(data[column_name]))
+                    / data[column_name].shape[0])
+
+        if prop_inf > 0:
+            log.warning(f"Column {column_name} has "
+                        f"{prop_inf:.1%} inf values, thus it was skipped. "
+                        f"Consider dropping or transforming it.")
+            return None
+
         prop_nan = data[column_name].isna().sum() / data[column_name].shape[0]
 
         if prop_nan >= 0.99:
             log.warning(f"Column {column_name} is"
-                        " {prop_nan:.1%}% NaNs, "
-                        "consider dropping or transforming it.")
+                        f" {prop_nan:.1%}% NaNs, "
+                        f"consider dropping or transforming it.")
 
         n_bins = self.n_bins
         if self.auto_adapt_bins:
