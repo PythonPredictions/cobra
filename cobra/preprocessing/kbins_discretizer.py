@@ -22,7 +22,7 @@ import math
 # third party imports
 import numpy as np
 import pandas as pd
-
+from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
@@ -186,7 +186,8 @@ class KBinsDiscretizer(BaseEstimator):
                              .format(KBinsDiscretizer.__name__,
                                      self.valid_strategies, self.strategy))
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Computing "
+                                                   "discretization bins..."):
 
             if column_name not in data.columns:
                 log.warning("DataFrame has no column '{}', so it will be "
@@ -281,7 +282,7 @@ class KBinsDiscretizer(BaseEstimator):
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Discretizing columns..."):
             if column_name not in self._bins_by_column:
                 log.warning("Column '{}' is not in fitted output "
                             "and will be skipped".format(column_name))
@@ -417,7 +418,7 @@ class KBinsDiscretizer(BaseEstimator):
         #     bin_edges = (centers[1:] + centers[:-1]) * 0.5
         #     bin_edges = np.r_[col_min, bin_edges, col_max]
 
-        # nans lead to unexpecte behavior during sorting
+        # nans lead to unexpected behavior during sorting,
         # by replacing with inf we ensure these stay at the
         # outermost edges
         if math.isnan(bin_edges[0]):
