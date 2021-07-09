@@ -227,6 +227,9 @@ class PreProcessor(BaseEstimator):
         log.info("Starting to fit pipeline")
         start = time.time()
 
+        # Ensure to operate on separate copy of data
+        train_data = train_data.copy()
+
         # Fit discretizer, categorical preprocessor & target encoder
         # Note that in order to fit target_encoder, we first have to transform
         # the data using the fitted discretizer & categorical_data_processor
