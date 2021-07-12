@@ -12,7 +12,6 @@
 =====
 cobra
 =====
-
 .. image:: material\logo.png
     :width: 300
 
