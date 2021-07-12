@@ -17,17 +17,17 @@ Authors:
 # standard lib imports
 import re
 from typing import Optional
-
 import logging
-log = logging.getLogger(__name__)
 
 # third party imports
 import numpy as np
 import pandas as pd
 from scipy import stats
-
+from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
+
+log = logging.getLogger(__name__)
 
 
 class CategoricalDataProcessor(BaseEstimator):
@@ -58,12 +58,12 @@ class CategoricalDataProcessor(BaseEstimator):
                   "category_size_threshold", "p_value_threshold",
                   "scale_contingency_table", "forced_categories"]
 
-    def __init__(self, regroup: bool=True, regroup_name: str="Other",
-                 keep_missing: bool=True,
-                 category_size_threshold: int=5,
-                 p_value_threshold: float=0.001,
-                 scale_contingency_table: bool=True,
-                 forced_categories: dict={}):
+    def __init__(self, regroup: bool = True, regroup_name: str = "Other",
+                 keep_missing: bool = True,
+                 category_size_threshold: int = 5,
+                 p_value_threshold: float = 0.001,
+                 scale_contingency_table: bool = True,
+                 forced_categories: dict = {}):
 
         self.regroup = regroup
         self.regroup_name = regroup_name
@@ -149,7 +149,8 @@ class CategoricalDataProcessor(BaseEstimator):
             log.info("regroup was set to False, so no fitting is required")
             return None
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Fitting category "
+                                                   "regrouping..."):
 
             if column_name not in data.columns:
                 log.warning("DataFrame has no column '{}', so it will be "
@@ -182,6 +183,11 @@ class CategoricalDataProcessor(BaseEstimator):
         list
             list of categories to combine into a category "Other"
         """
+        if len(data[column_name].unique()) == 1:
+            log.warning(f"Predictor {column_name} is constant"
+                        " and will be ignored in computation.")
+            return set(data[column_name].unique())
+
         y = data[target_column]
         incidence = y.mean()
 
@@ -305,7 +311,8 @@ class CategoricalDataProcessor(BaseEstimator):
             data.loc[:, column_name_clean] = (CategoricalDataProcessor
                                               ._replace_categories(
                                                   data[column_name_clean],
-                                                  categories))
+                                                  categories,
+                                                  self.regroup_name))
 
         # change data to categorical
         data.loc[:, column_name_clean] = (data[column_name_clean]
@@ -366,7 +373,7 @@ class CategoricalDataProcessor(BaseEstimator):
 
     @staticmethod
     def _replace_missings(data: pd.DataFrame,
-                          column_names: Optional[list]=None) -> pd.DataFrame:
+                          column_names: Optional[list] = None) -> pd.DataFrame:
         """Replace missing values (incl empty strings)
 
         Parameters
@@ -398,23 +405,25 @@ class CategoricalDataProcessor(BaseEstimator):
     @staticmethod
     def _compute_p_value(X: pd.Series, y: pd.Series, category: str,
                          scale_contingency_table: bool) -> float:
-        """Summary
+        """Calculates p-value in contingency table (chi-square test) in
+        order to evaluate whether category of interest is significantly
+        different from the rest of the categories, given the target variable.
 
         Parameters
         ----------
         X : pd.Series
-            Description
+            Variables data.
         y : pd.Series
-            Description
+            Target data.
         category : str
-            Description
+            Category for which we carry out the test
         scale_contingency_table : bool
-            Description
+            Whether we scale contingency table with incidence rate
 
         Returns
         -------
         float
-            Description
+            p-value of chi-square test
         """
         df = pd.concat([X, y], axis=1)
         df["other_categories"] = np.where(X == category, 0, 1)
@@ -434,20 +443,24 @@ class CategoricalDataProcessor(BaseEstimator):
         return stats.chi2_contingency(contigency_table, correction=False)[1]
 
     @staticmethod
-    def _replace_categories(data: pd.Series, categories: set) -> pd.Series:
+    def _replace_categories(data: pd.Series, categories: set,
+                            replace_with: str) -> pd.Series:
         """replace categories in set with "Other" and transform the remaining
         categories to strings to avoid type errors later on in the pipeline
 
         Parameters
         ----------
         data : pd.Series
-            Description
+            Dataset which contains the variable to be replaced
         categories : set
-            Description
+            Cleaned categories.
+        replace_with: str
+            String to be used as replacement for category.
 
         Returns
         -------
         pd.Series
-            Description
+            Series with replaced categories
         """
-        return data.apply(lambda x: str(x) if x in categories else "Other")
+        return data.apply(
+            lambda x: str(x) if x in categories else replace_with)

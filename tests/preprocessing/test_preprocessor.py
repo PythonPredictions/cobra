@@ -16,13 +16,19 @@ def does_not_raise():
 
 class TestPreProcessor:
 
-    @pytest.mark.parametrize(("train_prop, selection_prop, "
-                              "validation_prop, expected_sizes"),
+    @pytest.mark.parametrize("train_prop, selection_prop, validation_prop, "
+                             "expected_sizes",
                              [(0.6, 0.2, 0.2, {"train": 6,
                                                "selection": 2,
                                                "validation": 2}),
                               (0.7, 0.3, 0.0, {"train": 7,
-                                               "selection": 3})])
+                                               "selection": 3}),
+                              # Error "The sum of train_prop, selection_prop and
+                              # validation_prop must be 1.0." should not be
+                              # raised:
+                              (0.7, 0.2, 0.1, {"train": 7,
+                                               "selection": 2,
+                                               "validation": 1})])
     def test_train_selection_validation_split(self, train_prop: float,
                                               selection_prop: float,
                                               validation_prop: float,
@@ -31,19 +37,13 @@ class TestPreProcessor:
         data = pd.DataFrame(X, columns=[f"c{i+1}" for i in range(10)])
         data.loc[:, "target"] = np.array([0] * 7 + [1] * 3)
 
-        # No stratified split here because sample size is to low to make
-        # it work. This feature is already well-tested in scikit-learn and
-        # needs no further testing here
         actual = PreProcessor.train_selection_validation_split(data,
-                                                               "target",
                                                                train_prop,
                                                                selection_prop,
-                                                               validation_prop,
-                                                               False)
+                                                               validation_prop)
 
         # check for the output schema
-        expected_schema = list(data.columns) + ["split"]
-        assert list(actual.columns) == expected_schema
+        assert list(actual.columns) == list(data.columns)
 
         # check that total size of input & output is the same!
         assert len(actual.index) == len(data.index)
@@ -56,7 +56,7 @@ class TestPreProcessor:
     def test_train_selection_validation_split_error_wrong_prop(self):
 
         error_msg = ("The sum of train_prop, selection_prop and "
-                     "validation_prop cannot differ from 1.0")
+                     "validation_prop must be 1.0.")
         train_prop = 0.7
         selection_prop = 0.3
 
@@ -79,10 +79,9 @@ class TestPreProcessor:
                                                      selection_prop: float,
                                                      error_msg: str):
         df = pd.DataFrame()
-        cname = ""
         with pytest.raises(ValueError, match=error_msg):
             (PreProcessor
-             .train_selection_validation_split(df, cname,
+             .train_selection_validation_split(df,
                                                train_prop=train_prop,
                                                selection_prop=selection_prop,
                                                validation_prop=0.1))

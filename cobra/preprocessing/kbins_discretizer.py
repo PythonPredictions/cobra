@@ -16,17 +16,17 @@ Authors:
 from copy import deepcopy
 from typing import List
 import numbers
-
 import logging
-log = logging.getLogger(__name__)
+import math
 
 # third party imports
 import numpy as np
 import pandas as pd
-
+from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
-#from sklearn.cluster import KMeans
+
+log = logging.getLogger(__name__)
 
 
 class KBinsDiscretizer(BaseEstimator):
@@ -70,12 +70,12 @@ class KBinsDiscretizer(BaseEstimator):
                   "starting_precision", "label_format",
                   "change_endpoint_format"]
 
-    def __init__(self, n_bins: int=10, strategy: str="quantile",
-                 closed: str="right",
-                 auto_adapt_bins: bool=False,
-                 starting_precision: int=0,
-                 label_format: str="{} - {}",
-                 change_endpoint_format: bool=False):
+    def __init__(self, n_bins: int = 10, strategy: str = "quantile",
+                 closed: str = "right",
+                 auto_adapt_bins: bool = False,
+                 starting_precision: int = 0,
+                 label_format: str = "{} - {}",
+                 change_endpoint_format: bool = False):
 
         # validate number of bins
         self._validate_n_bins(n_bins)
@@ -163,7 +163,7 @@ class KBinsDiscretizer(BaseEstimator):
         self.set_params(**params)
 
         self._bins_by_column = {
-            key: ([tuple(l) for l in value] if value else None)
+            key: ([tuple(v) for v in value] if value else None)
             for key, value in _bins_by_column.items()
         }
 
@@ -186,7 +186,8 @@ class KBinsDiscretizer(BaseEstimator):
                              .format(KBinsDiscretizer.__name__,
                                      self.valid_strategies, self.strategy))
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Computing "
+                                                   "discretization bins..."):
 
             if column_name not in data.columns:
                 log.warning("DataFrame has no column '{}', so it will be "
@@ -214,13 +215,28 @@ class KBinsDiscretizer(BaseEstimator):
         List[tuple]
             list of bins as tuples
         """
-
         col_min, col_max = data[column_name].min(), data[column_name].max()
 
         if col_min == col_max:
             log.warning("Predictor '{}' is constant and "
                         "will be ignored in computation".format(column_name))
             return None
+
+        prop_inf = (np.sum(np.isinf(data[column_name]))
+                    / data[column_name].shape[0])
+
+        if prop_inf > 0:
+            log.warning(f"Column {column_name} has "
+                        f"{prop_inf:.1%} inf values, thus it was skipped. "
+                        f"Consider dropping or transforming it.")
+            return None
+
+        prop_nan = data[column_name].isna().sum() / data[column_name].shape[0]
+
+        if prop_nan >= 0.99:
+            log.warning(f"Column {column_name} is"
+                        f" {prop_nan:.1%}% NaNs, "
+                        f"consider dropping or transforming it.")
 
         n_bins = self.n_bins
         if self.auto_adapt_bins:
@@ -266,7 +282,7 @@ class KBinsDiscretizer(BaseEstimator):
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        for column_name in column_names:
+        for column_name in tqdm(column_names, desc="Discretizing columns..."):
             if column_name not in self._bins_by_column:
                 log.warning("Column '{}' is not in fitted output "
                             "and will be skipped".format(column_name))
@@ -402,8 +418,22 @@ class KBinsDiscretizer(BaseEstimator):
         #     bin_edges = (centers[1:] + centers[:-1]) * 0.5
         #     bin_edges = np.r_[col_min, bin_edges, col_max]
 
-        # Make sure the bin_edges are unique and sorted
-        return sorted(list(set(bin_edges)))
+        # nans lead to unexpected behavior during sorting,
+        # by replacing with inf we ensure these stay at the
+        # outermost edges
+        if math.isnan(bin_edges[0]):
+            bin_edges[0] = -np.inf
+
+        if math.isnan(bin_edges[-1]):
+            bin_edges[-1] = np.inf
+
+        if np.isnan(bin_edges).sum() > 0:
+            log.warning(f"Column {column_name} "
+                        "has NaNs present in bin definitions")
+
+        # Make sure the bin_edges are unique
+        # and order remains the same
+        return list(dict.fromkeys(bin_edges))
 
     def _compute_minimal_precision_of_bin_edges(self, bin_edges: list) -> int:
         """Compute the minimal precision of a list of bin_edges so that we end
@@ -467,7 +497,7 @@ class KBinsDiscretizer(BaseEstimator):
 
     @staticmethod
     def _create_index(intervals: List[tuple],
-                      closed: str="right") -> pd.IntervalIndex:
+                      closed: str = "right") -> pd.IntervalIndex:
         """Create an pd.IntervalIndex based on a list of tuples.
         This is basically a wrapper around pd.IntervalIndex.from_tuples
         However, the lower bound of the first entry in the list (the lower bin)
