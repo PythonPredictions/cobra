@@ -9,7 +9,7 @@ README = (ROOT / "README.rst").read_text()
 
 setup(
     name="pythonpredictions-cobra",
-    version="1.0.1",
+    version="1.0.2",
     description=("Package to build predictive models using "
                  "logistic regression"),
     long_description=README,
@@ -25,5 +25,6 @@ setup(
         "scipy>=1.5.4",
         "scikit-learn>=0.23.1",
         "matplotlib>=3.3.3",
-        "seaborn>=0.11.0"]
+        "seaborn>=0.11.0",
+        "tqdm>=4.59.0"]
 )
