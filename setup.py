@@ -10,8 +10,8 @@ README = (ROOT / "README.rst").read_text()
 setup(
     name="pythonpredictions-cobra",
     version="1.0.1",
-    description=("Package to build predictive models using linear"
-                 "/logistic regression"),
+    description=("Package to build predictive models using "
+                 "logistic regression"),
     long_description=README,
     long_description_content_type="text/x-rst",
     packages=find_packages(include=['cobra', 'cobra.*']),

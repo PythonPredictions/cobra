@@ -1,13 +1,13 @@
-# Runs CI when pushing to develop branch
+# Runs CI when pushing to master branch
 # runs pylint and pytest
 
-name: CI_develop_action
+name: CI_master_action
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ master ]
   pull_request:
-    branches: [ develop ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -31,8 +31,3 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --cov=cobra tests/
-
-    # until we refactor accordingly
-    #- name: Lint check with pylint
-    #  run: |
-    #    pylint cobra
