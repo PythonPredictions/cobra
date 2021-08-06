@@ -73,7 +73,7 @@ class TestCategoricalDataProcessor:
     @pytest.mark.parametrize("scale_contingency_table, expected",
                              [(False, 0.01329),
                               (True, 0.43437)])
-    def test_compute_p_value(self, scale_contingency_table, expected):
+    def test_compute_p_value_classification(self, scale_contingency_table, expected):
 
         X = pd.Series(data=(["c1"]*70 + ["c2"]*20 + ["c3"]*10))
         y = pd.Series(data=([0]*35 + [1]*35 + [0]*15 + [1]*5 + [0]*8 + [1]*2))
