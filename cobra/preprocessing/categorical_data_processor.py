@@ -14,6 +14,7 @@ Authors:
 - Jan Benisek (implementation)
 - Matthias Roels (implementation)
 """
+
 # standard lib imports
 import re
 from typing import Optional
@@ -38,33 +39,42 @@ class CategoricalDataProcessor(BaseEstimator):
     Attributes
     ----------
     category_size_threshold : int
-        minimal size of a category to keep it as a separate category
+        Minimal size of a category to keep it as a separate category.
     forced_categories : dict
         Map to prevent certain categories from being group into ``Other``
-        for each colum - dict of the form ``{col:[forced vars]}``.
+        for each column - dict of the form ``{col:[forced vars]}``.
     keep_missing : bool
-        Whether or not to keep missing as a separate category
+        Whether or not to keep missing as a separate category.
+    model_type : str
+        Model type (``classification`` or ``regression``).
     p_value_threshold : float
         Significance threshold for regrouping.
     regroup : bool
-        Whether or not to regroup categories
+        Whether or not to regroup categories.
     regroup_name : str
         New name of the non-significant regrouped variables
     scale_contingency_table : bool
-        Whether contingency table should be scaled before chi^2.'
+        Whether contingency table should be scaled before chi^2.
     """
 
-    valid_keys = ["regroup", "regroup_name", "keep_missing",
+    valid_keys = ["model_type", "regroup", "regroup_name", "keep_missing",
                   "category_size_threshold", "p_value_threshold",
                   "scale_contingency_table", "forced_categories"]
 
-    def __init__(self, regroup: bool = True, regroup_name: str = "Other",
+    def __init__(self,
+                 model_type: str = "classification",
+                 regroup: bool = True,
+                 regroup_name: str = "Other",
                  keep_missing: bool = True,
                  category_size_threshold: int = 5,
                  p_value_threshold: float = 0.001,
                  scale_contingency_table: bool = True,
                  forced_categories: dict = {}):
 
+        if model_type not in ["classification", "regression"]:
+            raise ValueError("An unexpected model_type was provided. Valid model_types are either 'classification' or 'regression'.")
+
+        self.model_type = model_type
         self.regroup = regroup
         self.regroup_name = regroup_name
         self.keep_missing = keep_missing
@@ -136,12 +146,12 @@ class CategoricalDataProcessor(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            data used to compute the mapping to encode the categorical
+            Data used to compute the mapping to encode the categorical
             variables with.
         column_names : list
-            Columns of data to be processed
+            Columns of data to be processed.
         target_column : str
-            Column name of the target
+            Column name of the target.
         """
 
         if not self.regroup:
@@ -168,8 +178,8 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def _fit_column(self, data: pd.DataFrame, column_name: str,
                     target_column) -> set:
-        """Compute which categories to regroup into "Other" for a particular
-        column
+        """Compute which categories to regroup into "Other"
+        for a particular column
 
         Parameters
         ----------
@@ -183,13 +193,18 @@ class CategoricalDataProcessor(BaseEstimator):
         list
             list of categories to combine into a category "Other"
         """
+        model_type = self.model_type
+
         if len(data[column_name].unique()) == 1:
             log.warning(f"Predictor {column_name} is constant"
                         " and will be ignored in computation.")
             return set(data[column_name].unique())
 
         y = data[target_column]
-        incidence = y.mean()
+        if model_type == "classification":
+            incidence = y.mean()
+        else:
+            incidence = None
 
         combined_categories = set()
 
@@ -201,13 +216,14 @@ class CategoricalDataProcessor(BaseEstimator):
         unique_categories = list(X.unique())
 
         # do not merge categories in case of dummies, i.e. 0 and 1
-        # (and possibly "Missings")
+        # (and possibly "Missing")
         if (len(unique_categories) == 2
             or (len(unique_categories) == 3
                 and "Missing" in unique_categories)):
             return set(unique_categories)
 
         # get small categories and add them to the merged category list
+        # does not apply incidence factor when model_type = "regression"
         small_categories = (CategoricalDataProcessor
                             ._get_small_categories(
                                 X,
@@ -221,6 +237,7 @@ class CategoricalDataProcessor(BaseEstimator):
 
             pval = (CategoricalDataProcessor
                     ._compute_p_value(X, y, category,
+                                      model_type,
                                       self.scale_contingency_table))
 
             # if not significant, add it to the list
@@ -348,24 +365,27 @@ class CategoricalDataProcessor(BaseEstimator):
                               incidence: float,
                               category_size_threshold: int) -> set:
         """Fetch categories with a size below a certain threshold.
-        Note that we use an additional weighting with the overall incidence
+        Note that we use an additional weighting with the overall incidence.
 
         Parameters
         ----------
         predictor_series : pd.Series
-            Description
+            Variables data.
         incidence : float
-            global train incidence
+            Global train incidence.
         category_size_threshold : int
-            minimal size of a category to keep it as a separate category
+            Minimal size of a category to keep it as a separate category.
 
         Returns
         -------
         set
-            List a categories with a count below a certain threshold
+            List a categories with a count below a certain threshold.
         """
         category_counts = predictor_series.groupby(predictor_series).size()
-        factor = max(incidence, 1 - incidence)
+        if incidence is not None:
+            factor = max(incidence, 1 - incidence)
+        else:
+            factor = 1
 
         # Get all categories with a count below a threshold
         bool_mask = (category_counts*factor) <= category_size_threshold
@@ -404,10 +424,14 @@ class CategoricalDataProcessor(BaseEstimator):
 
     @staticmethod
     def _compute_p_value(X: pd.Series, y: pd.Series, category: str,
+                         model_type: str,
                          scale_contingency_table: bool) -> float:
-        """Calculates p-value in contingency table (chi-square test) in
-        order to evaluate whether category of interest is significantly
-        different from the rest of the categories, given the target variable.
+        """Calculates p-value in order to evaluate whether category of
+        interest is significantly different from the rest of the
+        categories, given the target variable.
+
+        In case model_type is "classification", chi-squared test based on a contingency table.
+        In case model_type is "regression", Kruskal-Wallis test.
 
         Parameters
         ----------
@@ -416,31 +440,42 @@ class CategoricalDataProcessor(BaseEstimator):
         y : pd.Series
             Target data.
         category : str
-            Category for which we carry out the test
+            Category for which we carry out the test.
+        model_type : str
+            Model type (``classification`` or ``regression``).
         scale_contingency_table : bool
-            Whether we scale contingency table with incidence rate
+            Whether we scale contingency table with incidence rate.
+            Only used when model_type = "classification".
 
         Returns
         -------
         float
-            p-value of chi-square test
+            p-value of applied statistical test
         """
         df = pd.concat([X, y], axis=1)
+        df.columns = ["X", "y"]
         df["other_categories"] = np.where(X == category, 0, 1)
 
-        contigency_table = pd.crosstab(index=df['other_categories'], columns=y,
-                                       margins=False)
+        if model_type == "classification":
+            contingency_table = pd.crosstab(index=df["other_categories"], columns=df["y"],
+                                            margins=False)
 
-        # if true, we scale the "other" categories
-        if scale_contingency_table:
-            size_other_cats = contigency_table.iloc[1].sum()
-            incidence_mean = y.mean()
+            # if true, we scale the "other" categories
+            if scale_contingency_table:
+                size_other_cats = contingency_table.iloc[1].sum()
+                incidence_mean = y.mean()
 
-            contigency_table.iloc[1, 0] = (1-incidence_mean) * size_other_cats
-            contigency_table.iloc[1, 1] = incidence_mean * size_other_cats
-            contigency_table = contigency_table.values.astype(np.int64)
+                contingency_table.iloc[1, 0] = (1-incidence_mean) * size_other_cats
+                contingency_table.iloc[1, 1] = incidence_mean * size_other_cats
+                contingency_table = contingency_table.values.astype(np.int64)
 
-        return stats.chi2_contingency(contigency_table, correction=False)[1]
+            pval = stats.chi2_contingency(contingency_table, correction=False)[1]
+
+        elif model_type == "regression":
+            pval = stats.kruskal(df.y[df.other_categories == 0],
+                                 df.y[df.other_categories == 1])[1]
+
+        return pval
 
     @staticmethod
     def _replace_categories(data: pd.Series, categories: set,

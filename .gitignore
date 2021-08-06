@@ -1,5 +1,4 @@
-#Ignored directories in root folder
-
+# Ignored directories in root folder
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -107,7 +106,7 @@ ENV/
 # vscode settings
 .vscode/
 
-# Other ignore files
+# Other ignored files
 *.pptx
 *.ppt
 .idea/
