@@ -78,6 +78,10 @@ class TargetEncoder(BaseEstimator):
 
         if weight < 0:
             raise ValueError("The value of weight cannot be smaller than zero")
+        elif weight == 0:
+            log.warning("The target encoder's additive smoothing weight is "
+                        "set to 0. This disables smoothing and may make the "
+                        "encoding prone to overfitting.")
         elif imputation_strategy not in self.valid_imputation_strategies:
             raise ValueError("Valid options for 'imputation_strategy' are {}."
                              " Got imputation_strategy={!r} instead."
