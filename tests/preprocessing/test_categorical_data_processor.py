@@ -20,6 +20,7 @@ class TestCategoricalDataProcessor:
         actual = processor.attributes_to_dict()
 
         expected = {
+            "model_type": "classification",
             "regroup": True,
             "regroup_name": "Other",
             "keep_missing": True,
@@ -72,14 +73,30 @@ class TestCategoricalDataProcessor:
     @pytest.mark.parametrize("scale_contingency_table, expected",
                              [(False, 0.01329),
                               (True, 0.43437)])
-    def test_compute_p_value(self, scale_contingency_table, expected):
+    def test_compute_p_value_classification(self, scale_contingency_table, expected):
 
         X = pd.Series(data=(["c1"]*70 + ["c2"]*20 + ["c3"]*10))
         y = pd.Series(data=([0]*35 + [1]*35 + [0]*15 + [1]*5 + [0]*8 + [1]*2))
         category = "c1"
 
         actual = (CategoricalDataProcessor
-                  ._compute_p_value(X, y, category, scale_contingency_table))
+                  ._compute_p_value(X, y, category, "classification", scale_contingency_table))
+
+        assert pytest.approx(actual, abs=1e-5) == expected
+
+    @pytest.mark.parametrize("seed, expected",
+                             [(505, 0.02222),
+                              (603, 0.89230)])
+    def test_compute_p_value_regression(self, seed, expected):
+
+        np.random.seed(seed)
+
+        X = pd.Series(data=(["c1"]*70 + ["c2"]*20 + ["c3"]*10))
+        y = pd.Series(data=np.random.uniform(0, 1, 100)*5)
+        category = "c1"
+
+        actual = (CategoricalDataProcessor
+                  ._compute_p_value(X, y, category, "regression", None))
 
         assert pytest.approx(actual, abs=1e-5) == expected
 
@@ -87,7 +104,7 @@ class TestCategoricalDataProcessor:
 
         data = pd.Series(data=(["c1"]*50 + ["c2"]*25 + ["c3"]*15 + ["c4"]*5))
         incidence = 0.35
-        threshold = 10  # to make it easy to manualy compute
+        threshold = 10  # to make it easy to manualLy compute
         expected = {"c3", "c4"}
 
         actual = (CategoricalDataProcessor
