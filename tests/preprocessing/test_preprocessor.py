@@ -97,6 +97,7 @@ class TestPreProcessor:
         # is_valid_pipeline only checks for relevant keys atm
         pipeline_dict = {
             "categorical_data_processor": {
+                "model_type": None,
                 "regroup": None,
                 "regroup_name": None,
                 "keep_missing": None,

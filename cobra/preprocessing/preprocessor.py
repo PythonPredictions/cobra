@@ -44,22 +44,26 @@ class PreProcessor(BaseEstimator):
     ----------
     categorical_data_processor : CategoricalDataProcessor
         Instance of CategoricalDataProcessor to do the preprocessing of
-        categorical variables
+        categorical variables. The model_type variable is specified
+        here (``classification`` or ``regression``).
     discretizer : KBinsDiscretizer
         Instance of KBinsDiscretizer to do the prepocessing of continuous
-        variables by means of discretization
+        variables by means of discretization.
     serialization_path : str
-        path to save the pipeline to
+        Path to save the pipeline to.
     stratify_split : bool
-        Whether or not to stratify the train-test split
+        Whether or not to stratify the train-test split.
     target_encoder : TargetEncoder
-        Instance of TargetEncoder to do the incidence replacement
+        Instance of TargetEncoder to do the incidence replacement.
     """
 
-    def __init__(self, categorical_data_processor: CategoricalDataProcessor,
+    def __init__(self,
+                 categorical_data_processor: CategoricalDataProcessor,
                  discretizer: KBinsDiscretizer,
                  target_encoder: TargetEncoder,
                  is_fitted: bool = False):
+
+        self.model_type = categorical_data_processor.model_type
 
         self._categorical_data_processor = categorical_data_processor
         self._discretizer = discretizer
@@ -69,6 +73,7 @@ class PreProcessor(BaseEstimator):
 
     @classmethod
     def from_params(cls,
+                    model_type: str = "classification",
                     n_bins: int = 10,
                     strategy: str = "quantile",
                     closed: str = "right",
@@ -91,16 +96,18 @@ class PreProcessor(BaseEstimator):
 
         Parameters
         ----------
+        model_type : str
+            Model type (``classification`` or ``regression``).
         n_bins : int, optional
             Number of bins to produce. Raises ValueError if ``n_bins < 2``.
         strategy : str, optional
             Binning strategy. Currently only ``uniform`` and ``quantile``
-            e.g. equifrequency is supported
+            e.g. equifrequency is supported.
         closed : str, optional
-            Whether to close the bins (intervals) from the left or right
+            Whether to close the bins (intervals) from the left or right.
         auto_adapt_bins : bool, optional
-            reduces the number of bins (starting from n_bins) as a function of
-            the number of missings
+            Reduces the number of bins (starting from n_bins) as a function of
+            the number of missings.
         starting_precision : int, optional
             Initial precision for the bin edges to start from,
             can also be negative. Given a list of bin edges, the class will
@@ -110,33 +117,32 @@ class PreProcessor(BaseEstimator):
             will be made to round up the numbers of the bin edges
             e.g. ``5.55 -> 10``, ``146 -> 100``, ...
         label_format : str, optional
-            format string to display the bin labels
+            Format string to display the bin labels
             e.g. ``min - max``, ``(min, max]``, ...
         change_endpoint_format : bool, optional
             Whether or not to change the format of the lower and upper bins
             into ``< x`` and ``> y`` resp.
         regroup : bool
-            Whether or not to regroup categories
+            Whether or not to regroup categories.
         regroup_name : str
-            New name of the non-significant regrouped variables
+            New name of the non-significant regrouped variables.
         keep_missing : bool
-            Whether or not to keep missing as a separate category
+            Whether or not to keep missing as a separate category.
         category_size_threshold : int
-            minimal size of a category to keep it as a separate category
+            Minimal size of a category to keep it as a separate category.
         p_value_threshold : float
             Significance threshold for regrouping.
         forced_categories : dict
             Map to prevent certain categories from being group into ``Other``
             for each column - dict of the form ``{col:[forced vars]}``.
         scale_contingency_table : bool
-            Whether contingency table should be scaled before chi^2.'
+            Whether contingency table should be scaled before chi^2.
         weight : float, optional
             Smoothing parameters (non-negative). The higher the value of the
             parameter, the bigger the contribution of the overall mean.
-            When set to zero, there is no smoothing
-            (e.g. the pure target incidence is used).
+            When set to zero, there is no smoothing (e.g. the pure target incidence is used).
         imputation_strategy : str, optional
-            in case there is a particular column which contains new categories,
+            In case there is a particular column which contains new categories,
             the encoding will lead to NULL values which should be imputed.
             Valid strategies are to replace with the global mean of the train
             set or the min (resp. max) incidence of the categories of that
@@ -145,9 +151,11 @@ class PreProcessor(BaseEstimator):
         Returns
         -------
         PreProcessor
-            Description
+            class encapsulating CategoricalDataProcessor,
+            KBinsDiscretizer, and TargetEncoder instances
         """
         categorical_data_processor = CategoricalDataProcessor(
+            model_type,
             regroup,
             regroup_name,
             keep_missing,
@@ -155,15 +163,17 @@ class PreProcessor(BaseEstimator):
             p_value_threshold,
             scale_contingency_table,
             forced_categories)
+
         discretizer = KBinsDiscretizer(n_bins, strategy, closed,
                                        auto_adapt_bins,
                                        starting_precision,
                                        label_format,
                                        change_endpoint_format)
 
-        target_encoder = TargetEncoder(weight)
+        target_encoder = TargetEncoder(weight, imputation_strategy)
 
-        return cls(categorical_data_processor, discretizer, target_encoder)
+        return cls(model_type,
+                   categorical_data_processor, discretizer, target_encoder)
 
     @classmethod
     def from_pipeline(cls, pipeline: dict):
@@ -187,12 +197,13 @@ class PreProcessor(BaseEstimator):
         """
 
         if not PreProcessor._is_valid_pipeline(pipeline):
-            raise ValueError("Invalid pipeline")  # To do: specify error
+            raise ValueError("Invalid pipeline")  ## TODO: specify error
 
         categorical_data_processor = CategoricalDataProcessor()
         categorical_data_processor.set_attributes_from_dict(
             pipeline["categorical_data_processor"]
         )
+        model_type = categorical_data_processor.model_type
 
         discretizer = KBinsDiscretizer()
         discretizer.set_attributes_from_dict(pipeline["discretizer"])
@@ -200,7 +211,8 @@ class PreProcessor(BaseEstimator):
         target_encoder = TargetEncoder()
         target_encoder.set_attributes_from_dict(pipeline["target_encoder"])
 
-        return cls(categorical_data_processor, discretizer, target_encoder,
+        return cls(model_type,
+                   categorical_data_processor, discretizer, target_encoder,
                    is_fitted=pipeline["_is_fitted"])
 
     def fit(self, train_data: pd.DataFrame, continuous_vars: list,

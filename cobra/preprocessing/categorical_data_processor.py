@@ -46,7 +46,7 @@ class CategoricalDataProcessor(BaseEstimator):
     keep_missing : bool
         Whether or not to keep missing as a separate category.
     model_type : str
-        Model type ("classification" or "regression").
+        Model type (``classification`` or ``regression``).
     p_value_threshold : float
         Significance threshold for regrouping.
     regroup : bool
@@ -442,7 +442,7 @@ class CategoricalDataProcessor(BaseEstimator):
         category : str
             Category for which we carry out the test.
         model_type : str
-            Model type ("classification" or "regression").
+            Model type (``classification`` or ``regression``).
         scale_contingency_table : bool
             Whether we scale contingency table with incidence rate.
             Only used when model_type = "classification".
