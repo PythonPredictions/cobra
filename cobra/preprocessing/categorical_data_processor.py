@@ -71,7 +71,8 @@ class CategoricalDataProcessor(BaseEstimator):
                  scale_contingency_table: bool = True,
                  forced_categories: dict = {}):
 
-        # assert model_type in ["classification", "regression"], "define an appropriate model type"
+        if model_type not in ["classification", "regression"]:
+            raise ValueError("An unexpected model_type was provided. Valid model_types are either 'classification' or 'regression'.")
 
         self.model_type = model_type
         self.regroup = regroup
