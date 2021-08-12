@@ -23,11 +23,58 @@ def mock_preds(n, seed = 505):
 
 class TestEvaluation:
 
-    def test_plot_incidence(self):
+    def test_plot_incidence_with_unsupported_model_type(self):
+        with pytest.raises(ValueError):
+            plot_incidence(pig_tables=None,
+                           variable="",
+                           model_type="anomaly_detection")
+
+    def test_plot_incidence_with_different_column_orders(self):
         data = mock_data()
-        column_order = ['1st-4th', '5th-6th', '7th-8th']
-        with pytest.raises(Exception):
-            plot_incidence(data, 'education', column_order)
+        with pytest.raises(ValueError):
+            plot_incidence(pig_tables=data,
+                           variable='education',
+                           model_type="classification",
+                           # different bins than in the data variable:
+                           column_order=['1st-4th', '5th-6th', '7th-8th'])
+
+    # Stubs for later: requires exposing df_plot and testing matplotlib's
+    # plot object internals:
+    """
+    def test_plot_incidence_without_column_order(self):
+        data = mock_data()
+        plot_incidence(pig_tables=data, 
+                       variable='education',
+                       model_type="classification",
+                       column_order=None)
+        # Can't assert: df_plot is not exposed by the function
+
+    def test_plot_incidence_with_column_order(self):
+        data = mock_data()
+        plot_incidence(pig_tables=data,
+                       variable='education',
+                       model_type="classification",
+                       column_order=['1st-4th', '5th-6th', '7th-8th', '9th'])
+        # Can't assert: df_plot is not exposed by the function
+        
+    def test_plot_incidence_visual_result_for_classification(self):
+        data = mock_data()
+        plot_incidence(pig_tables=data,
+                       variable='education',
+                       model_type="classification",
+                       column_order=['1st-4th', '5th-6th', '7th-8th', '9th'])
+        # Can't assert: would need to check matplotlib's fig and ax 
+        # internals.
+    
+    def test_plot_incidence_visual_result_for_regression(self):
+        data = mock_data()  # change into regression target though.
+        plot_incidence(pig_tables=data,
+                       variable='education',
+                       model_type="classification",
+                       column_order=['1st-4th', '5th-6th', '7th-8th', '9th'])
+        # Can't assert: would need to check matplotlib's fig and ax 
+        # internals.
+    """
 
     def test_lift_curve_n_bins(self):
         n_bins_test = [5, 10, 15, 35]
