@@ -72,7 +72,7 @@ class CategoricalDataProcessor(BaseEstimator):
                  forced_categories: dict = {}):
 
         if model_type not in ["classification", "regression"]:
-            raise ValueError("An unexpected model_type was provided. Valid model_types are either 'classification' or 'regression'.")
+            raise ValueError("An unexpected model_type was provided. A valid model_type is either 'classification' or 'regression'.")
 
         self.model_type = model_type
         self.regroup = regroup
