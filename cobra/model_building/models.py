@@ -75,10 +75,10 @@ class LogisticRegressionModel:
 
         self.logit = LogisticRegression()
         self.logit.set_params(**model_dict["params"])
-        self.logit.classes_ = np.array(model_dict['classes_'])
-        self.logit.coef_ = np.array(model_dict['coef_'])
-        self.logit.intercept_ = np.array(model_dict['intercept_'])
-        self.logit.n_iter_ = np.array(model_dict['intercept_'])
+        self.logit.classes_ = np.array(model_dict["classes_"])
+        self.logit.coef_ = np.array(model_dict["coef_"])
+        self.logit.intercept_ = np.array(model_dict["intercept_"])
+        self.logit.n_iter_ = np.array(model_dict["intercept_"])
         self.predictors = model_dict["predictors"]
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
@@ -204,7 +204,7 @@ class LogisticRegressionModel:
         }
 
         df = pd.DataFrame.from_dict(importance_by_variable,
-                                    orient='index').reset_index()
+                                    orient="index").reset_index()
         df.columns = ["predictor", "importance"]
 
         return (df.sort_values(by="importance", ascending=False)
@@ -266,10 +266,8 @@ class LinearRegressionModel:
 
         if self._is_fitted:
             serialized_model.update({
-                "classes_": self.linear.classes_.tolist(),
                 "coef_": self.linear.coef_.tolist(),
                 "intercept_": self.linear.intercept_.tolist(),
-                "n_iter_": self.linear.n_iter_.tolist(),
             })
 
         return serialized_model
@@ -293,10 +291,8 @@ class LinearRegressionModel:
 
         self.linear = LinearRegression()
         self.linear.set_params(**model_dict["params"])
-        self.linear.classes_ = np.array(model_dict['classes_'])
-        self.linear.coef_ = np.array(model_dict['coef_'])
-        self.linear.intercept_ = np.array(model_dict['intercept_'])
-        self.linear.n_iter_ = np.array(model_dict['intercept_'])
+        self.linear.coef_ = np.array(model_dict["coef_"])
+        self.linear.intercept_ = np.array(model_dict["intercept_"])
         self.predictors = model_dict["predictors"]
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
@@ -422,7 +418,7 @@ class LinearRegressionModel:
         }
 
         df = pd.DataFrame.from_dict(importance_by_variable,
-                                    orient='index').reset_index()
+                                    orient="index").reset_index()
         df.columns = ["predictor", "importance"]
 
         return (df.sort_values(by="importance", ascending=False)
@@ -434,7 +430,7 @@ class LinearRegressionModel:
                 or model_dict["meta"] != "linear-regression"):
             return False
 
-        attr = ["classes_", "coef_", "intercept_", "n_iter_", "predictors"]
+        attr = ["coef_", "intercept_", "predictors"]
         for key in attr:
             if not (key in model_dict or type(model_dict[key]) != list):
                 return False
