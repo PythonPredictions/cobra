@@ -172,7 +172,8 @@ class PreProcessor(BaseEstimator):
 
         target_encoder = TargetEncoder(weight, imputation_strategy)
 
-        return cls(categorical_data_processor, discretizer, target_encoder)
+        return cls(model_type,
+                   categorical_data_processor, discretizer, target_encoder)
 
     @classmethod
     def from_pipeline(cls, pipeline: dict):

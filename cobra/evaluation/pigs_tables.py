@@ -7,52 +7,55 @@ from matplotlib.ticker import FuncFormatter
 import cobra.utils as utils
 
 
-def generate_pig_tables(data: pd.DataFrame,
+def generate_pig_tables(basetable: pd.DataFrame,
                         id_column_name: str,
                         target_column_name: str,
                         preprocessed_predictors: list) -> pd.DataFrame:
-    """Compute PIG tables for all predictors in preprocessed_predictors. The
-    output is a DataFrame with columns ``variable``, ``label``, ``pop_size``,
-    ``avg_incidence`` and ``incidence``
+    """Compute PIG tables for all predictors in preprocessed_predictors.
+
+    The output is a DataFrame with columns ``variable``, ``label``,
+    ``pop_size``, ``global_avg_target`` and ``avg_target``.
 
     Parameters
     ----------
-    data : pd.DataFrame
-        basetable to compute PIG tables of
+    basetable : pd.DataFrame
+        Basetable to compute PIG tables from.
     id_column_name : str
-        column name of the id (e.g. customernumber)
+        Name of the basetable column containing the IDs of the basetable rows
+        (e.g. customernumber).
     target_column_name : str
-        column name of the target
-    predictors: list
-        list of preprocessed predictor names
+        Name of the basetable column containing the target values to predict.
+    preprocessed_predictors: list
+        List of basetable column names containing preprocessed predictors.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame containing a PIG table for all predictors
+        DataFrame containing a PIG table for all predictors.
     """
-
-    pigs = [compute_pig_table(data, column_name, target_column_name,
-                              id_column_name)
-            for column_name in sorted(preprocessed_predictors)
-            if column_name not in [id_column_name, target_column_name]]
-
+    pigs = [
+        compute_pig_table(basetable,
+                          column_name,
+                          target_column_name,
+                          id_column_name)
+        for column_name in sorted(preprocessed_predictors)
+        if column_name not in [id_column_name, target_column_name]
+    ]
     output = pd.concat(pigs)
-
     return output
 
 
-def compute_pig_table(data: pd.DataFrame,
-                      column_name: str,
+def compute_pig_table(basetable: pd.DataFrame,
+                      predictor_column_name: str,
                       target_column_name: str,
                       id_column_name: str) -> pd.DataFrame:
-    """Compute the pig table of a given predictor for a given target
+    """Compute the PIG table of a given predictor for a given target.
 
     Parameters
     ----------
-    data : pd.DataFrame
+    basetable : pd.DataFrame
         input data from which to compute the pig table
-    column_name : str
+    predictor_column_name : str
         predictor name of which to compute the pig table
     target_column_name : str
         name of the target variable
@@ -62,57 +65,74 @@ def compute_pig_table(data: pd.DataFrame,
     Returns
     -------
     pd.DataFrame
-        pig table as a DataFrame
+        PIG table as a DataFrame
     """
-    avg_incidence = data[target_column_name].mean()
+    global_avg_target = basetable[target_column_name].mean()
 
     # group by the binned variable, compute the incidence
     # (=mean of the target for the given bin) and compute the bin size
     # (e.g. COUNT(id_column_name)). After that, rename the columns
-    res = (data.groupby(column_name)
-               .agg({target_column_name: "mean", id_column_name: "size"})
-               .reset_index()
-               .rename(columns={column_name: "label",
-                                target_column_name: "incidence",
-                                id_column_name: "pop_size"}))
+    res = (basetable.groupby(predictor_column_name)
+           .agg({target_column_name: "mean", id_column_name: "size"})
+           .reset_index()
+           .rename(columns={predictor_column_name: "label",
+                            target_column_name: "avg_target",
+                            id_column_name: "pop_size"}))
 
     # add the column name to a variable column
     # add the average incidence
     # replace population size by a percentage of total population
-    res["variable"] = utils.clean_predictor_name(column_name)
-    res["avg_incidence"] = avg_incidence
-    res["pop_size"] = res["pop_size"]/len(data.index)
+    res["variable"] = utils.clean_predictor_name(predictor_column_name)
+    res["global_avg_target"] = global_avg_target
+    res["pop_size"] = res["pop_size"]/len(basetable.index)
 
     # make sure to always return the data with the proper column order
     column_order = ["variable", "label", "pop_size",
-                    "avg_incidence", "incidence"]
+                    "global_avg_target", "avg_target"]
 
     return res[column_order]
 
 
-def plot_incidence(df: pd.DataFrame, variable: str,
-                   column_order: list = None, dim: tuple = (12, 8)):
-    """Function plots Predictor Incidence Graphs (PIGs).
-    Bins are ordered in descening order of bin incidence
+def plot_incidence(pig_tables: pd.DataFrame,
+                   variable: str,
+                   model_type: str,
+                   column_order: list = None,
+                   dim: tuple = (12, 8)):
+    """Plots a Predictor Insights Graph (PIG), a graph in which the mean
+    target value is plotted for a number of bins constructed from a predictor
+    variable. When the target actually is a binary classification target,
+    the plotted mean target value is actually the target incidence rate.
+
+    Bins are ordered in descending order of mean target value
     unless specified otherwise with `column_order` list.
+
     Parameters
     ----------
-    df: pd.DataFrame
-        dataframe with cleaned, binned, partitioned and prepared data
+    pig_tables: pd.DataFrame
+        dataframe with cleaned, binned, partitioned and prepared data,
+        as created by generate_pig_tables() from this module.
     variable: str
-        variable for which the incidence plot will be shown
+        name of the predictor variable for which the PIG will be plotted.
+    model_type: str
+        type of model (either "classification" or "regression").
     column_order: list, default=None
-        explicit order of variable
+        explicit order of the value bins of the predictor variable to be used
+        on the PIG.
     dim: tuple, default=(12, 8)
-        tuple with width and lentgh of the plot
+        optional tuple to configure the width and length of the plot.
     """
-    df_plot = df[df['variable'] == variable].copy()
+    if model_type not in ["classification", "regression"]:
+        raise ValueError("An unexpected value was set for the model_type "
+                         "parameter. Expected 'classification' or "
+                         "'regression'.")
+
+    df_plot = pig_tables[pig_tables['variable'] == variable].copy()
 
     if column_order is not None:
-
         if not set(df_plot['label']) == set(column_order):
             raise ValueError(
-                'Variables in column_order and dataframe are not equal')
+                'The column_order and pig_tables parameters do not contain '
+                'the same set of variables.')
 
         df_plot['label'] = df_plot['label'].astype('category')
         df_plot['label'].cat.reorder_categories(column_order,
@@ -121,37 +141,42 @@ def plot_incidence(df: pd.DataFrame, variable: str,
         df_plot.sort_values(by=['label'], ascending=True, inplace=True)
         df_plot.reset_index(inplace=True)
     else:
-        df_plot.sort_values(by=['incidence'], ascending=False, inplace=True)
+        df_plot.sort_values(by=['avg_target'], ascending=False, inplace=True)
         df_plot.reset_index(inplace=True)
 
     with plt.style.context("seaborn-ticks"):
         fig, ax = plt.subplots(figsize=dim)
 
         # -----------------
-        # Left axis - incidence
+        # Left axis - average target
         # -----------------
-        ax.plot(df_plot['label'], df_plot['incidence'],
+        ax.plot(df_plot['label'], df_plot['avg_target'],
                 color="#00ccff", marker=".",
-                markersize=20, linewidth=3, label='incidence rate per bin',
+                markersize=20, linewidth=3,
+                label='incidence rate per bin' if model_type == "classification" else "mean target value per bin",
                 zorder=10)
 
-        ax.plot(df_plot['label'], df_plot['avg_incidence'],
+        ax.plot(df_plot['label'], df_plot['global_avg_target'],
                 color="#022252", linestyle='--', linewidth=4,
-                label='average incidence rate',
+                label='average incidence rate' if model_type == "classification" else "global mean target value",
                 zorder=10)
 
         # dummy line to have label on second axis from first
         ax.plot(np.nan, "#939598", linewidth=6, label='bin size')
 
         # set labels & ticks
-        ax.set_ylabel('incidence', fontsize=16)
+        ax.set_ylabel('incidence' if model_type == "classification" else "mean target value",
+                      fontsize=16)
         ax.set_xlabel('{} bins' ''.format(variable), fontsize=16)
         ax.xaxis.set_tick_params(rotation=45, labelsize=14)
         ax.yaxis.set_tick_params(labelsize=14)
 
-        ax.set_yticks(np.arange(0, max(df_plot['incidence'])+0.05, 0.05))
-        ax.yaxis.set_major_formatter(
-            FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
+        if model_type == "classification":
+            # Mean target values are between 0 and 1 (target incidence rate),
+            # so format them as percentages:
+            ax.set_yticks(np.arange(0, max(df_plot['avg_target'])+0.05, 0.05))
+            ax.yaxis.set_major_formatter(
+                FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
 
         # removes ticks but keeps the labels
         ax.tick_params(axis='both', which='both', length=0)
@@ -185,7 +210,11 @@ def plot_incidence(df: pd.DataFrame, variable: str,
         ax2.grid(False)
 
         # title & legend
-        fig.suptitle('Incidence Plot - ' + variable, fontsize=22, y=1.02)
+        if model_type == "classification":
+            title = "Incidence plot - " + variable
+        else:
+            title = "Mean target plot - " + variable
+        fig.suptitle(title, fontsize=22, y=1.02)
         ax.legend(frameon=False, bbox_to_anchor=(0., 1.01, 1., .102),
                   loc=3, ncol=1, mode="expand", borderaxespad=0.,
                   prop={"size": 14})
