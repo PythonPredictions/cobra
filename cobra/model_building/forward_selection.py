@@ -3,7 +3,8 @@ import logging
 import pandas as pd
 from tqdm.auto import tqdm
 
-from cobra.model_building import LogisticRegressionModel as MLModel
+# from cobra.model_building import LogisticRegressionModel as MLModel
+from cobra.model_building import LogisticRegressionModel, LinearRegressionModel
 
 log = logging.getLogger(__name__)
 
@@ -15,26 +16,36 @@ class ForwardFeatureSelection:
 
     Attributes
     ----------
+    model_type : str
+        Model type (``classification`` or ``regression``).
     max_predictors : int
-        maximum number of predictors allowed in any model. This corresponds
+        Maximum number of predictors allowed in any model. This corresponds
         more or less with the maximum number of steps in the forward feature
-        selection
+        selection.
     model_name : str
-        name of the model to use for forward feature selection
+        Name of the model to use for forward feature selection.
     pos_only : bool
-        whether or not the model coefficients should all be positive
+        Whether or not the model coefficients should all be positive.
     """
 
-    def __init__(self, max_predictors: int=50,
-                 model_name: str="logistic-regression", pos_only: bool=True):
+    def __init__(self,
+                 model_type: str="classification",
+                 max_predictors: int=50,
+                 model_name: str="logistic-regression",
+                 pos_only: bool=True):
 
-        self.pos_only = pos_only
+        if model_type == "classification":
+            self.MLModel = LogisticRegressionModel
+        elif model_type == "regression":
+            self.MLModel = LinearRegressionModel
+
         self.max_predictors = max_predictors
         self.model_name = model_name
+        self.pos_only = pos_only
 
         self._fitted_models = []
 
-    def get_model_from_step(self, step: int) -> MLModel:
+    def get_model_from_step(self, step: int):
         """Get fitted model from a particular step
 
         Parameters
@@ -44,7 +55,7 @@ class ForwardFeatureSelection:
 
         Returns
         -------
-        MLModel
+        self.MLModel
             Fitted model from the given step
 
         Raises
@@ -219,7 +230,7 @@ class ForwardFeatureSelection:
     def _find_next_best_model(self, train_data: pd.DataFrame,
                               target_column_name: str,
                               candidate_predictors: list,
-                              current_predictors: list) -> MLModel:
+                              current_predictors: list):
         """Given a list of current predictors which are already to selected to
         be include in the model, Find amongst a list candidate predictors
         the predictor to add to the selected list so that the resulting model
@@ -238,7 +249,7 @@ class ForwardFeatureSelection:
 
         Returns
         -------
-        MLModel
+        self.MLModel
             Best performing model
         """
         # placeholders
@@ -268,7 +279,7 @@ class ForwardFeatureSelection:
         return best_model
 
     def _train_model(self, train_data: pd.DataFrame, target_column_name: str,
-                     predictors: list) -> MLModel:
+                     predictors: list):
         """Train the model with a given set of predictors
 
         Parameters
@@ -282,10 +293,11 @@ class ForwardFeatureSelection:
 
         Returns
         -------
-        MLModel
+        self.MLModel
             trained model
         """
-        model = MLModel()
+        # model = MLModel()
+        model = self.MLModel()
 
         model.fit(train_data[predictors], train_data[target_column_name])
 
