@@ -267,7 +267,7 @@ class LinearRegressionModel:
         if self._is_fitted:
             serialized_model.update({
                 "coef_": self.linear.coef_.tolist(),
-                "intercept_": self.linear.intercept_.tolist(),
+                "intercept_": self.linear.intercept_.tolist()
             })
 
         return serialized_model

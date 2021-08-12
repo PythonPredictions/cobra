@@ -79,7 +79,7 @@ class TestLogisticRegressionModel:
 
         pd.testing.assert_frame_equal(actual, expected)
 
-    def test_serialize(self, mocker):
+    def test_serialize(self):
 
         model = LogisticRegressionModel()
         actual = model.serialize()
@@ -212,7 +212,7 @@ class TestLinearRegressionModel:
 
         pd.testing.assert_frame_equal(actual, expected)
 
-    def test_serialize(self, mocker):
+    def test_serialize(self):
 
         model = LinearRegressionModel()
         actual = model.serialize()
@@ -225,7 +225,8 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "normalize": False
+                "normalize": False,
+                "positive": False
             }
         }
 
@@ -243,7 +244,8 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "normalize": False
+                "normalize": False,
+                "positive": False
             },
             "coef_": [[0.5, 0.75]],
             "intercept_": [-3]
