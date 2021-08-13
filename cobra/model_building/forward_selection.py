@@ -51,7 +51,7 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         step : int
-            Particular step in the forward selection
+            Particular step in the forward selection.
 
         Returns
         -------
@@ -70,8 +70,7 @@ class ForwardFeatureSelection:
 
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
-                                   splits: list=["train", "selection",
-                                                 "validation"]
+                                   splits: list = ["train", "selection", "validation"]
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
         train-selection-validation) and return them along with a list of
@@ -82,11 +81,11 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         data : pd.DataFrame
-            dataset for which to compute performance of each model
+            Dataset for which to compute performance of each model.
         target_column_name : str
-            name of the target column
+            Name of the target column.
         splits : list, optional
-            list of splits to compute performance on
+            List of splits to compute performance on.
 
         Returns
         -------
@@ -123,27 +122,27 @@ class ForwardFeatureSelection:
         return pd.DataFrame(results)
 
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
-            predictors: list, forced_predictors: list=[],
-            excluded_predictors: list=[]):
+            predictors: list, forced_predictors: list = [],
+            excluded_predictors: list = []):
         """Fit the forward feature selection estimator
 
         Parameters
         ----------
         data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         predictors : list
-            List of predictors on which to train the estimator
+            List of predictors on which to train the estimator.
         forced_predictors : list, optional
-            List of predictors to force in the estimator
+            List of predictors to force in the estimator.
         excluded_predictors : list, optional
-            List of predictors to exclude from the estimator
+            List of predictors to exclude from the estimator.
 
         Raises
         ------
         ValueError
-            In case the number of forced predictors is larger than the maximum
+            in case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model
         """
         # remove excluded predictors from predictor lists
@@ -180,13 +179,13 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         predictors : list
-            List of predictors on which to train the models
+            List of predictors on which to train the models.
         forced_predictors : list, optional
-            List of predictors to force in the models
+            List of predictors to force in the models.
 
         Returns
         -------
@@ -231,7 +230,7 @@ class ForwardFeatureSelection:
                               target_column_name: str,
                               candidate_predictors: list,
                               current_predictors: list):
-        """Given a list of current predictors which are already to selected to
+        """Given a list of current predictors which are already selected to
         be include in the model, Find amongst a list candidate predictors
         the predictor to add to the selected list so that the resulting model
         has the best performance.
@@ -239,13 +238,13 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         candidate_predictors : list
-            List of candidate predictors to test
+            List of candidate predictors to test.
         current_predictors : list
-            List of predictors on which to train the models
+            List of predictors on which to train the models.
 
         Returns
         -------
@@ -280,16 +279,16 @@ class ForwardFeatureSelection:
 
     def _train_model(self, train_data: pd.DataFrame, target_column_name: str,
                      predictors: list):
-        """Train the model with a given set of predictors
+        """Train the model with a given set of predictors.
 
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         predictors : list
-            List of predictors on which to train the models
+            List of predictors on which to train the models.
 
         Returns
         -------

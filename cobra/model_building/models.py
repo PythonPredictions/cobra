@@ -162,7 +162,7 @@ class LogisticRegressionModel:
         Returns
         -------
         float
-            the performance score of the model (e.g. AUC)
+            the performance score of the model (AUC)
         """
 
         if (split is None) or (split not in self._eval_metrics_by_split):
@@ -376,7 +376,7 @@ class LinearRegressionModel:
         Returns
         -------
         float
-            the performance score of the model (e.g. AUC)
+            the performance score of the model (RMSE)
         """
 
         if (split is None) or (split not in self._eval_metrics_by_split):
