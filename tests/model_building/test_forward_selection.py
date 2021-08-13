@@ -2,7 +2,6 @@ from contextlib import contextmanager
 import pytest
 
 import pandas as pd
-import numpy as np
 
 from cobra.model_building.models import LogisticRegressionModel
 from cobra.model_building.forward_selection import ForwardFeatureSelection
