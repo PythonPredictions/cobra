@@ -3,7 +3,8 @@ import logging
 import pandas as pd
 from tqdm.auto import tqdm
 
-from cobra.model_building import LogisticRegressionModel as MLModel
+# from cobra.model_building import LogisticRegressionModel as MLModel
+from cobra.model_building import LogisticRegressionModel, LinearRegressionModel
 
 log = logging.getLogger(__name__)
 
@@ -15,36 +16,46 @@ class ForwardFeatureSelection:
 
     Attributes
     ----------
+    model_type : str
+        Model type (``classification`` or ``regression``).
     max_predictors : int
-        maximum number of predictors allowed in any model. This corresponds
+        Maximum number of predictors allowed in any model. This corresponds
         more or less with the maximum number of steps in the forward feature
-        selection
+        selection.
     model_name : str
-        name of the model to use for forward feature selection
+        Name of the model to use for forward feature selection.
     pos_only : bool
-        whether or not the model coefficients should all be positive
+        Whether or not the model coefficients should all be positive.
     """
 
-    def __init__(self, max_predictors: int=50,
-                 model_name: str="logistic-regression", pos_only: bool=True):
+    def __init__(self,
+                 model_type: str="classification",
+                 max_predictors: int=50,
+                 model_name: str="logistic-regression",
+                 pos_only: bool=True):
 
-        self.pos_only = pos_only
+        if model_type == "classification":
+            self.MLModel = LogisticRegressionModel
+        elif model_type == "regression":
+            self.MLModel = LinearRegressionModel
+
         self.max_predictors = max_predictors
         self.model_name = model_name
+        self.pos_only = pos_only
 
         self._fitted_models = []
 
-    def get_model_from_step(self, step: int) -> MLModel:
+    def get_model_from_step(self, step: int):
         """Get fitted model from a particular step
 
         Parameters
         ----------
         step : int
-            Particular step in the forward selection
+            Particular step in the forward selection.
 
         Returns
         -------
-        MLModel
+        self.MLModel
             Fitted model from the given step
 
         Raises
@@ -59,8 +70,7 @@ class ForwardFeatureSelection:
 
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
-                                   splits: list=["train", "selection",
-                                                 "validation"]
+                                   splits: list = ["train", "selection", "validation"]
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
         train-selection-validation) and return them along with a list of
@@ -71,11 +81,11 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         data : pd.DataFrame
-            dataset for which to compute performance of each model
+            Dataset for which to compute performance of each model.
         target_column_name : str
-            name of the target column
+            Name of the target column.
         splits : list, optional
-            list of splits to compute performance on
+            List of splits to compute performance on.
 
         Returns
         -------
@@ -112,27 +122,27 @@ class ForwardFeatureSelection:
         return pd.DataFrame(results)
 
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
-            predictors: list, forced_predictors: list=[],
-            excluded_predictors: list=[]):
+            predictors: list, forced_predictors: list = [],
+            excluded_predictors: list = []):
         """Fit the forward feature selection estimator
 
         Parameters
         ----------
         data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         predictors : list
-            List of predictors on which to train the estimator
+            List of predictors on which to train the estimator.
         forced_predictors : list, optional
-            List of predictors to force in the estimator
+            List of predictors to force in the estimator.
         excluded_predictors : list, optional
-            List of predictors to exclude from the estimator
+            List of predictors to exclude from the estimator.
 
         Raises
         ------
         ValueError
-            In case the number of forced predictors is larger than the maximum
+            in case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model
         """
         # remove excluded predictors from predictor lists
@@ -169,13 +179,13 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         predictors : list
-            List of predictors on which to train the models
+            List of predictors on which to train the models.
         forced_predictors : list, optional
-            List of predictors to force in the models
+            List of predictors to force in the models.
 
         Returns
         -------
@@ -219,8 +229,8 @@ class ForwardFeatureSelection:
     def _find_next_best_model(self, train_data: pd.DataFrame,
                               target_column_name: str,
                               candidate_predictors: list,
-                              current_predictors: list) -> MLModel:
-        """Given a list of current predictors which are already to selected to
+                              current_predictors: list):
+        """Given a list of current predictors which are already selected to
         be include in the model, Find amongst a list candidate predictors
         the predictor to add to the selected list so that the resulting model
         has the best performance.
@@ -228,17 +238,17 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         candidate_predictors : list
-            List of candidate predictors to test
+            List of candidate predictors to test.
         current_predictors : list
-            List of predictors on which to train the models
+            List of predictors on which to train the models.
 
         Returns
         -------
-        MLModel
+        self.MLModel
             Best performing model
         """
         # placeholders
@@ -268,24 +278,25 @@ class ForwardFeatureSelection:
         return best_model
 
     def _train_model(self, train_data: pd.DataFrame, target_column_name: str,
-                     predictors: list) -> MLModel:
-        """Train the model with a given set of predictors
+                     predictors: list):
+        """Train the model with a given set of predictors.
 
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model
+            Data on which to fit the model.
         target_column_name : str
-            Name of the target column
+            Name of the target column.
         predictors : list
-            List of predictors on which to train the models
+            List of predictors on which to train the models.
 
         Returns
         -------
-        MLModel
+        self.MLModel
             trained model
         """
-        model = MLModel()
+        # model = MLModel()
+        model = self.MLModel()
 
         model.fit(train_data[predictors], train_data[target_column_name])
 
