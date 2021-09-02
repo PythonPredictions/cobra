@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# classification
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
@@ -14,8 +15,14 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import matthews_corrcoef
 from sklearn.exceptions import NotFittedError
 
+# regression
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 
-class Evaluator():
+
+
+class classification_evaluator ():
 
     """Summary
 
@@ -515,3 +522,20 @@ class Evaluator():
         lift = np.round(inc_in_top_n/avg_incidence, 2)[0]
 
         return lift
+
+
+class regression_evaluator ():
+    """Summary
+
+       Attributes
+       ----------
+        r2_score: float
+            computes the coefficient of determination, usually denoted as R²
+        Mean Absolute error: float
+            a risk metric corresponding to the expected value of the absolute error loss
+        Mean Squared Error: float
+            a risk metric corresponding to the expected value of the squared (quadratic) error
+        ...
+
+
+       """
