@@ -15,7 +15,7 @@ cobra
 .. image:: material\logo.png
     :width: 300
 
-**cobra** is a Python package to build predictive models using logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
+**cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
 
 Main Features
 =============
@@ -28,7 +28,7 @@ Main Features
    - replace missing values and
    - add columns with incidence rate per category/bin
  
-- Perform univariate feature selection based on AUC
+- Perform univariate feature selection based on RMSE (linear regression) or AUC (logistic regression)
 - Compute correlation matrix of predictors
 - Find the suitable variables using forward feature selection
 - Evaluate model performance and visualize the results
@@ -79,10 +79,15 @@ Help and Support
 
 Documentation
 -------------
+**Logistic Regression**
 
-- HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_
+- HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_ for logistic regression
 - A step-by-step `tutorial <https://pythonpredictions.github.io/cobra.io/tutorial.html>`_
 
+**Linear Regression**
+
+- HTML documentation of the individual modules for linear regression
+- A step-by-step tutorial
 Outreach
 -------------
 
