@@ -78,15 +78,20 @@ class TestForwardFeatureSelection:
         actual = (fw_selection
                   .compute_model_performances(data, "target",
                                               splits=["train", "selection"]))
+
         expected = pd.DataFrame([
-            {"predictors": ["var1_enc"], "last_added_predictor": "var1_enc",
-             "train_performance": 0.612, "selection_performance": 0.609},
+            {"predictors": ["var1_enc"],
+             "last_added_predictor": "var1_enc",
+             "train_performance": 0.612, "selection_performance": 0.609,
+             "model_type": model_type},
             {"predictors": ["var1_enc", "var2_enc"],
              "last_added_predictor": "var2_enc",
-             "train_performance": 0.612, "selection_performance": 0.609},
+             "train_performance": 0.612, "selection_performance": 0.609,
+             "model_type": model_type},
             {"predictors": ["var1_enc", "var2_enc", "var3_enc"],
              "last_added_predictor": "var3_enc",
-             "train_performance": 0.612, "selection_performance": 0.609}
+             "train_performance": 0.612, "selection_performance": 0.609,
+             "model_type": model_type}
         ])
 
         pd.testing.assert_frame_equal(actual, expected)
