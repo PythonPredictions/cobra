@@ -135,8 +135,6 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
 
     return df_out
 
-sm.qqplot(res)
-
 def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
     """Wrapper function to extract a list of predictors from df_auc.
 

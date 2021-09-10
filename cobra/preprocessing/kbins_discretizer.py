@@ -30,7 +30,6 @@ log = logging.getLogger(__name__)
 
 
 class KBinsDiscretizer(BaseEstimator):
-
     """Bin continuous data into intervals of predefined size. It provides a
     way to partition continuous data into discrete values, i.e. tranform
     continuous data into nominal data. This can make a linear model more

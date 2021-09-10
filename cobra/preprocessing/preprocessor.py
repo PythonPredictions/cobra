@@ -44,17 +44,17 @@ class PreProcessor(BaseEstimator):
     ----------
     categorical_data_processor : CategoricalDataProcessor
         Instance of CategoricalDataProcessor to do the preprocessing of
-        categorical variables. The model_type variable is specified
-        here (``classification`` or ``regression``).
+        categorical variables.
     discretizer : KBinsDiscretizer
         Instance of KBinsDiscretizer to do the prepocessing of continuous
         variables by means of discretization.
-    serialization_path : str
-        Path to save the pipeline to.
-    stratify_split : bool
-        Whether or not to stratify the train-test split.
     target_encoder : TargetEncoder
         Instance of TargetEncoder to do the incidence replacement.
+    is_fitted : bool
+        Whether or not object is yet fit.
+    model_type : str
+        The model_type variable as specified in CategoricalDataProcessor
+        (``classification`` or ``regression``).
     """
 
     def __init__(self,
@@ -63,13 +63,13 @@ class PreProcessor(BaseEstimator):
                  target_encoder: TargetEncoder,
                  is_fitted: bool = False):
 
-        self.model_type = categorical_data_processor.model_type
-
         self._categorical_data_processor = categorical_data_processor
         self._discretizer = discretizer
         self._target_encoder = target_encoder
 
         self._is_fitted = is_fitted
+
+        self.model_type = categorical_data_processor.model_type
 
     @classmethod
     def from_params(cls,
@@ -196,13 +196,13 @@ class PreProcessor(BaseEstimator):
         """
 
         if not PreProcessor._is_valid_pipeline(pipeline):
-            raise ValueError("Invalid pipeline")  ## TODO: specify error
+            raise ValueError("Invalid pipeline")  ### TODO: specify error
 
         categorical_data_processor = CategoricalDataProcessor()
         categorical_data_processor.set_attributes_from_dict(
             pipeline["categorical_data_processor"]
         )
-        model_type = categorical_data_processor.model_type
+        # model_type = categorical_data_processor.model_type
 
         discretizer = KBinsDiscretizer()
         discretizer.set_attributes_from_dict(pipeline["discretizer"])

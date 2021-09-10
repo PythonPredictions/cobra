@@ -357,7 +357,7 @@ class CategoricalDataProcessor(BaseEstimator):
             data with additional transformed variables
         """
 
-        self.fit(data, column_names)
+        self.fit(data, column_names, target_column)
         return self.transform(data, column_names)
 
     @staticmethod

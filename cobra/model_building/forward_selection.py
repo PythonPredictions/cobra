@@ -95,6 +95,7 @@ class ForwardFeatureSelection:
         """
         results = []
         predictor_set = set([])
+
         for model in self._fitted_models:
 
             last_added_predictor = (set(model.predictors)
@@ -119,7 +120,10 @@ class ForwardFeatureSelection:
 
             predictor_set = predictor_set.union(set(model.predictors))
 
-        return pd.DataFrame(results)
+        df = pd.DataFrame(results)
+        df["model_type"] = self.model_type
+
+        return df
 
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
             predictors: list, forced_predictors: list = [],
