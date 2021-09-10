@@ -10,7 +10,6 @@ log = logging.getLogger(__name__)
 
 
 class ForwardFeatureSelection:
-
     """Perform forward feature selection for a given dataset using a given
     algorithm.
 
@@ -22,17 +21,14 @@ class ForwardFeatureSelection:
         Maximum number of predictors allowed in any model. This corresponds
         more or less with the maximum number of steps in the forward feature
         selection.
-    model_name : str
-        Name of the model to use for forward feature selection.
     pos_only : bool
         Whether or not the model coefficients should all be positive.
     """
 
     def __init__(self,
-                 model_type: str="classification",
-                 max_predictors: int=50,
-                 model_name: str="logistic-regression",
-                 pos_only: bool=True):
+                 model_type: str = "classification",
+                 max_predictors: int = 50,
+                 pos_only: bool = True):
 
         if model_type == "classification":
             self.MLModel = LogisticRegressionModel
@@ -40,7 +36,6 @@ class ForwardFeatureSelection:
             self.MLModel = LinearRegressionModel
 
         self.max_predictors = max_predictors
-        self.model_name = model_name
         self.pos_only = pos_only
 
         self._fitted_models = []
@@ -70,7 +65,8 @@ class ForwardFeatureSelection:
 
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
-                                   splits: list = ["train", "selection", "validation"]
+                                   splits: list = ["train", "selection",
+                                                   "validation"]
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
         train-selection-validation) and return them along with a list of
@@ -97,7 +93,6 @@ class ForwardFeatureSelection:
         predictor_set = set([])
 
         for model in self._fitted_models:
-
             last_added_predictor = (set(model.predictors)
                                     .difference(predictor_set))
             tmp = {
@@ -112,7 +107,7 @@ class ForwardFeatureSelection:
                     data[data["split"] == split],
                     data[data["split"] == split][target_column_name],
                     split=split  # parameter used for caching
-                    )
+                )
                 for split in splits
             })
 
@@ -132,7 +127,7 @@ class ForwardFeatureSelection:
 
         Parameters
         ----------
-        data : pd.DataFrame
+        train_data : pd.DataFrame
             Data on which to fit the model.
         target_column_name : str
             Name of the target column.
@@ -174,9 +169,9 @@ class ForwardFeatureSelection:
 
     def _forward_selection(self, train_data: pd.DataFrame,
                            target_column_name: str, predictors: list,
-                           forced_predictors: list=[]) -> list:
+                           forced_predictors: list = []) -> list:
         """Perform the forward feature selection algorithm to compute a list
-        of models (with increasing performance?). The length of the list,
+        of models (with increasing performance). The length of the list,
         i.e. the number of models is bounded by the max_predictors class
         attribute.
 
@@ -235,7 +230,7 @@ class ForwardFeatureSelection:
                               candidate_predictors: list,
                               current_predictors: list):
         """Given a list of current predictors which are already selected to
-        be include in the model, Find amongst a list candidate predictors
+        be include in the model, find amongst a list candidate predictors
         the predictor to add to the selected list so that the resulting model
         has the best performance.
 
@@ -257,25 +252,36 @@ class ForwardFeatureSelection:
         """
         # placeholders
         best_model = None
-        best_performance = -1
+        if self.MLModel == LogisticRegressionModel:
+            best_performance = -1  # AUC metric is used.
+        elif self.MLModel == LinearRegressionModel:
+            best_performance = float("inf")  # RMSE metric is used.
+        else:
+            raise ValueError("No metric comparison method has been configured "
+                             "for the given model_type specified as "
+                             "ForwardFeatureSelection argument.")
 
         for pred in candidate_predictors:
-
-            # train model with additional predictor
+            # Train a model with an additional predictor
             model = self._train_model(train_data, target_column_name,
                                       (current_predictors + [pred]))
-            # Evaluate model
+            # Evaluate the model
             performance = (model
                            .evaluate(train_data[current_predictors + [pred]],
                                      train_data[target_column_name],
                                      split="train"))
 
-            if (self.pos_only and (not (model.get_coef() >= 0).all())):
+            if self.pos_only and (not (model.get_coef() >= 0).all()):
                 continue
 
-            # check if model is better than current best model
-            # and if yes, replace current best!
-            if (performance >= best_performance):
+            # Check if the model is better than the current best model
+            # and if it is, replace the current best.
+            if self.MLModel == LogisticRegressionModel \
+                    and performance > best_performance:  # AUC metric is used.
+                best_performance = performance
+                best_model = model
+            elif self.MLModel == LinearRegressionModel \
+                    and performance < best_performance:  # RMSE metric is used.
                 best_performance = performance
                 best_model = model
 
