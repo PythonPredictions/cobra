@@ -296,9 +296,9 @@ class CategoricalDataProcessor(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            Original data to be tranformed
+            Original data to be transformed.
         column_name : str
-            name of the column to transform
+            Name of the column to transform.
 
         Returns
         -------
