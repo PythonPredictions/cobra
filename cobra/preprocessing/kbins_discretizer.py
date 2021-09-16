@@ -404,7 +404,6 @@ class KBinsDiscretizer(BaseEstimator):
             log.warning(f"Column {column_name} "
                         "has NaNs present in bin definitions")
 
-        
         # Make absolutely sure bin edges are ordered, 
         # in very rare situations this wasn't the case
         # due to rounding in quantile calculation (e.g. 

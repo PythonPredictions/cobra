@@ -126,11 +126,14 @@ class PreProcessor(BaseEstimator):
         keep_missing : bool
             Whether or not to keep missing as a separate category.
         category_size_threshold : int
-            Minimal size of a category to keep it as a separate category.
+            All categories with a size (corrected for incidence if applicable)
+            in the training set above this threshold are kept as a separate category,
+            if statistical significance w.r.t. target is detected. Remaining
+            categories are converted into ``Other`` (or else, cf. regroup_name).
         p_value_threshold : float
             Significance threshold for regrouping.
         forced_categories : dict
-            Map to prevent certain categories from being group into ``Other``
+            Map to prevent certain categories from being grouped into ``Other``
             for each column - dict of the form ``{col:[forced vars]}``.
         scale_contingency_table : bool
             Whether contingency table should be scaled before chi^2.

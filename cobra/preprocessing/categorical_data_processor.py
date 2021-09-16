@@ -37,9 +37,12 @@ class CategoricalDataProcessor(BaseEstimator):
     Attributes
     ----------
     category_size_threshold : int
-        Minimal size of a category to keep it as a separate category.
+        All categories with a size (corrected for incidence if applicable)
+        in the training set above this threshold are kept as a separate category,
+        if statistical significance w.r.t. target is detected. Remaining
+        categories are converted into ``Other`` (or else, cf. regroup_name).
     forced_categories : dict
-        Map to prevent certain categories from being group into ``Other``
+        Map to prevent certain categories from being grouped into ``Other``
         for each column - dict of the form ``{col:[forced vars]}``.
     keep_missing : bool
         Whether or not to keep missing as a separate category.
@@ -177,7 +180,8 @@ class CategoricalDataProcessor(BaseEstimator):
     def _fit_column(self, data: pd.DataFrame, column_name: str,
                     target_column) -> set:
         """Compute which categories to regroup into "Other"
-        for a particular column
+        for a particular column, and return those that need
+        to be kept as-is.
 
         Parameters
         ----------
@@ -372,7 +376,7 @@ class CategoricalDataProcessor(BaseEstimator):
         incidence : float
             Global train incidence.
         category_size_threshold : int
-            Minimal size of a category to keep it as a separate category.
+            Minimal size of a category to keep as a separate category.
 
         Returns
         -------
