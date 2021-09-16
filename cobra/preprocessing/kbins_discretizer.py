@@ -1,17 +1,15 @@
 """
 This module is a rework of
 https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py
-However, it is purely written in pandas instead of numpy because it is more
-intuitive
+However, it is purely written in pandas instead of numpy because it is more intuitive.
 
-Also, some custom modifications were included to allign it with our
-Python Predictions methodology
+Also includes some custom modifications to align it with the Python Predictions methodology.
 
 Authors:
-
 - Geert Verstraeten (methodology)
 - Matthias Roels (implementation)
 """
+
 # standard lib imports
 from copy import deepcopy
 from typing import List
@@ -31,7 +29,7 @@ log = logging.getLogger(__name__)
 
 class KBinsDiscretizer(BaseEstimator):
     """Bin continuous data into intervals of predefined size. It provides a
-    way to partition continuous data into discrete values, i.e. tranform
+    way to partition continuous data into discrete values, i.e. transform
     continuous data into nominal data. This can make a linear model more
     expressive as it introduces nonlinearity to the model, while maintaining
     the interpretability of the model afterwards.
@@ -39,15 +37,15 @@ class KBinsDiscretizer(BaseEstimator):
     Attributes
     ----------
     auto_adapt_bins : bool
-        reduces the number of bins (starting from n_bins) as a function of
-        the number of missings
+        Reduces the number of bins (starting from n_bins) as a function of
+        the number of missings.
     change_endpoint_format : bool
         Whether or not to change the format of the lower and upper bins into
         ``<= x`` and ``> y`` resp.
     closed : str
         Whether to close the bins (intervals) from the left or right
     label_format : str
-        format string to display the bin labels
+        Format string to display the bin labels
         e.g. ``min - max``, ``(min, max]``, ...
     n_bins : int
         Number of bins to produce. Raises ValueError if ``n_bins < 2``.
@@ -61,7 +59,7 @@ class KBinsDiscretizer(BaseEstimator):
         ``146 -> 100``, ...
     strategy : str
         Binning strategy. Currently only `uniform` and `quantile`
-        e.g. equifrequency is supported
+        e.g. equifrequency is supported.
     """
 
     valid_strategies = ("uniform", "quantile")
@@ -369,15 +367,15 @@ class KBinsDiscretizer(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            Data to be discretized
+            Data to be discretized.
         column_name : str
-             name of the column to discretize
+            Name of the column to discretize.
         n_bins : int
             Number of bins to produce.
         col_min : float
-            min value of the variable
+            Min value of the variable.
         col_max : float
-            max value of the variable
+            Max value of the variable.
 
         Returns
         -------
@@ -392,30 +390,6 @@ class KBinsDiscretizer(BaseEstimator):
                                        interpolation='linear'))
         elif self.strategy == "uniform":
             bin_edges = list(np.linspace(col_min, col_max, n_bins + 1))
-
-        # elif self.strategy == "kmeans":
-
-        #     if data[column_name].isnull().sum() > 0:
-        #         raise ValueError("{}: kmeans strategy cannot handle NULL "
-        #                          "values in the data."
-        #                          .format(KBinsDiscretizer.__name__))
-
-        #     # Deterministic initialization with uniform spacing
-        #     uniform_edges = np.linspace(col_min, col_max, n_bins + 1)
-        #     init = (uniform_edges[1:] + uniform_edges[:-1])[:, None] * 0.5
-
-        #     # 1D k-means
-        #     kmeans = KMeans(n_clusters=n_bins, init=init, n_init=1)
-        #     centers = (kmeans.fit(data[column_name][:, None])
-        #                      .cluster_centers_[:, 0])
-
-        #     # Make sure to sort centers as they may be unsorted,
-        #     # even with sorted init!
-        #     centers.sort()
-
-        #     # compute bin_edges from centers
-        #     bin_edges = (centers[1:] + centers[:-1]) * 0.5
-        #     bin_edges = np.r_[col_min, bin_edges, col_max]
 
         # nans lead to unexpected behavior during sorting,
         # by replacing with inf we ensure these stay at the
@@ -436,7 +410,7 @@ class KBinsDiscretizer(BaseEstimator):
 
     def _compute_minimal_precision_of_bin_edges(self, bin_edges: list) -> int:
         """Compute the minimal precision of a list of bin_edges so that we end
-        up with a strictly ascending sequence of numbers.
+        up with a strictly ascending sequence of different numbers even when rounded.
         The starting_precision attribute will be used as the initial precision.
         In case of a negative starting_precision, the bin edges will be rounded
         to the nearest 10, 100, ... (e.g. 5.55 -> 10, 246 -> 200, ...)
@@ -484,7 +458,7 @@ class KBinsDiscretizer(BaseEstimator):
         # this can be a negative number, which then
         # rounds numbers to the nearest 10, 100, ...
         precision = self._compute_minimal_precision_of_bin_edges(bin_edges)
-
+        
         bins = []
         for a, b in zip(bin_edges, bin_edges[1:]):
             fmt_a = round(a, precision)
@@ -506,7 +480,7 @@ class KBinsDiscretizer(BaseEstimator):
         Parameters
         ----------
         intervals : List[tuple]
-            a list of tuples describing the intervals
+            A list of tuples describing the intervals.
         closed : str, optional
             Whether the intervals should be closed on the left-side,
             right-side, both or neither.

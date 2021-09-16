@@ -9,7 +9,6 @@ categorical data preprocessing. There are three steps involved here:
   optimization)
 
 Authors:
-
 - Geert Verstraeten (methodology)
 - Jan Benisek (implementation)
 - Matthias Roels (implementation)
@@ -32,8 +31,7 @@ log = logging.getLogger(__name__)
 
 
 class CategoricalDataProcessor(BaseEstimator):
-    """
-    Regroups the categories of categorical variables based on significance
+    """Regroups the categories of categorical variables based on significance
     with target variable.
 
     Attributes
@@ -70,7 +68,7 @@ class CategoricalDataProcessor(BaseEstimator):
                  p_value_threshold: float = 0.001,
                  scale_contingency_table: bool = True,
                  forced_categories: dict = {}):
-
+        
         if model_type not in ["classification", "regression"]:
             raise ValueError("An unexpected model_type was provided. A valid model_type is either 'classification' or 'regression'.")
 

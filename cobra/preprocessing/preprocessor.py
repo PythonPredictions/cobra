@@ -1,15 +1,14 @@
 """
-This module is a rework of the old cobra data_preparation.py. Here we will make
-use of the classes for discretization, preprocessing of categorical variables
-and incidence replacement. All of which will be employed to create a
-preprocessing pipeline, which can be stored as a JSON file so that it can
-easily be re-used for scoring.
+Here we make use of the classes for discretization, preprocessing of
+categorical variables, and incidence replacement. All of which will be
+employed to create a preprocessing pipeline, which can be stored as a
+JSON file so that it can easily be re-used for scoring.
 
 Authors:
-
 - Geert Verstraeten (methodology)
 - Matthias Roels (implementation)
 """
+
 # std lib imports
 import inspect
 from datetime import datetime
@@ -20,19 +19,17 @@ from random import shuffle
 
 # third party imports
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 # custom imports
+from cobra.preprocessing import CategoricalDataProcessor
 from cobra.preprocessing import KBinsDiscretizer
 from cobra.preprocessing import TargetEncoder
-from cobra.preprocessing import CategoricalDataProcessor
 
 log = logging.getLogger(__name__)
 
 
 class PreProcessor(BaseEstimator):
-
     """This class implements a so-called facade pattern to define a
     higher-level interface to work with the CategoricalDataProcessor,
     KBinsDiscretizer and TargetEncoder classes, so that their fit and transform
@@ -153,23 +150,21 @@ class PreProcessor(BaseEstimator):
         PreProcessor
             class encapsulating CategoricalDataProcessor,
             KBinsDiscretizer, and TargetEncoder instances
-        """
-        categorical_data_processor = CategoricalDataProcessor(
-            model_type,
-            regroup,
-            regroup_name,
-            keep_missing,
-            category_size_threshold,
-            p_value_threshold,
-            scale_contingency_table,
-            forced_categories)
-
+        """       
+        categorical_data_processor = CategoricalDataProcessor(model_type,
+                                                              regroup,
+                                                              regroup_name, keep_missing,
+                                                              category_size_threshold,
+                                                              p_value_threshold,
+                                                              scale_contingency_table,
+                                                              forced_categories)
+        
         discretizer = KBinsDiscretizer(n_bins, strategy, closed,
                                        auto_adapt_bins,
                                        starting_precision,
                                        label_format,
                                        change_endpoint_format)
-
+                
         target_encoder = TargetEncoder(weight, imputation_strategy)
 
         return cls(categorical_data_processor, discretizer, target_encoder)
@@ -355,7 +350,7 @@ class PreProcessor(BaseEstimator):
     def train_selection_validation_split(data: pd.DataFrame,
                                          train_prop: float = 0.6,
                                          selection_prop: float = 0.2,
-                                         validation_prop: float = 0.2)-> pd.DataFrame:
+                                         validation_prop: float = 0.2) -> pd.DataFrame:
         """Adds `split` column with train/selection/validation values
         to the dataset.
 
