@@ -387,7 +387,7 @@ class KBinsDiscretizer(BaseEstimator):
         if self.strategy == "quantile":
             bin_edges = list(data[column_name]
                              .quantile(np.linspace(0, 1, n_bins + 1),
-                                       interpolation='linear'))
+                                       interpolation="linear"))
         elif self.strategy == "uniform":
             bin_edges = list(np.linspace(col_min, col_max, n_bins + 1))
 
@@ -404,6 +404,13 @@ class KBinsDiscretizer(BaseEstimator):
             log.warning(f"Column {column_name} "
                         "has NaNs present in bin definitions")
 
+        
+        # Make absolutely sure bin edges are ordered, 
+        # in very rare situations this wasn't the case
+        # due to rounding in quantile calculation (e.g. 
+        # distributions with strong mass for same value)
+        bin_edges = sorted(bin_edges)
+        
         # Make sure the bin_edges are unique
         # and order remains the same
         return list(dict.fromkeys(bin_edges))
