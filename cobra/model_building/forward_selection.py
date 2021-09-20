@@ -17,12 +17,16 @@ class ForwardFeatureSelection:
     ----------
     model_type : str
         Model type (``classification`` or ``regression``).
+    MLModel: Cobra model
+        LogisticRegressionModel or LinearRegressionModel.
     max_predictors : int
         Maximum number of predictors allowed in any model. This corresponds
         more or less with the maximum number of steps in the forward feature
         selection.
     pos_only : bool
         Whether or not the model coefficients should all be positive.
+    self._fitted_models : list
+        List of fitted models.
     """
 
     def __init__(self,
@@ -30,6 +34,7 @@ class ForwardFeatureSelection:
                  max_predictors: int = 50,
                  pos_only: bool = True):
 
+        self.model_type = model_type
         if model_type == "classification":
             self.MLModel = LogisticRegressionModel
         elif model_type == "regression":
@@ -91,6 +96,7 @@ class ForwardFeatureSelection:
         """
         results = []
         predictor_set = set([])
+
         for model in self._fitted_models:
             last_added_predictor = (set(model.predictors)
                                     .difference(predictor_set))
@@ -114,7 +120,10 @@ class ForwardFeatureSelection:
 
             predictor_set = predictor_set.union(set(model.predictors))
 
-        return pd.DataFrame(results)
+        df = pd.DataFrame(results)
+        df["model_type"] = self.model_type
+
+        return df
 
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
             predictors: list, forced_predictors: list = [],
@@ -249,9 +258,9 @@ class ForwardFeatureSelection:
         # placeholders
         best_model = None
         if self.MLModel == LogisticRegressionModel:
-            best_performance = -1  # AUC metric is used.
+            best_performance = -1  # AUC metric is used
         elif self.MLModel == LinearRegressionModel:
-            best_performance = float("inf")  # RMSE metric is used.
+            best_performance = float("inf")  # RMSE metric is used
         else:
             raise ValueError("No metric comparison method has been configured "
                              "for the given model_type specified as "

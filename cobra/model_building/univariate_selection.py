@@ -9,6 +9,7 @@ Authors:
 import pandas as pd
 from sklearn.metrics import roc_auc_score, mean_squared_error
 from numpy import sqrt
+
 import cobra.utils as utils
 
 
@@ -133,7 +134,6 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
         df_out = df_rmse.sort_values(by="RMSE selection", ascending=True).reset_index(drop=True)  # lower is better
 
     return df_out
-
 
 def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
     """Wrapper function to extract a list of predictors from df_auc.

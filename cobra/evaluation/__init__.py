@@ -8,8 +8,8 @@ from .plotting_utils import plot_variable_importance
 from .plotting_utils import plot_univariate_predictor_quality
 from .plotting_utils import plot_correlation_matrix
 
-from .evaluator import Evaluator
-
+# from .evaluator import Evaluator
+from .evaluator import ClassificationEvaluator, RegressionEvaluator
 
 __all__ = ["generate_pig_tables",
            "compute_pig_table",
@@ -18,4 +18,5 @@ __all__ = ["generate_pig_tables",
            "plot_variable_importance",
            "plot_univariate_predictor_quality",
            "plot_correlation_matrix",
-           "Evaluator"]
+           "ClassificationEvaluator",
+           "RegressionEvaluator"]
