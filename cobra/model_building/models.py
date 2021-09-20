@@ -355,7 +355,7 @@ class LinearRegressionModel:
         """
         # We select predictor columns (self.predictors) here to
         # ensure we have the proper predictors and the proper order!!!
-        return self.linear.predict(X[self.predictors])[:, 1]
+        return self.linear.predict(X[self.predictors])
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
                  split: str=None) -> float:
@@ -440,4 +440,3 @@ class LinearRegressionModel:
             return False
 
         return True
-
