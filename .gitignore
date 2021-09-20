@@ -1,4 +1,5 @@
-# Ignored directories in root folder
+#Ignored directories in root folder
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -47,7 +48,6 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
-junit/
 
 # Translations
 *.mo
@@ -106,7 +106,12 @@ ENV/
 # vscode settings
 .vscode/
 
-# Other ignored files
+# JetBrains IDEs (PyCharm etc.)
+.idea/
+
+# Downloaded datasets (see cobra.datasets module):
+datasets/
+
+# Other ignore files
 *.pptx
 *.ppt
-.idea/

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from cobra.preprocessing.preprocessor import PreProcessor
+from cobra.datasets import make_large_house_prices_dataset
 
 
 @contextmanager
@@ -148,3 +149,71 @@ class TestPreProcessor:
                                                      discrete_vars)
 
             assert actual == expected
+
+    @pytest.mark.skip()  # Only meant to be run manually.
+    def test_preprocessor_performance_on_large_dataset(self,
+                                                       data_folder='../../datasets/argentina-venta-de-propiedades'):
+        """
+        Download a large housing dataset and run the PreProcessor on it,
+        to check and debug its performance.
+
+        This test is meant to be run manually only,
+        since it would slow down the automatic tests if included
+        *and* there are no real assertions to be made here - it's meant more
+        as a thing to run manually and go over (or debug) the code.
+
+        To run:
+        - disable the skip marking of this test and debug it
+        - call this test from a python console (this will print progress
+        messages, the first option won't):
+        from tests.preprocessing.test_preprocessor import TestPreProcessor
+        tpp = TestPreProcessor()
+        tpp.test_preprocessor_performance_on_large_dataset(data_folder='./datasets/argentina-venta-de-propiedades')
+        """
+        print("Creating basetable...")
+        basetable = make_large_house_prices_dataset(
+            data_folder,
+            ask_download_confirmation=False)  # input() call doesn't work in pytest.
+
+        # Preparing the preprocessor to do the performance testing:
+        preprocessor = PreProcessor.from_params()
+        basetable = preprocessor.train_selection_validation_split(basetable,
+                                                                  train_prop=0.7,
+                                                                  selection_prop=0.15,
+                                                                  validation_prop=0.15)
+
+        # Setting which vars are discrete and which are continuous:
+        derived_datetime_features = [col for col in basetable.columns
+                                     if col.startswith("start_date")
+                                     or col.startswith("end_date")
+                                     or col.startswith("created_on")]
+        hierarchical_location_features = ["l1", "l2", "l3", "l4", "l5", "l6"]
+        rooms_features = ["rooms", "bedrooms", "bathrooms"]
+        discrete_vars = ["ad_type"] + \
+                        derived_datetime_features + \
+                        hierarchical_location_features + \
+                        rooms_features + \
+                        ["property_type", "operation_type", "country"]
+        # Note: "title" and "description" are not included here, they would help
+        # create a better model, but our primary interest here is testing
+        # just the preprocessing performance instead...
+
+        random_feature_cols = [col for col in basetable.columns
+                               if col.startswith("random_feature")]
+        continuous_vars = ["lat", "lon", "surface_total", "surface_covered"] + \
+                          random_feature_cols
+
+        # Setting the target column:
+        target_clf = "price_EUR_>300K"
+        target_regr = "price_EUR"
+
+        print("Fitting the preprocessor...")
+        preprocessor.fit(basetable[basetable["split"] == "train"],
+                         continuous_vars=continuous_vars,
+                         discrete_vars=discrete_vars,
+                         target_column_name=target_clf)
+
+        print("Transforming the preprocessor...")
+        basetable = preprocessor.transform(basetable,
+                                           continuous_vars=continuous_vars,
+                                           discrete_vars=discrete_vars)
