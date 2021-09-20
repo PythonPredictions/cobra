@@ -86,8 +86,9 @@ Documentation
 
 **Linear Regression**
 
-- HTML documentation of the individual modules for linear regression
+- HTML documentation of the individal modules for linear regression
 - A step-by-step tutorial
+
 Outreach
 -------------
 
