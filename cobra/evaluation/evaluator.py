@@ -133,7 +133,7 @@ class ClassificationEvaluator():
             "recall": recall_score(y_true, y_pred_b),
             "F1": f1_score(y_true, y_pred_b, average=None)[1],
             "matthews_corrcoef": matthews_corrcoef(y_true, y_pred_b),
-            "lift at  {}".format(lift_at): np.round(Evaluator
+            "lift at  {}".format(lift_at): np.round(ClassificationEvaluator
                                                     ._compute_lift(
                                                         y_true=y_true,
                                                         y_pred=y_pred,
