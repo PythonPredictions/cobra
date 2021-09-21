@@ -4,6 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from numpy import sqrt
+from scipy.stats import norm
+
 # classification
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -21,32 +24,31 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
 
-
-class classification_evaluator ():
+class ClassificationEvaluator():
 
     """Summary
 
     Attributes
     ----------
     confusion_matrix : np.ndarray
-        Confusion matrix computed for a particular cut-off
+        Confusion matrix computed for a particular cut-off.
     cumulative_gains : tuple
-        data for plotting cumulative gains curve
+        Data for plotting cumulative gains curve.
     evaluation_metrics : dict
-        map containing various scalar evaluation metics such as AUC, ...
+        Map containing various scalar evaluation metrics (precision, recall, accuracy, AUC, F1, etc.)
     lift_at : float
-        parameter to determine at which top level percentage the lift of the
-        model should be computed
+        Parameter to determine at which top level percentage the lift of the
+        model should be computed.
     lift_curve : tuple
-        data for plotting lift curve(s)
+        Data for plotting lift curve(s).
     probability_cutoff : float
-        probability cut off to convert probability scores to a binary score
+        Probability cut off to convert probability scores to a binary score.
     roc_curve : dict
-        map containing true-positive-rate, false-positive-rate at various
-        thresholds (also incl.)
+        Map containing true-positive-rate, false-positive-rate at various
+        thresholds (also incl.).
     n_bins : int, optional
-        defines the number of bins used to calculate the lift curve for
-        (by default 10, so deciles)
+        Defines the number of bins used to calculate the lift curve for
+        (by default 10, so deciles).
     """
 
     def __init__(self, probability_cutoff: float=None,
@@ -71,15 +73,15 @@ class classification_evaluator ():
         Parameters
         ----------
         y_true : np.ndarray
-            true labels
+            True labels.
         y_pred : np.ndarray
-            model scores (as probability)
+            Model scores (as probability).
         """
         fpr, tpr, thresholds = roc_curve(y_true=y_true, y_score=y_pred)
 
         # if probability_cutoff is not set, take the optimal cut off
         if not self.probability_cutoff:
-            self.probability_cutoff = (Evaluator.
+            self.probability_cutoff = (ClassificationEvaluator.
                                        _compute_optimal_cutoff(fpr, tpr,
                                                                thresholds))
 
@@ -88,7 +90,7 @@ class classification_evaluator ():
                              for pred in y_pred])
 
         # Compute the various evaluation metrics
-        self.scalar_metrics = Evaluator.compute_scalar_metrics(
+        self.scalar_metrics = ClassificationEvaluator.compute_scalar_metrics(
             y_true,
             y_pred,
             y_pred_b,
@@ -97,9 +99,8 @@ class classification_evaluator ():
 
         self.roc_curve = {"fpr": fpr, "tpr": tpr, "thresholds": thresholds}
         self.confusion_matrix = confusion_matrix(y_true, y_pred_b)
-        self.lift_curve = Evaluator._compute_lift_per_bin(y_true, y_pred, self.n_bins)
-        self.cumulative_gains = Evaluator._compute_cumulative_gains(y_true,
-                                                                    y_pred)
+        self.lift_curve = ClassificationEvaluator._compute_lift_per_bin(y_true, y_pred, self.n_bins)
+        self.cumulative_gains = ClassificationEvaluator._compute_cumulative_gains(y_true, y_pred)
 
     @staticmethod
     def compute_scalar_metrics(y_true: np.ndarray,
@@ -112,13 +113,13 @@ class classification_evaluator ():
         Parameters
         ----------
         y_true : np.ndarray
-            True binary target data labels
+            True binary target data labels.
         y_pred : np.ndarray
-            Target scores of the model
+            Target scores of the model.
         y_pred_b : np.ndarray
-            Predicted target data labels (binary)
+            Predicted target data labels (binary).
         lift_at : float
-            At what top level percentage the lift should be computed
+            At what top level percentage the lift should be computed.
 
         Returns
         -------
@@ -145,9 +146,9 @@ class classification_evaluator ():
         Parameters
         ----------
         path : str, optional
-            path to store the figure
+            Path to store the figure.
         dim : tuple, optional
-            tuple with width and lentgh of the plot
+            Tuple with width and length of the plot.
         """
 
         if self.roc_curve is None:
@@ -186,11 +187,11 @@ class classification_evaluator ():
         Parameters
         ----------
         path : str, optional
-            path to store the figure
+            Path to store the figure.
         dim : tuple, optional
-            tuple with width and lentgh of the plot
+            Tuple with width and length of the plot.
         labels : list, optional
-            Optional list of labels, default "0" and "1"
+            Optional list of labels, default "0" and "1".
         """
 
         if self.confusion_matrix is None:
@@ -217,9 +218,9 @@ class classification_evaluator ():
         Parameters
         ----------
         path : str, optional
-            path to store the figure
+            Path to store the figure.
         dim : tuple, optional
-            tuple with width and lentgh of the plot
+            Tuple with width and length of the plot.
         """
 
         if self.lift_curve is None:
@@ -245,16 +246,16 @@ class classification_evaluator ():
             plt.axhline(y=inc_rate*100, color="darkorange", linestyle="--",
                         xmin=0.05, xmax=0.95, linewidth=3, label="Incidence")
 
-            #Legend
+            # Legend
             ax.legend(loc="upper right")
 
-            ##Set Axis - make them pretty
+            # Set Axis - make them pretty
             sns.despine(ax=ax, right=True, left=True)
 
-            #Remove white lines from the second axis
+            # Remove white lines from the second axis
             ax.grid(False)
 
-            ##Description
+            # Description
             ax.set_title("Cumulative response", fontsize=20)
 
             if path is not None:
@@ -268,9 +269,9 @@ class classification_evaluator ():
         Parameters
         ----------
         path : str, optional
-            path to store the figure
+            Path to store the figure.
         dim : tuple, optional
-            tuple with width and lentgh of the plot
+            Tuple with width and length of the plot.
         """
 
         if self.lift_curve is None:
@@ -294,16 +295,16 @@ class classification_evaluator ():
             plt.axhline(y=1, color="darkorange", linestyle="--",
                         xmin=0.05, xmax=0.95, linewidth=3, label="Baseline")
 
-            #Legend
+            # Legend
             ax.legend(loc="upper right")
 
-            ##Set Axis - make them pretty
+            # Set Axis - make them pretty
             sns.despine(ax=ax, right=True, left=True)
 
-            #Remove white lines from the second axis
+            # Remove white lines from the second axis
             ax.grid(False)
 
-            ##Description
+            # Description
             ax.set_title("Cumulative Lift", fontsize=20)
 
             if path is not None:
@@ -317,9 +318,9 @@ class classification_evaluator ():
         Parameters
         ----------
         path : str, optional
-            path to store the figure
+            Path to store the figure.
         dim : tuple, optional
-            tuple with width and lentgh of the plot
+            Tuple with width and length of the plot.
         """
 
         with plt.style.context("seaborn-whitegrid"):
@@ -333,15 +334,15 @@ class classification_evaluator ():
 
             ax.set_title("Cumulative Gains", fontsize=20)
 
-            #Format axes
+            # Format axes
             ax.set_xlim([0, 100])
             ax.set_ylim([0, 105])
-            #Format ticks
+            # Format ticks
             ax.set_yticklabels(["{:3.0f}%".format(x)
                                 for x in ax.get_yticks()])
             ax.set_xticklabels(["{:3.0f}%".format(x)
                                 for x in ax.get_xticks()])
-            #Legend
+            # Legend
             ax.legend(loc="lower right")
 
             if path is not None:
@@ -358,37 +359,37 @@ class classification_evaluator ():
         Parameters
         ----------
         y_true : np.ndarray
-            True binary target data labels
+            True binary target data labels.
         y_pred : np.ndarray
-            Target scores of the model
+            Target scores of the model.
 
         Returns
         -------
         float
-            Optimal cut off probability for the model
+            optimal cut off probability for the model
         """
-        return Evaluator._compute_optimal_cutoff(roc_curve(y_true=y_true,
-                                                           y_score=y_pred))
+        return ClassificationEvaluator._compute_optimal_cutoff(roc_curve(y_true=y_true,
+                                                                         y_score=y_pred))
 
     @staticmethod
     def _compute_optimal_cutoff(fpr: np.ndarray, tpr: np.ndarray,
                                 thresholds: np.ndarray) -> float:
-        """Find the optimal probability cut off point for a
+        """Find the optimal probability cut-off point for a
         classification model
 
         Parameters
         ----------
         fpr : np.ndarray
-            false positive rate for various thresholds
+            False positive rate for various thresholds.
         tpr : np.ndarray
-            true positive rate for various thresholds
+            True positive rate for various thresholds.
         thresholds : np.ndarray
-            list of thresholds for which fpr and tpr were computed
+            List of thresholds for which fpr and tpr were computed.
 
         Returns
         -------
         float
-            Description
+            optimal probability cut-off point
         """
 
         # The optimal cut off would be where tpr is high and fpr is low, hence
@@ -404,7 +405,7 @@ class classification_evaluator ():
     def _compute_cumulative_gains(y_true: np.ndarray,
                                   y_pred: np.ndarray) -> tuple:
         """Compute cumulative gains of the model, returns percentages and
-        gains cummulative gains curves
+        gains cumulative gains curves
 
         Code from (https://github.com/reiinakano/scikit-plot/blob/
                    2dd3e6a76df77edcbd724c4db25575f70abb57cb/
@@ -413,9 +414,9 @@ class classification_evaluator ():
         Parameters
         ----------
         y_true : np.ndarray
-            True binary target data labels
+            True binary target data labels.
         y_pred : np.ndarray
-            Target scores of the model
+            Target scores of the model.
 
         Returns
         -------
@@ -450,12 +451,12 @@ class classification_evaluator ():
         Parameters
         ----------
         y_true : np.ndarray
-            True binary target data labels
+            True binary target data labels.
         y_pred : np.ndarray
-            Target scores of the model
+            Target scores of the model.
         n_bins : int, optional
-            defines the number of bins used to calculate the lift curve for
-            (by default 10, so deciles)
+            Defines the number of bins used to calculate the lift curve for
+            (by default 10, so deciles).
 
         Returns
         -------
@@ -463,9 +464,9 @@ class classification_evaluator ():
             x-labels, lifts per decile and target incidence
         """
 
-        lifts = [Evaluator._compute_lift(y_true=y_true,
-                                         y_pred=y_pred,
-                                         lift_at=perc_lift)
+        lifts = [ClassificationEvaluator._compute_lift(y_true=y_true,
+                                                       y_pred=y_pred,
+                                                       lift_at=perc_lift)
                  for perc_lift in np.linspace(1/n_bins, 1, num=n_bins, endpoint=True)]
 
         x_labels = [len(lifts)-x for x in np.arange(0, len(lifts), 1)]
@@ -483,11 +484,11 @@ class classification_evaluator ():
         Parameters
         ----------
         y_true : np.ndarray
-            True binary target data labels
+            True binary target data labels.
         y_pred : np.ndarray
-            Target scores of the model
+            Target scores of the model.
         lift_at : float, optional
-            At what top level percentage the lift should be computed
+            At what top level percentage the lift should be computed.
 
         Returns
         -------
@@ -495,28 +496,27 @@ class classification_evaluator ():
             lift of the model
         """
 
-        #Make sure it is numpy array
+        # Make sure it is numpy array
         y_true_ = np.array(y_true)
         y_pred_ = np.array(y_pred)
 
-        #Make sure it has correct shape
+        # Make sure it has correct shape
         y_true_ = y_true_.reshape(len(y_true_), 1)
         y_pred_ = y_pred_.reshape(len(y_pred_), 1)
 
-        #Merge data together
+        # Merge data together
         y_data = np.hstack([y_true_, y_pred_])
 
-        #Calculate necessary variables
+        # Calculate necessary variables
         nrows = len(y_data)
         stop = int(np.floor(nrows*lift_at))
         avg_incidence = np.einsum("ij->j", y_true_)/float(len(y_true_))
 
-        #Sort and filter data
+        # Sort and filter data
         data_sorted = (y_data[y_data[:, 1].argsort()[::-1]][:stop, 0]
                        .reshape(stop, 1))
 
-        #Calculate lift (einsum is very fast way of summing,
-        # needs specific shape)
+        # Calculate lift (einsum is a very fast way of summing, but needs specific shape)
         inc_in_top_n = np.einsum("ij->j", data_sorted)/float(len(data_sorted))
 
         lift = np.round(inc_in_top_n/avg_incidence, 2)[0]
@@ -524,18 +524,173 @@ class classification_evaluator ():
         return lift
 
 
-class regression_evaluator ():
+
+class RegressionEvaluator():
+
     """Summary
 
-       Attributes
-       ----------
-        r2_score: float
-            computes the coefficient of determination, usually denoted as R²
-        Mean Absolute error: float
-            a risk metric corresponding to the expected value of the absolute error loss
-        Mean Squared Error: float
-            a risk metric corresponding to the expected value of the squared (quadratic) error
-        ...
+    Attributes
+    ----------
+    evaluation_metrics : dict
+        Map containing various scalar evaluation metrics (R-squared, MAE, MSE, RMSE)
+    """
 
+    def __init__(self):
 
-       """
+        # Placeholder to store fitted output
+        self.scalar_metrics = None
+        self.qq = None
+
+    def fit(self, y_true: np.ndarray, y_pred: np.ndarray):
+        """Fit the evaluator by computing the relevant evaluation metrics on
+        the inputs
+
+        Parameters
+        ----------
+        y_true : np.ndarray
+            True labels.
+        y_pred : np.ndarray
+            Model scores.
+        """
+
+        # Compute the various evaluation metrics
+        self.scalar_metrics = RegressionEvaluator.compute_scalar_metrics(y_true, y_pred)
+
+        # Compute qq info
+        self.qq = RegressionEvaluator.compute_qq_residuals(y_true, y_pred)
+
+    @staticmethod
+    def compute_scalar_metrics(y_true: np.ndarray,
+                               y_pred: np.ndarray) -> pd.Series:
+        """Convenient function to compute various scalar performance measures
+        and return them in a pd.Series
+
+        Parameters
+        ----------
+        y_true : np.ndarray
+            True binary target data labels.
+        y_pred : np.ndarray
+            Target scores of the model.
+
+        Returns
+        -------
+        pd.Series
+            contains various performance measures of the model, being:
+                R-squared (coefficient of determination, usually denoted as R-squared)
+                Mean absolute error (expected value of the absolute error loss)
+                Mean squared error (expected value of the quadratic error)
+                Root mean squared error (sqrt of expected value of the quadratic error)
+        """
+        return pd.Series({
+            "R2": r2_score(y_true, y_pred),
+            "MAE": mean_absolute_error(y_true, y_pred),
+            "MSE": mean_squared_error(y_true, y_pred),
+            "RMSE": sqrt(mean_squared_error(y_true, y_pred))
+        })
+
+    @staticmethod
+    def compute_qq_residuals(y_true: np.ndarray,
+                             y_pred: np.ndarray) -> pd.Series:
+        """Convenient function to compute various scalar performance measures
+        and return them in a pd.Series
+
+        Parameters
+        ----------
+        y_true : np.ndarray
+            True binary target data labels.
+        y_pred : np.ndarray
+            Target scores of the model.
+
+        Returns
+        -------
+        pd.Series
+            ...
+        """
+        ## also possible directly via statsmodels.api.qqplot()
+
+        n = len(y_true)
+
+        df = pd.DataFrame({"res": sorted((y_true - y_pred))})  # ascending order
+        m, s = df["res"].mean(), df["res"].std()
+
+        df["z_res"] = df["res"].apply(lambda x: (x-m)/s)
+        df["rank"] = df.index+1
+        df["percentile"] = df["rank"].apply(lambda x: x/n)
+        df["q_theoretical"] = norm.ppf(df["percentile"])
+
+        return pd.Series({
+            "quantiles": df["q_theoretical"].values,
+            "residuals": df["z_res"].values,
+        })
+
+    def plot_predictions(self, y_true: np.ndarray, y_pred: np.ndarray,
+                         path: str=None, dim: tuple=(12, 8)):
+        """Plot predictions from the model against actual values
+
+        Parameters
+        ----------
+        y_true : np.ndarray
+            True binary target data labels.
+        y_pred : np.ndarray
+            Target scores of the model.
+        path : str, optional
+            Path to store the figure.
+        dim : tuple, optional
+            Tuple with width and length of the plot.
+        """
+
+        with plt.style.context("seaborn-whitegrid"):
+
+            fig, ax = plt.subplots(figsize=dim)
+
+            x = np.arange(1, len(y_true)+1)
+
+            ax.plot(x, y_true, "o", label="actuals", color="darkorange", linewidth=3,)
+            ax.plot(x, y_pred, "r--.", label="predictions", color="cornflowerblue", linewidth=3)
+
+            ax.set_xlabel("Index", fontsize=15)
+            ax.set_ylabel("Value", fontsize=15)
+            ax.legend(loc="best")
+            ax.set_title("Prediction Plot", fontsize=20)
+
+            if path:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+        plt.show()
+
+    def plot_qq(self, path: str=None, dim: tuple=(12, 8)):
+        """Display a Q-Q plot from the standardized prediction residuals
+
+        Parameters
+        ----------
+        path : str, optional
+            Path to store the figure.
+        dim : tuple, optional
+            Tuple with width and length of the plot.
+        """
+
+        if self.qq is None:
+            msg = ("This {} instance is not fitted yet. Call 'fit' with "
+                   "appropriate arguments before using this method.")
+
+            raise NotFittedError(msg.format(self.__class__.__name__))
+
+        with plt.style.context("seaborn-whitegrid"):
+
+            fig, ax = plt.subplots(figsize=dim)
+
+            x = self.qq["quantiles"]
+            y = self.qq["residuals"]
+
+            ax.plot(x, y, "o--.", color="cornflowerblue", linewidth=3)
+            ax.plot(x, x, "r--.", color="cornflowerblue", linewidth=3)
+
+            ax.set_xlabel("Theoretical quantiles", fontsize=15)
+            ax.set_ylabel("Standardized residuals", fontsize=15)
+            ax.legend(loc="best")
+            ax.set_title("Q-Q Plot", fontsize=20)
+
+            if path:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+        plt.show()

@@ -23,7 +23,7 @@ setup(
         "numpy>=1.19.4",
         "pandas>=1.1.5",
         "scipy>=1.5.4",
-        "scikit-learn>=0.23.1",
+        "scikit-learn>=0.24.1",
         "matplotlib>=3.3.3",
         "seaborn>=0.11.0",
         "tqdm>=4.59.0"]

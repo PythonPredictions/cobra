@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from cobra.evaluation import plot_incidence
-from cobra.evaluation import Evaluator
+from cobra.evaluation import ClassificationEvaluator, RegressionEvaluator
 
 
 def mock_data():
@@ -83,8 +83,8 @@ class TestEvaluation:
 
         n_bins_out = []
         for n_bins in n_bins_test:
-            e = Evaluator(n_bins = n_bins)
-            out = Evaluator._compute_lift_per_bin(y_true, y_pred, e.n_bins)
+            e = ClassificationEvaluator(n_bins = n_bins)
+            out = ClassificationEvaluator._compute_lift_per_bin(y_true, y_pred, e.n_bins)
             lifts = out[1]
             n_bins_out.append(len(lifts))
 

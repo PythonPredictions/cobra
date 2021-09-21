@@ -9,7 +9,6 @@ categorical data preprocessing. There are three steps involved here:
   optimization)
 
 Authors:
-
 - Geert Verstraeten (methodology)
 - Jan Benisek (implementation)
 - Matthias Roels (implementation)
@@ -32,16 +31,18 @@ log = logging.getLogger(__name__)
 
 
 class CategoricalDataProcessor(BaseEstimator):
-    """
-    Regroups the categories of categorical variables based on significance
+    """Regroups the categories of categorical variables based on significance
     with target variable.
 
     Attributes
     ----------
     category_size_threshold : int
-        Minimal size of a category to keep it as a separate category.
+        All categories with a size (corrected for incidence if applicable)
+        in the training set above this threshold are kept as a separate category,
+        if statistical significance w.r.t. target is detected. Remaining
+        categories are converted into ``Other`` (or else, cf. regroup_name).
     forced_categories : dict
-        Map to prevent certain categories from being group into ``Other``
+        Map to prevent certain categories from being grouped into ``Other``
         for each column - dict of the form ``{col:[forced vars]}``.
     keep_missing : bool
         Whether or not to keep missing as a separate category.
@@ -70,7 +71,7 @@ class CategoricalDataProcessor(BaseEstimator):
                  p_value_threshold: float = 0.001,
                  scale_contingency_table: bool = True,
                  forced_categories: dict = {}):
-
+        
         if model_type not in ["classification", "regression"]:
             raise ValueError("An unexpected model_type was provided. A valid model_type is either 'classification' or 'regression'.")
 
@@ -179,7 +180,8 @@ class CategoricalDataProcessor(BaseEstimator):
     def _fit_column(self, data: pd.DataFrame, column_name: str,
                     target_column) -> set:
         """Compute which categories to regroup into "Other"
-        for a particular column
+        for a particular column, and return those that need
+        to be kept as-is.
 
         Parameters
         ----------
@@ -294,9 +296,9 @@ class CategoricalDataProcessor(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            Original data to be tranformed
+            Original data to be transformed.
         column_name : str
-            name of the column to transform
+            Name of the column to transform.
 
         Returns
         -------
@@ -357,7 +359,7 @@ class CategoricalDataProcessor(BaseEstimator):
             data with additional transformed variables
         """
 
-        self.fit(data, column_names)
+        self.fit(data, column_names, target_column)
         return self.transform(data, column_names)
 
     @staticmethod
@@ -374,7 +376,7 @@ class CategoricalDataProcessor(BaseEstimator):
         incidence : float
             Global train incidence.
         category_size_threshold : int
-            Minimal size of a category to keep it as a separate category.
+            Minimal size of a category to keep as a separate category.
 
         Returns
         -------
