@@ -134,7 +134,7 @@ def plot_performance_curves(model_performance: pd.DataFrame,
         if model_type == "classification":
             ax.set_yticks(np.arange(0.5, max_metric + 0.02, 0.05))
         elif model_type == "regression":
-            ax.set_yticks(np.arange(0, max_metric+1))
+            ax.set_yticks(np.arange(0, max_metric+(0.1*max_metric)))
 
         # Make pretty
         ax.legend(loc='lower right')
