@@ -30,6 +30,10 @@ class ClassificationEvaluator():
 
     Attributes
     ----------
+    y_true : np.ndarray
+        True binary target data labels.
+    y_pred : np.ndarray
+        Target scores of the model.
     confusion_matrix : np.ndarray
         Confusion matrix computed for a particular cut-off.
     cumulative_gains : tuple
@@ -51,9 +55,13 @@ class ClassificationEvaluator():
         (by default 10, so deciles).
     """
 
-    def __init__(self, probability_cutoff: float=None,
+    def __init__(self,
+                 probability_cutoff: float=None,
                  lift_at: float=0.05,
                  n_bins: int = 10):
+
+        self.y_true = None
+        self.y_pred = None
 
         self.lift_at = lift_at
         self.probability_cutoff = probability_cutoff
@@ -90,12 +98,15 @@ class ClassificationEvaluator():
                              for pred in y_pred])
 
         # Compute the various evaluation metrics
-        self.scalar_metrics = ClassificationEvaluator.compute_scalar_metrics(
+        self.scalar_metrics = ClassificationEvaluator._compute_scalar_metrics(
             y_true,
             y_pred,
             y_pred_b,
             self.lift_at
         )
+
+        self.y_true = y_true
+        self.y_pred = y_pred
 
         self.roc_curve = {"fpr": fpr, "tpr": tpr, "thresholds": thresholds}
         self.confusion_matrix = confusion_matrix(y_true, y_pred_b)
@@ -103,10 +114,10 @@ class ClassificationEvaluator():
         self.cumulative_gains = ClassificationEvaluator._compute_cumulative_gains(y_true, y_pred)
 
     @staticmethod
-    def compute_scalar_metrics(y_true: np.ndarray,
-                               y_pred: np.ndarray,
-                               y_pred_b: np.ndarray,
-                               lift_at: float) -> pd.Series:
+    def _compute_scalar_metrics(y_true: np.ndarray,
+                                y_pred: np.ndarray,
+                                y_pred_b: np.ndarray,
+                                lift_at: float) -> pd.Series:
         """Convenient function to compute various scalar performance measures
         and return them in a pd.Series
 
@@ -133,11 +144,10 @@ class ClassificationEvaluator():
             "recall": recall_score(y_true, y_pred_b),
             "F1": f1_score(y_true, y_pred_b, average=None)[1],
             "matthews_corrcoef": matthews_corrcoef(y_true, y_pred_b),
-            "lift at  {}".format(lift_at): np.round(Evaluator
-                                                    ._compute_lift(
-                                                        y_true=y_true,
-                                                        y_pred=y_pred,
-                                                        lift_at=lift_at), 2)
+            "lift at {}".format(lift_at): np.round(ClassificationEvaluator
+                                                   ._compute_lift(y_true=y_true,
+                                                                  y_pred=y_pred,
+                                                                  lift_at=lift_at), 2)
         })
 
     def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)):
@@ -351,8 +361,8 @@ class ClassificationEvaluator():
             plt.show()
 
     @staticmethod
-    def find_optimal_cutoff(y_true: np.ndarray,
-                            y_pred: np.ndarray) -> float:
+    def _find_optimal_cutoff(y_true: np.ndarray,
+                             y_pred: np.ndarray) -> float:
         """Find the optimal probability cut off point for a
         classification model. Wrapper around _compute_optimal_cutoff
 
@@ -524,18 +534,26 @@ class ClassificationEvaluator():
         return lift
 
 
-
 class RegressionEvaluator():
 
     """Summary
 
     Attributes
     ----------
-    evaluation_metrics : dict
+    y_true : np.ndarray
+        True binary target data labels.
+    y_pred : np.ndarray
+        Target scores of the model.
+    scalar_metrics : dict
         Map containing various scalar evaluation metrics (R-squared, MAE, MSE, RMSE)
+    qq : pd.Series
+        Theoretical quantiles and associated actual residuals.
     """
 
     def __init__(self):
+
+        self.y_true = None
+        self.y_pred = None
 
         # Placeholder to store fitted output
         self.scalar_metrics = None
@@ -552,16 +570,18 @@ class RegressionEvaluator():
         y_pred : np.ndarray
             Model scores.
         """
-
         # Compute the various evaluation metrics
-        self.scalar_metrics = RegressionEvaluator.compute_scalar_metrics(y_true, y_pred)
+        self.scalar_metrics = RegressionEvaluator._compute_scalar_metrics(y_true, y_pred)
+
+        self.y_true = y_true
+        self.y_pred = y_pred
 
         # Compute qq info
-        self.qq = RegressionEvaluator.compute_qq_residuals(y_true, y_pred)
+        self.qq = RegressionEvaluator._compute_qq_residuals(y_true, y_pred)
 
     @staticmethod
-    def compute_scalar_metrics(y_true: np.ndarray,
-                               y_pred: np.ndarray) -> pd.Series:
+    def _compute_scalar_metrics(y_true: np.ndarray,
+                                y_pred: np.ndarray) -> pd.Series:
         """Convenient function to compute various scalar performance measures
         and return them in a pd.Series
 
@@ -589,9 +609,9 @@ class RegressionEvaluator():
         })
 
     @staticmethod
-    def compute_qq_residuals(y_true: np.ndarray,
-                             y_pred: np.ndarray) -> pd.Series:
-        """Convenient function to compute various scalar performance measures
+    def _compute_qq_residuals(y_true: np.ndarray,
+                              y_pred: np.ndarray) -> pd.Series:
+        """Convenience function to compute various scalar performance measures
         and return them in a pd.Series
 
         Parameters
@@ -604,7 +624,7 @@ class RegressionEvaluator():
         Returns
         -------
         pd.Series
-            ...
+            theoretical quantiles and associated actual residuals
         """
         ## also possible directly via statsmodels.api.qqplot()
 
@@ -623,21 +643,22 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, y_true: np.ndarray, y_pred: np.ndarray,
-                         path: str=None, dim: tuple=(12, 8)):
+    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)):
         """Plot predictions from the model against actual values
 
         Parameters
         ----------
-        y_true : np.ndarray
-            True binary target data labels.
-        y_pred : np.ndarray
-            Target scores of the model.
         path : str, optional
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
         """
+        if self.y_true is None and self.y_pred is None:
+            msg = ("This {} instance is not fitted yet. Call 'fit' with "
+                   "appropriate arguments before using this method.")
+
+        y_true = self.y_true
+        y_pred = self.y_pred
 
         with plt.style.context("seaborn-whitegrid"):
 
