@@ -9,13 +9,10 @@
 
 ------------------------------------------------------------------------------------------------------------------------------------ 
 
-=====
-cobra
-=====
-.. image:: material\logo.png
+.. image:: C:/Users/hendrik.dewinter/PycharmProjects/cobra/material/logo.png
     :width: 300
 
-**cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
+**Cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
 
 Main Features
 =============
@@ -25,8 +22,8 @@ Main Features
    - partition into train/selection/validation sets
    - create bins from continuous variables
    - regroup categorical variables based on statistical significance
-   - replace missing values and
-   - add columns with incidence rate per category/bin
+   - replace missing values
+   - add columns with average of target values (linear regression) or incidence rate per category/bin (logistic regression)
  
 - Perform univariate feature selection based on RMSE (linear regression) or AUC (logistic regression)
 - Compute correlation matrix of predictors
@@ -79,15 +76,16 @@ Help and Support
 
 Documentation
 -------------
+
+HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_
+
 **Logistic Regression**
 
-- HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_ for logistic regression
-- A step-by-step `tutorial <https://pythonpredictions.github.io/cobra.io/tutorial.html>`_
+- A step-by-step tutorial `<https://pythonpredictions.github.io/cobra/docs/Cobra_Tutorial_LogisticRegression.ipynb>`_
 
 **Linear Regression**
 
-- HTML documentation of the individal modules for linear regression
-- A step-by-step tutorial
+- A step-by-step tutorial `<https://pythonpredictions.github.io/cobra/docs/Cobra_Tutorial_LinearRegression.ipynb>`_
 
 Outreach
 -------------
