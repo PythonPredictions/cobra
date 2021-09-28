@@ -357,7 +357,8 @@ class ClassificationEvaluator():
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-
+            import warnings
+            warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
             plt.show()
 
     @staticmethod
