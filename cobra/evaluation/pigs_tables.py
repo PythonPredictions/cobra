@@ -54,13 +54,13 @@ def compute_pig_table(basetable: pd.DataFrame,
     Parameters
     ----------
     basetable : pd.DataFrame
-        input data from which to compute the pig table
+        Input data from which to compute the pig table.
     predictor_column_name : str
-        predictor name of which to compute the pig table
+        Predictor name of which to compute the pig table.
     target_column_name : str
-        name of the target variable
+        Name of the target variable.
     id_column_name : str
-        name of the id column (used to count population size)
+        Name of the id column (used to count population size).
 
     Returns
     -------
@@ -109,17 +109,17 @@ def plot_incidence(pig_tables: pd.DataFrame,
     Parameters
     ----------
     pig_tables: pd.DataFrame
-        dataframe with cleaned, binned, partitioned and prepared data,
+        Dataframe with cleaned, binned, partitioned and prepared data,
         as created by generate_pig_tables() from this module.
     variable: str
-        name of the predictor variable for which the PIG will be plotted.
+        Name of the predictor variable for which the PIG will be plotted.
     model_type: str
-        type of model (either "classification" or "regression").
+        Type of model (either "classification" or "regression").
     column_order: list, default=None
-        explicit order of the value bins of the predictor variable to be used
+        Explicit order of the value bins of the predictor variable to be used
         on the PIG.
     dim: tuple, default=(12, 8)
-        optional tuple to configure the width and length of the plot.
+        Optional tuple to configure the width and length of the plot.
     """
     if model_type not in ["classification", "regression"]:
         raise ValueError("An unexpected value was set for the model_type "
