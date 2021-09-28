@@ -703,8 +703,8 @@ class RegressionEvaluator():
             x = self.qq["quantiles"]
             y = self.qq["residuals"]
 
-            ax.plot(x, x, "r--", color="darkorange", linewidth=3)
-            ax.plot(x, y, "o--", color="cornflowerblue", linewidth=3)
+            ax.plot(x, x, "r--", label="theoretical quantiles", color="darkorange", linewidth=3)
+            ax.plot(x, y, "o--", label="residuals",color="cornflowerblue", linewidth=3)
 
             ax.set_xlabel("Theoretical quantiles", fontsize=15)
             ax.set_ylabel("Standardized residuals", fontsize=15)
