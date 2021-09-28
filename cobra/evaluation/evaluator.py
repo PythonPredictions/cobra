@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import seaborn as sns
 
 from numpy import sqrt
@@ -347,18 +348,21 @@ class ClassificationEvaluator():
             # Format axes
             ax.set_xlim([0, 100])
             ax.set_ylim([0, 105])
+
             # Format ticks
-            ax.set_yticklabels(["{:3.0f}%".format(x)
-                                for x in ax.get_yticks()])
-            ax.set_xticklabels(["{:3.0f}%".format(x)
-                                for x in ax.get_xticks()])
+            ticks_loc_y = ax.get_yticks().tolist()
+            ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc_y))
+            ax.set_yticklabels(["{:3.0f}%".format(x) for x in ticks_loc_y])
+
+            ticks_loc_x = ax.get_xticks().tolist()
+            ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc_x))
+            ax.set_xticklabels(["{:3.0f}%".format(x) for x in ticks_loc_x])
+
             # Legend
             ax.legend(loc="lower right")
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-            import warnings
-            warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
             plt.show()
 
     @staticmethod
