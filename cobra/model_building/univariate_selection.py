@@ -1,6 +1,7 @@
 """
 Module to perform univariate preselection and compute correlation amongst
 predictors
+
 Authors:
 - Geert Verstraeten (methodology)
 - Matthias Roels (current implementation)

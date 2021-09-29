@@ -26,8 +26,8 @@ from sklearn.metrics import r2_score
 
 
 class ClassificationEvaluator():
-
-    """Summary
+    """Evaluator class encapsulating classification model metrics
+    and plotting functionality
 
     Attributes
     ----------
@@ -540,8 +540,8 @@ class ClassificationEvaluator():
 
 
 class RegressionEvaluator():
-
-    """Summary
+    """Evaluator class encapsulating regression model metrics
+    and plotting functionality
 
     Attributes
     ----------

@@ -10,10 +10,9 @@ import cobra.utils as utils
 
 
 class LogisticRegressionModel:
-
     """Wrapper around the LogisticRegression class, with additional methods
     implemented such as evaluation (using AUC), getting a list of coefficients,
-    a dictionary of coefficients per predictor, ... for convenience.
+    a dictionary of coefficients per predictor, ... for convenience
 
     Attributes
     ----------
@@ -229,10 +228,9 @@ class LogisticRegressionModel:
 
 
 class LinearRegressionModel:
-
     """Wrapper around the LinearRegression class, with additional methods
     implemented such as evaluation (using RMSE), getting a list of coefficients,
-    a dictionary of coefficients per predictor, ... for convenience.
+    a dictionary of coefficients per predictor, ... for convenience
 
     Attributes
     ----------

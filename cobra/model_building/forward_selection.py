@@ -3,7 +3,6 @@ import logging
 import pandas as pd
 from tqdm.auto import tqdm
 
-# from cobra.model_building import LogisticRegressionModel as MLModel
 from cobra.model_building import LogisticRegressionModel, LinearRegressionModel
 
 log = logging.getLogger(__name__)
@@ -282,11 +281,11 @@ class ForwardFeatureSelection:
             # Check if the model is better than the current best model
             # and if it is, replace the current best.
             if self.MLModel == LogisticRegressionModel \
-                    and performance > best_performance:  # AUC metric is used.
+                    and performance > best_performance:  # AUC metric is used
                 best_performance = performance
                 best_model = model
             elif self.MLModel == LinearRegressionModel \
-                    and performance < best_performance:  # RMSE metric is used.
+                    and performance < best_performance:  # RMSE metric is used
                 best_performance = performance
                 best_model = model
 
@@ -310,7 +309,6 @@ class ForwardFeatureSelection:
         self.MLModel
             trained model
         """
-        # model = MLModel()
         model = self.MLModel()
 
         model.fit(train_data[predictors], train_data[target_column_name])
