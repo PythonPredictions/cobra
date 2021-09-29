@@ -22,10 +22,19 @@ class CategoricalDataProcessor(BaseEstimator):
     categorical data preprocessing. There are three steps involved:
 
         - An optional regrouping of the different categories based on category size
-          and significance of the category w.r.t. the target;
-        - Missing value replacement with the additional category ``Missing``;
+          and significance of the category w.r.t. the target.
+            - For a given categorical variable, all categories below the (weighted)
+              category size threshold are put into a rest category (by default ``Other``)
+            - The remaining categories are subject to a statistical test, if there is
+              sufficient dependence with the target variable compared to all other categories,
+              the category is kept as-is, otherwise it is also put into the rest category
+            - Beware: one can force categories to be kept, and if no single category passes
+              the statistical test, the categorical variable is left unprocessed altogether
+        - Missing value replacement with the additional category ``Missing``.
         - Change of dtype to ``category`` (could potentially lead to memory
           optimization).
+
+    See the README of the GitHub repository for more methodological background information.
 
     Attributes
     ----------

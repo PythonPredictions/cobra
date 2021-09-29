@@ -28,6 +28,9 @@ class PreProcessor(BaseEstimator):
     Additionally, it provides methods such as (de)serialization to/from JSON
     so that preprocessing pipelines can be stored and reloaded, example for scoring.
 
+    We refer to the README of the GitHub repository for more background information
+    on the preprocessing methodology.
+
     Attributes
     ----------
     categorical_data_processor : CategoricalDataProcessor

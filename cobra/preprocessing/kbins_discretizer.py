@@ -25,7 +25,8 @@ class KBinsDiscretizer(BaseEstimator):
     This module is a rework of
     https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py,
     though it is purely written in pandas instead of numpy because it is more intuitive. It also includes
-    some custom modifications to align it with the Python Predictions methodology.
+    some custom modifications to align it with the Python Predictions methodology. See the README of the
+    GitHub repository for more background information.
 
     Attributes
     ----------

@@ -18,8 +18,8 @@ class TargetEncoder(BaseEstimator):
 
     Note that, when applying this target encoding, values of the categorical
     feature that have not been seen during fit will be imputed according to the
-    configured imputation strategy: replacement with the mean, minimum or
-    maximum value of the categorical variable.
+    configured imputation strategy (replacement with the mean, minimum or
+    maximum value of the categorical variable).
 
     The main problem with Target encoding is overfitting; the fact that we are
     encoding the feature based on target classes may lead to data leakage,
