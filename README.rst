@@ -9,7 +9,7 @@
 
 ------------------------------------------------------------------------------------------------------------------------------------ 
 
-.. image:: C:/Users/hendrik.dewinter/PycharmProjects/cobra/material/logo.png
+.. image:: material/logo.png
     :width: 300
 
 **Cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
@@ -43,7 +43,7 @@ This package requires the usual Python packages for data science:
 - numpy (>=1.19.4)
 - pandas (>=1.1.5)
 - scipy (>=1.5.4)
-- scikit-learn (>=0.23.1)
+- scikit-learn (>=0.24.1)
 - matplotlib (>=3.3.3)
 - seaborn (>=0.11.0)
 
@@ -54,19 +54,19 @@ These packages, along with their versions are listed in ``requirements.txt`` and
   pip install -r requirements.txt
 
 
-**Note**: if you want to install cobra with e.g. pip, you don't have to install all of these requirements as these are automatically installed with cobra itself.
+**Note**: if you want to install Cobra with e.g. pip, you don't have to install all of these requirements as these are automatically installed with cobra itself.
 
 Installation
 ------------
 
-The easiest way to install cobra is using ``pip``:    ::
+The easiest way to install Cobra is using ``pip``:    ::
 
   pip install -U pythonpredictions-cobra
 
-Contributing to cobra
+Contributing to Cobra
 =====================
 
-We'd love you to contribute to the development of cobra! There are many ways in which you can contribute, the most common of which is to contribute to the source code or documentation of the project. However, there are many other ways you can contribute (report issues, improve code coverage by adding unit tests, ...).
+We'd love you to contribute to the development of Cobra! There are many ways in which you can contribute, the most common of which is to contribute to the source code or documentation of the project. However, there are many other ways you can contribute (report issues, improve code coverage by adding unit tests, ...).
 We use GitHub issue to track all bugs and feature requests. Feel free to open an issue in case you found a bug or in case you wish to see a new feature added.
 
 For more details, check our `wiki <https://github.com/PythonPredictions/cobra/wiki/Contributing-guidelines-&-workflows>`_.
@@ -81,11 +81,11 @@ HTML documentation of the `individual modules <https://pythonpredictions.github.
 
 **Logistic Regression**
 
-- A step-by-step tutorial `<https://pythonpredictions.github.io/cobra/docs/Cobra_Tutorial_LogisticRegression.ipynb>`_
+- A step-by-step tutorial `<https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_logistic_regression.ipynb>`_
 
 **Linear Regression**
 
-- A step-by-step tutorial `<https://pythonpredictions.github.io/cobra/docs/Cobra_Tutorial_LinearRegression.ipynb>`_
+- A step-by-step tutorial `<https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_linear_regression.ipynb>`_
 
 Outreach
 -------------
