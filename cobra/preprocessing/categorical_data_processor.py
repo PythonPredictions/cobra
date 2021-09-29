@@ -1,18 +1,3 @@
-"""
-This class implements the Python Prediction's way of dealing with
-categorical data preprocessing. There are three steps involved here:
-
-- An optional regrouping of the different categories based on category size
-  and significance of the category w.r.t. the target
-- Missing value replacement with the additional category ``Missing``
-- Change of dtype to ``category`` (could potentially lead to memory
-  optimization)
-
-Authors:
-- Geert Verstraeten (methodology)
-- Jan Benisek (implementation)
-- Matthias Roels (implementation)
-"""
 
 # standard lib imports
 import re
@@ -29,10 +14,18 @@ from sklearn.exceptions import NotFittedError
 
 log = logging.getLogger(__name__)
 
-
 class CategoricalDataProcessor(BaseEstimator):
     """Regroups the categories of categorical variables based on significance
     with target variable.
+
+    This class implements the Python Prediction's way of dealing with
+    categorical data preprocessing. There are three steps involved:
+
+        - An optional regrouping of the different categories based on category size
+          and significance of the category w.r.t. the target;
+        - Missing value replacement with the additional category ``Missing``;
+        - Change of dtype to ``category`` (could potentially lead to memory
+          optimization).
 
     Attributes
     ----------

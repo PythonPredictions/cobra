@@ -1,3 +1,4 @@
+
 import numpy as np
 import pandas as pd
 
@@ -24,10 +25,9 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
-
 class ClassificationEvaluator():
     """Evaluator class encapsulating classification model metrics
-    and plotting functionality
+    and plotting functionality.
 
     Attributes
     ----------

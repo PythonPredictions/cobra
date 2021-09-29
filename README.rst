@@ -14,7 +14,7 @@
 
 **Cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
 
-Main Features
+Main features
 =============
 
 - Prepare a given pandas DataFrame for predictive modelling:
@@ -63,18 +63,11 @@ The easiest way to install Cobra is using ``pip``:    ::
 
   pip install -U pythonpredictions-cobra
 
-Contributing to Cobra
+
+Documentation and extra material
 =====================
 
-We'd love you to contribute to the development of Cobra! There are many ways in which you can contribute, the most common of which is to contribute to the source code or documentation of the project. However, there are many other ways you can contribute (report issues, improve code coverage by adding unit tests, ...).
-We use GitHub issue to track all bugs and feature requests. Feel free to open an issue in case you found a bug or in case you wish to see a new feature added.
-
-For more details, check our `wiki <https://github.com/PythonPredictions/cobra/wiki/Contributing-guidelines-&-workflows>`_.
-
-Documentation and Extra Material
-=====================
-
-- A `blog post <https://github.com/PythonPredictions/Cobra-DS-meetup-Leuven>`_ on the overall methodology.
+- A `blog post <https://www.pythonpredictions.com/news/the-little-trick-we-apply-to-obtain-explainability-by-design/>`_ on the overall methodology.
 
 - A `research article <https://doi.org/10.1016/j.dss.2016.11.007>`_ by Geert Verstraeten (co-founder Python Predictions) discussing the preprocessing approach we use in Cobra.
 
@@ -85,3 +78,11 @@ Documentation and Extra Material
 - A step-by-step `tutorial <https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_linear_regression.ipynb>`_ for **linear regression**.
 
 - Check out the Data Science Leuven Meetup `talk <https://www.youtube.com/watch?v=w7ceZZqMEaA&feature=youtu.be>`_ by one of the core developers (second presentation). His `slides <https://github.com/PythonPredictions/Cobra-DS-meetup-Leuven/blob/main/DS_Leuven_meetup_20210209_cobra.pdf>`_ and `related material <https://github.com/PythonPredictions/Cobra-DS-meetup-Leuven>`_ are also available.
+
+Contributing to Cobra
+=====================
+
+We'd love you to contribute to the development of Cobra! There are many ways in which you can contribute, the most common of which is to contribute to the source code or documentation of the project. However, there are many other ways you can contribute (report issues, improve code coverage by adding unit tests, ...).
+We use GitHub issue to track all bugs and feature requests. Feel free to open an issue in case you found a bug or in case you wish to see a new feature added.
+
+For more details, check our `wiki <https://github.com/PythonPredictions/cobra/wiki/Contributing-guidelines-&-workflows>`_.

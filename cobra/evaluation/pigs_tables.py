@@ -1,3 +1,4 @@
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -5,7 +6,6 @@ import numpy as np
 from matplotlib.ticker import FuncFormatter
 
 import cobra.utils as utils
-
 
 def generate_pig_tables(basetable: pd.DataFrame,
                         id_column_name: str,
