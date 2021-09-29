@@ -68,8 +68,9 @@ class ForwardFeatureSelection:
         ValueError
             In case step is larger than the number of available models.
         """
-        if len(self._fitted_models) < step:
-            raise ValueError(f"No model available for step {step}")
+        if len(self._fitted_models) <= step:
+            raise ValueError(f"No model available for step {step}. "
+                             "The first step starts from index 0.")
 
         return self._fitted_models[step]
 
