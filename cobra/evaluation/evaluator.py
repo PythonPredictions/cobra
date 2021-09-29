@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import seaborn as sns
 
 from numpy import sqrt
@@ -347,17 +348,21 @@ class ClassificationEvaluator():
             # Format axes
             ax.set_xlim([0, 100])
             ax.set_ylim([0, 105])
+
             # Format ticks
-            ax.set_yticklabels(["{:3.0f}%".format(x)
-                                for x in ax.get_yticks()])
-            ax.set_xticklabels(["{:3.0f}%".format(x)
-                                for x in ax.get_xticks()])
+            ticks_loc_y = ax.get_yticks().tolist()
+            ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc_y))
+            ax.set_yticklabels(["{:3.0f}%".format(x) for x in ticks_loc_y])
+
+            ticks_loc_x = ax.get_xticks().tolist()
+            ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc_x))
+            ax.set_xticklabels(["{:3.0f}%".format(x) for x in ticks_loc_x])
+
             # Legend
             ax.legend(loc="lower right")
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-
             plt.show()
 
     @staticmethod
@@ -703,11 +708,21 @@ class RegressionEvaluator():
             x = self.qq["quantiles"]
             y = self.qq["residuals"]
 
-            ax.plot(x, x, "r--", color="darkorange", linewidth=3)
-            ax.plot(x, y, "o--", color="cornflowerblue", linewidth=3)
+            ax.plot(x, x, "r--", label="Q-Q of a perfect model",
+                    color="darkorange",
+                    linewidth=3)
+            ax.plot(x, y, "o--", label="Q-Q of the current model",
+                    color="cornflowerblue",
+                    linewidth=3)
 
             ax.set_xlabel("Theoretical quantiles", fontsize=15)
+            ax.set_xticks(range(int(np.floor(min(x))),
+                                int(np.ceil(max(x[x<float('inf')])))+1,
+                                1))
             ax.set_ylabel("Standardized residuals", fontsize=15)
+            ax.set_yticks(range(int(np.floor(min(y))),
+                                int(np.ceil(max(y))) + 1,
+                                1))
             ax.legend(loc="best")
             ax.set_title("Q-Q Plot", fontsize=20)
 
