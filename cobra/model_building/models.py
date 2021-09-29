@@ -137,10 +137,10 @@ class LogisticRegressionModel:
         Returns
         -------
         np.ndarray
-            Score of the model for each observation.
+            Score (i.e. predicted probabilities) of the model for each observation.
         """
         # We select predictor columns (self.predictors) here to
-        # ensure we have the proper predictors and the proper order!!!
+        # ensure we have the proper predictors and the proper order
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
@@ -180,7 +180,7 @@ class LogisticRegressionModel:
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute the importance of each predictor in the model and return
-        it as a DataFrame
+        it as a DataFrame.
 
         Parameters
         ----------
@@ -190,7 +190,7 @@ class LogisticRegressionModel:
         Returns
         -------
         pd.DataFrame
-            DataFrame containing columns predictor and importance
+            DataFrame containing columns predictor and importance.
         """
 
         y_pred = self.score_model(data)
@@ -340,7 +340,7 @@ class LinearRegressionModel:
         self._is_fitted = True
 
     def score_model(self, X: pd.DataFrame) -> np.ndarray:
-        """Score a model on a (new) dataset
+        """Score a model on a (new) dataset.
 
         Parameters
         ----------
@@ -350,10 +350,10 @@ class LinearRegressionModel:
         Returns
         -------
         np.ndarray
-            score of the model for each observation
+            Score of the model for each observation.
         """
         # We select predictor columns (self.predictors) here to
-        # ensure we have the proper predictors and the proper order!!!
+        # ensure we have the proper predictors and the proper order
         return self.linear.predict(X[self.predictors])
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
@@ -375,7 +375,7 @@ class LinearRegressionModel:
         Returns
         -------
         float
-            the performance score of the model (RMSE)
+            The performance score of the model (RMSE).
         """
 
         if (split is None) or (split not in self._eval_metrics_by_split):
@@ -393,7 +393,7 @@ class LinearRegressionModel:
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute the importance of each predictor in the model and return
-        it as a DataFrame
+        it as a DataFrame.
 
         Parameters
         ----------
@@ -403,7 +403,7 @@ class LinearRegressionModel:
         Returns
         -------
         pd.DataFrame
-            DataFrame containing columns predictor and importance
+            DataFrame containing columns predictor and importance.
         """
 
         y_pred = self.score_model(data)
