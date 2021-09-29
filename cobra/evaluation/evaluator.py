@@ -708,11 +708,21 @@ class RegressionEvaluator():
             x = self.qq["quantiles"]
             y = self.qq["residuals"]
 
-            ax.plot(x, x, "r--", label="theoretical quantiles", color="darkorange", linewidth=3)
-            ax.plot(x, y, "o--", label="residuals",color="cornflowerblue", linewidth=3)
+            ax.plot(x, x, "r--", label="Q-Q of a perfect model",
+                    color="darkorange",
+                    linewidth=3)
+            ax.plot(x, y, "o--", label="Q-Q of the current model",
+                    color="cornflowerblue",
+                    linewidth=3)
 
             ax.set_xlabel("Theoretical quantiles", fontsize=15)
+            ax.set_xticks(range(int(np.floor(min(x))),
+                                int(np.ceil(max(x[x<float('inf')])))+1,
+                                1))
             ax.set_ylabel("Standardized residuals", fontsize=15)
+            ax.set_yticks(range(int(np.floor(min(y))),
+                                int(np.ceil(max(y))) + 1,
+                                1))
             ax.legend(loc="best")
             ax.set_title("Q-Q Plot", fontsize=20)
 
