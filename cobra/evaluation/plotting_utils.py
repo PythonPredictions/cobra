@@ -134,7 +134,10 @@ def plot_performance_curves(model_performance: pd.DataFrame,
         if model_type == "classification":
             ax.set_yticks(np.arange(0.5, max_metric + 0.02, 0.05))
         elif model_type == "regression":
-            ax.set_yticks(np.arange(0, max_metric+1))
+            # In regression, the scale of the y axis can largely vary depending
+            # on the dataset, it is easier to just set the y axis bounds,
+            # but not the tick distance.
+            ax.set_ylim(0, max_metric * 1.1)
 
         # Make pretty
         ax.legend(loc='lower right')
