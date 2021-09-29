@@ -6,39 +6,15 @@
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
-PAPER 		  =
 BUILDDIR      = build
-
-# Internal variables.
-PAPEROPT_a4     = -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-
-.PHONY: help Makefile clean html man changes linkcheck doctest
-
 
 # Put it first so that "make" without argument is like "make help".
 help:
-	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       to make standalone HTML files"
-	@echo "  man        to make manual pages"
-	@echo "  changes    to make an overview of all changed/added/deprecated items"
-	@echo "  linkcheck  to check all external links for integrity"
-	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
+	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-clean:
-	-rm -rf $(BUILDDIR)/*
+.PHONY: help Makefile
 
-html:
-	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html $(SPHINXOPTS)
-
-man:
-	$(SPHINXBUILD) -b man $(SPHINXOPTS) $(BUILDDIR)/man
-
-changes:
-	$(SPHINXBUILD) -b changes $(SPHINXOPTS) $(BUILDDIR)/changes
-
-linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(SPHINXOPTS) $(BUILDDIR)/linkcheck
-
-doctest:
-	$(SPHINXBUILD) -b doctest $(SPHINXOPTS) $(BUILDDIR)/doctest
+# Catch-all target: route all unknown targets to Sphinx using the new
+# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+%: Makefile
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

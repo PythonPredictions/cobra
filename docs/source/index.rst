@@ -7,7 +7,7 @@
 Welcome to cobra's documentation!
 *********************************
 
-.. include:: ../../README.rst
+.. include:: C:/Users/hendrik.dewinter/PycharmProjects/cobra/README.rst
 
 .. toctree::
    :maxdepth: 2
@@ -17,16 +17,9 @@ Welcome to cobra's documentation!
 .. toctree::
    :maxdepth: 4
    :hidden:
-   :caption: Tutorial
-
-   tutorial
-
-.. toctree::
-   :maxdepth: 4
-   :hidden:
    :caption: API Reference
 
-   docstring/modules
+   C:/Users/hendrik.dewinter/PycharmProjects/cobra/docs/source/docstring/modules.rst
 
 
 Indices and tables
