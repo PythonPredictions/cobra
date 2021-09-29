@@ -640,7 +640,7 @@ class RegressionEvaluator():
 
         df["z_res"] = df["res"].apply(lambda x: (x-m)/s)
         df["rank"] = df.index+1
-        df["percentile"] = df["rank"].apply(lambda x: x/n)
+        df["percentile"] = df["rank"].apply(lambda x: x/(n+1))  # divide by n+1 to avoid inf
         df["q_theoretical"] = norm.ppf(df["percentile"])
 
         return pd.Series({
@@ -708,21 +708,15 @@ class RegressionEvaluator():
             x = self.qq["quantiles"]
             y = self.qq["residuals"]
 
-            ax.plot(x, x, "r--", label="Q-Q of a perfect model",
-                    color="darkorange",
-                    linewidth=3)
-            ax.plot(x, y, "o--", label="Q-Q of the current model",
-                    color="cornflowerblue",
-                    linewidth=3)
+            ax.plot(x, x, "r--", label="perfect model", color="darkorange", linewidth=3)
+            ax.plot(x, y, "o--", label="current model", color="cornflowerblue", linewidth=3)
 
             ax.set_xlabel("Theoretical quantiles", fontsize=15)
-            ax.set_xticks(range(int(np.floor(min(x))),
-                                int(np.ceil(max(x[x<float('inf')])))+1,
-                                1))
+            ax.set_xticks(range(int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")])))+1, 1))
+
             ax.set_ylabel("Standardized residuals", fontsize=15)
-            ax.set_yticks(range(int(np.floor(min(y))),
-                                int(np.ceil(max(y))) + 1,
-                                1))
+            ax.set_yticks(range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")])))+1, 1))
+
             ax.legend(loc="best")
             ax.set_title("Q-Q Plot", fontsize=20)
 
