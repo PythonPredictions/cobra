@@ -12,6 +12,12 @@ class ForwardFeatureSelection:
     """Perform forward feature selection for a given dataset using a given
     algorithm.
 
+    Predictors are sequentially added to the model, starting with the one that
+    has the highest univariate predictive power, and then proceeding with those that
+    jointly lead to the best fit, optimizing for selection AUC or RMSE. Interaction
+    effects are not explicitly modeled, yet they are implicitly present given the
+    feature selection and the underlying feature correlation structure.
+
     Attributes
     ----------
     model_type : str
@@ -29,9 +35,9 @@ class ForwardFeatureSelection:
     """
 
     def __init__(self,
-                 model_type: str = "classification",
-                 max_predictors: int = 50,
-                 pos_only: bool = True):
+                 model_type: str="classification",
+                 max_predictors: int=50,
+                 pos_only: bool=True):
 
         self.model_type = model_type
         if model_type == "classification":
@@ -45,7 +51,7 @@ class ForwardFeatureSelection:
         self._fitted_models = []
 
     def get_model_from_step(self, step: int):
-        """Get fitted model from a particular step
+        """Get fitted model from a particular step.
 
         Parameters
         ----------
@@ -55,12 +61,12 @@ class ForwardFeatureSelection:
         Returns
         -------
         self.MLModel
-            Fitted model from the given step
+            Fitted model from the given step.
 
         Raises
         ------
         ValueError
-            in case step is larger than the number of available models
+            In case step is larger than the number of available models.
         """
         if len(self._fitted_models) < step:
             raise ValueError(f"No model available for step {step}")
@@ -90,8 +96,8 @@ class ForwardFeatureSelection:
         Returns
         -------
         DatFrame
-            contains for each model the performance for train, selection and
-            validation sets as well as the set of predictors used in this model
+            Contains for each model the performance for train, selection and
+            validation sets as well as the set of predictors used in this model.
         """
         results = []
         predictor_set = set([])
@@ -127,7 +133,7 @@ class ForwardFeatureSelection:
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
             predictors: list, forced_predictors: list = [],
             excluded_predictors: list = []):
-        """Fit the forward feature selection estimator
+        """Fit the forward feature selection estimator.
 
         Parameters
         ----------
@@ -145,8 +151,8 @@ class ForwardFeatureSelection:
         Raises
         ------
         ValueError
-            in case the number of forced predictors is larger than the maximum
-            number of allowed predictors in the model
+            In case the number of forced predictors is larger than the maximum
+            number of allowed predictors in the model.
         """
         # remove excluded predictors from predictor lists
         filtered_predictors = [var for var in predictors
@@ -194,7 +200,7 @@ class ForwardFeatureSelection:
         -------
         list
             List of fitted models where the index of the list indicates the
-            number of predictors minus one (as indices start from 0)
+            number of predictors minus one (as indices start from 0).
         """
         fitted_models = []
         current_predictors = []
@@ -252,7 +258,7 @@ class ForwardFeatureSelection:
         Returns
         -------
         self.MLModel
-            Best performing model
+            Best performing model.
         """
         # placeholders
         best_model = None
@@ -307,7 +313,7 @@ class ForwardFeatureSelection:
         Returns
         -------
         self.MLModel
-            trained model
+            Trained model.
         """
         model = self.MLModel()
 

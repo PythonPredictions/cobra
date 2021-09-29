@@ -23,10 +23,9 @@ class TargetEncoder(BaseEstimator):
 
     The main problem with Target encoding is overfitting; the fact that we are
     encoding the feature based on target classes may lead to data leakage,
-    rendering the feature biased.
-    This can be solved using some type of regularization. A popular way to
-    handle this is to use cross-validation and compute the means in each
-    out-of-fold. However, the approach implemented here makes use of
+    rendering the feature biased. This can be solved using some type of regularization.
+    A popular way to handle this is to use cross-validation and compute the means
+    in each out-of-fold. However, the approach implemented here makes use of
     additive smoothing (https://en.wikipedia.org/wiki/Additive_smoothing).
 
     In summary:

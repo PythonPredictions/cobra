@@ -42,7 +42,9 @@ class KBinsDiscretizer(BaseEstimator):
         Format string to display the bin labels
         e.g. ``min - max``, ``(min, max]``, ...
     n_bins : int
-        Number of bins to produce. Raises ValueError if ``n_bins < 2``.
+        Number of bins to produce. Raises ValueError if ``n_bins < 2``. A warning
+        is issued when a variable can only produce a lower number of bins than
+        asked for.
     starting_precision : int
         Initial precision for the bin edges to start from,
         can also be negative. Given a list of bin edges, the class will
