@@ -23,7 +23,7 @@ Main features
    - create bins from continuous variables
    - regroup categorical variables based on statistical significance
    - replace missing values
-   - add columns with average of target values (linear regression) or incidence rate per category/bin (logistic regression)
+   - replace categories/bins with average of target values (linear regression) or incidence rate (logistic regression)
  
 - Perform univariate feature selection based on RMSE (linear regression) or AUC (logistic regression)
 - Compute correlation matrix of predictors
@@ -38,18 +38,7 @@ These instructions will get you a copy of the project up and running on your loc
 Requirements
 ------------
 
-This package requires the usual Python packages for data science:
-
-- numpy (>=1.19.4)
-- pandas (>=1.1.5)
-- scipy (>=1.5.4)
-- scikit-learn (>=0.24.1)
-- matplotlib (>=3.3.3)
-- seaborn (>=0.11.0)
-
-
-These packages, along with their versions are listed in ``requirements.txt`` and can be installed using ``pip``:    ::
-
+This package requires only the usual Python packages for data science, being numpy, pandas, scipy, scikit-learn, matplotlib, seaborn, and tqdm. These packages, along with their versions are listed in ``requirements.txt`` and can be installed using ``pip``:    ::
 
   pip install -r requirements.txt
 

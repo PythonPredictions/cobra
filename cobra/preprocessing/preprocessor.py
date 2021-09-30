@@ -145,8 +145,8 @@ class PreProcessor(BaseEstimator):
         Returns
         -------
         PreProcessor
-            class encapsulating CategoricalDataProcessor,
-            KBinsDiscretizer, and TargetEncoder instances
+            Class encapsulating CategoricalDataProcessor,
+            KBinsDiscretizer, and TargetEncoder instances.
         """       
         categorical_data_processor = CategoricalDataProcessor(model_type,
                                                               regroup,
@@ -174,21 +174,23 @@ class PreProcessor(BaseEstimator):
         Parameters
         ----------
         pipeline : dict
-            The (fitted) pipeline as a dictionary
+            The (fitted) pipeline as a dictionary.
 
         Returns
         -------
         PreProcessor
-            Instance of PreProcessor instantiated from a stored pipeline
+            Instance of PreProcessor instantiated from a stored pipeline.
 
         Raises
         ------
         ValueError
-            Description
+            If the loaded pipeline does not have all required parameters
+            and no others.
         """
 
         if not PreProcessor._is_valid_pipeline(pipeline):
-            raise ValueError("Invalid pipeline")  ### TODO: specify error
+            raise ValueError("Invalid pipeline, as it does not "
+                             "contain all and only the required parameters.")
 
         categorical_data_processor = CategoricalDataProcessor()
         categorical_data_processor.set_attributes_from_dict(
@@ -406,7 +408,7 @@ class PreProcessor(BaseEstimator):
         Returns
         -------
         dict
-            Return the pipeline as a dictionary
+            Return the pipeline as a dictionary.
         """
         pipeline = {
             "metadata": {
@@ -434,7 +436,7 @@ class PreProcessor(BaseEstimator):
         Parameters
         ----------
         pipeline : dict
-            Loaded pipeline from json file
+            Loaded pipeline from JSON file.
         """
         keys = inspect.getfullargspec(PreProcessor.from_params).args
         valid_keys = set([key for key in keys
@@ -455,30 +457,30 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def _get_variable_list(continuous_vars: list, discrete_vars: list) -> list:
-        """merge lists of continuous_vars and discrete_vars and add suffix
-        "_bin" resp. "_processed" to the predictors
+        """Merge lists of continuous_vars and discrete_vars and add suffix
+        "_bin" resp. "_processed" to the predictors.
 
         Parameters
         ----------
         continuous_vars : list
-            list of continuous variables
+            List of continuous variables.
         discrete_vars : list
-            list of discrete variables
+            List of discrete variables.
 
         Returns
         -------
         list
-            Merged list of predictors with proper suffixes added
+            Merged list of predictors with proper suffixes added.
 
         Raises
         ------
         ValueError
-            in case both lists are empty
+            In case both lists are empty.
         """
         var_list = ([col + "_processed" for col in discrete_vars]
                     + [col + "_bin" for col in continuous_vars])
 
         if not var_list:
-            raise ValueError("Variable var_list is None or empty list")
+            raise ValueError("Variable var_list is None or empty list.")
 
         return var_list

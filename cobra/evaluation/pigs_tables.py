@@ -100,11 +100,11 @@ def plot_incidence(pig_tables: pd.DataFrame,
                    dim: tuple = (12, 8)):
     """Plots a Predictor Insights Graph (PIG), a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
-    variable. When the target actually is a binary classification target,
-    the plotted mean target value is actually the target incidence rate.
+    variable. When the target is a binary classification target,
+    the plotted mean target value is a true incidence rate.
 
     Bins are ordered in descending order of mean target value
-    unless specified otherwise with `column_order` list.
+    unless specified otherwise with the `column_order` list.
 
     Parameters
     ----------
@@ -161,10 +161,10 @@ def plot_incidence(pig_tables: pd.DataFrame,
                 label='average incidence rate' if model_type == "classification" else "global mean target value",
                 zorder=10)
 
-        # dummy line to have label on second axis from first
+        # Dummy line to have label on second axis from first
         ax.plot(np.nan, "#939598", linewidth=6, label='bin size')
 
-        # set labels & ticks
+        # Set labels & ticks
         ax.set_ylabel('incidence' if model_type == "classification" else "mean target value",
                       fontsize=16)
         ax.set_xlabel('{} bins' ''.format(variable), fontsize=16)
@@ -173,12 +173,12 @@ def plot_incidence(pig_tables: pd.DataFrame,
 
         if model_type == "classification":
             # Mean target values are between 0 and 1 (target incidence rate),
-            # so format them as percentages:
+            # so format them as percentages
             ax.set_yticks(np.arange(0, max(df_plot['avg_target'])+0.05, 0.05))
             ax.yaxis.set_major_formatter(
                 FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
 
-        # removes ticks but keeps the labels
+        # Remove ticks but keep the labels
         ax.tick_params(axis='both', which='both', length=0)
         ax.tick_params(axis='y', colors="#00ccff")
         ax.yaxis.label.set_color('#00ccff')
@@ -191,7 +191,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
         ax2.bar(df_plot['label'], df_plot['pop_size'],
                 align='center', color="#939598", zorder=1)
 
-        # set labels & ticks
+        # Set labels & ticks
         ax2.set_ylabel('population size', fontsize=16)
         ax2.set_xlabel('{} bins' ''.format(variable), fontsize=16)
         ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
@@ -209,17 +209,17 @@ def plot_incidence(pig_tables: pd.DataFrame,
 
         ax2.grid(False)
 
-        # title & legend
+        # Title & legend
         if model_type == "classification":
             title = "Incidence plot - " + variable
         else:
             title = "Mean target plot - " + variable
         fig.suptitle(title, fontsize=22, y=1.02)
         ax.legend(frameon=False, bbox_to_anchor=(0., 1.01, 1., .102),
-                  loc=3, ncol=1, mode="expand", borderaxespad=0.,
+                  loc=3, ncol=3, mode="expand", borderaxespad=0.,
                   prop={"size": 14})
 
-        # Sets order ot layers
+        # Set order of layers
         ax.set_zorder(1)
         ax.patch.set_visible(False)
 

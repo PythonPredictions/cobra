@@ -76,7 +76,8 @@ class TargetEncoder(BaseEstimator):
         if weight == 0:
             log.warning("The target encoder's additive smoothing weight is "
                         "set to 0. This disables smoothing and may make the "
-                        "encoding prone to overfitting.")
+                        "encoding prone to overfitting. Increase the weight "
+                        "if needed.")
 
         self.weight = weight
         self.imputation_strategy = imputation_strategy

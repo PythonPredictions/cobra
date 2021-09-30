@@ -132,8 +132,8 @@ class ForwardFeatureSelection:
         return df
 
     def fit(self, train_data: pd.DataFrame, target_column_name: str,
-            predictors: list, forced_predictors: list = [],
-            excluded_predictors: list = []):
+            predictors: list, forced_predictors: list=[],
+            excluded_predictors: list=[]):
         """Fit the forward feature selection estimator.
 
         Parameters
