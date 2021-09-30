@@ -147,9 +147,9 @@ def plot_incidence(pig_tables: pd.DataFrame,
     with plt.style.context("seaborn-ticks"):
         fig, ax = plt.subplots(figsize=dim)
 
-        # -----------------
+        # --------------------------
         # Left axis - average target
-        # -----------------
+        # --------------------------
         ax.plot(df_plot['label'], df_plot['avg_target'],
                 color="#00ccff", marker=".",
                 markersize=20, linewidth=3,
@@ -168,7 +168,9 @@ def plot_incidence(pig_tables: pd.DataFrame,
         ax.set_ylabel('incidence' if model_type == "classification" else "mean target value",
                       fontsize=16)
         ax.set_xlabel('{} bins' ''.format(variable), fontsize=16)
-        ax.xaxis.set_tick_params(rotation=45, labelsize=14)
+        ax.xaxis.set_tick_params(labelsize=14)
+        plt.setp(ax.get_xticklabels(),
+                 rotation=45, ha="right", rotation_mode="anchor")
         ax.yaxis.set_tick_params(labelsize=14)
 
         if model_type == "classification":
@@ -192,13 +194,13 @@ def plot_incidence(pig_tables: pd.DataFrame,
                 align='center', color="#939598", zorder=1)
 
         # Set labels & ticks
-        ax2.set_ylabel('population size', fontsize=16)
         ax2.set_xlabel('{} bins' ''.format(variable), fontsize=16)
         ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
+
         ax2.yaxis.set_tick_params(labelsize=14)
         ax2.yaxis.set_major_formatter(
             FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
-
+        ax2.set_ylabel('population size', fontsize=16)
         ax2.tick_params(axis='y', colors="#939598")
         ax2.yaxis.label.set_color('#939598')
 
