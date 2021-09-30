@@ -1,6 +1,7 @@
 
 .. image:: material/logo.png
-    :width: 300
+    :width: 350
+
 
 .. image:: https://img.shields.io/pypi/v/pythonpredictions-cobra.svg
     :target: https://pypi.org/project/pythonpredictions-cobra/

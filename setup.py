@@ -1,3 +1,6 @@
+
+exec(open("cobra/version.py").read())  # reads in __version__
+
 import pathlib
 from setuptools import setup, find_packages
 
@@ -9,7 +12,7 @@ README = (ROOT / "README.rst").read_text()
 
 setup(
     name="pythonpredictions-cobra",
-    version="1.0.2",
+    version=__version__,
     description=("Package to build predictive models using "
                  "logistic regression"),
     long_description=README,
