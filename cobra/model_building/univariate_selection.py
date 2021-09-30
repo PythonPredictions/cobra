@@ -128,7 +128,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     return df_out
 
 def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
-    """Wrapper function to extract a list of predictors from df_auc.
+    """Wrapper function to extract a list of predictors from df_metric.
 
     Parameters
     ----------
@@ -136,10 +136,11 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
         DataFrame containing for each variable the train AUC or RMSE and
         test AUC or RMSE along with a boolean indicating whether or not it is selected
         based on the criteria.
+
     Returns
     -------
     list
-        list of preselected predictors
+        List of preselected predictors.
     """
 
     if "AUC selection" in df_metric.columns:
@@ -156,7 +157,7 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
 def compute_correlations(target_enc_train_data: pd.DataFrame,
                          predictors: list) -> pd.DataFrame:
     """Given a DataFrame and a list of predictors, compute the correlations
-    amongst the predictors in the DataFrame
+    amongst the predictors in the DataFrame.
 
     Parameters
     ----------

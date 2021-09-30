@@ -29,7 +29,7 @@ class ForwardFeatureSelection:
         more or less with the maximum number of steps in the forward feature
         selection.
     pos_only : bool
-        Whether or not the model coefficients should all be positive.
+        Whether or not the model coefficients should all be positive (no sign flips).
     self._fitted_models : list
         List of fitted models.
     """
@@ -280,7 +280,7 @@ class ForwardFeatureSelection:
             performance = (model
                            .evaluate(train_data[current_predictors + [pred]],
                                      train_data[target_column_name],
-                                     split="train"))
+                                     split="selection"))
 
             if self.pos_only and (not (model.get_coef() >= 0).all()):
                 continue

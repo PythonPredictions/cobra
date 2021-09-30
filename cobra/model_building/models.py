@@ -83,12 +83,12 @@ class LogisticRegressionModel:
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
     def get_coef(self) -> np.array:
-        """Returns the model coefficients
+        """Returns the model coefficients.
 
         Returns
         -------
         np.array
-            array of model coefficients
+            Array of model coefficients.
         """
         return self.logit.coef_[0]
 
@@ -249,12 +249,12 @@ class LinearRegressionModel:
         self._eval_metrics_by_split = {}
 
     def serialize(self) -> dict:
-        """Serialize model as JSON
+        """Serialize model as JSON.
 
         Returns
         -------
         dict
-            dictionary containing the serialized JSON
+            Dictionary containing the serialized JSON.
         """
         serialized_model = {
             "meta": "linear-regression",
@@ -272,7 +272,7 @@ class LinearRegressionModel:
         return serialized_model
 
     def deserialize(self, model_dict: dict):
-        """Deserialize a model previously stored as JSON
+        """Deserialize a model previously stored as JSON.
 
         Parameters
         ----------
@@ -282,7 +282,7 @@ class LinearRegressionModel:
         Raises
         ------
         ValueError
-            In case JSON file is no valid serialized model
+            In case JSON file is no valid serialized model.
         """
 
         if not self._is_valid_dict(model_dict):
@@ -296,37 +296,37 @@ class LinearRegressionModel:
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
     def get_coef(self) -> np.array:
-        """Returns the model coefficients
+        """Returns the model coefficients.
 
         Returns
         -------
         np.array
-            array of model coefficients
+            Array of model coefficients.
         """
         return self.linear.coef_[0]
 
     def get_intercept(self) -> float:
-        """Returns the intercept of the model
+        """Returns the intercept of the model.
 
         Returns
         -------
         float
-            intercept of the model
+            Intercept of the model.
         """
         return self.linear.intercept_[0]
 
     def get_coef_by_predictor(self) -> dict:
-        """Returns a dictionary mapping predictor (key) to coefficient (value)
+        """Returns a dictionary mapping predictor (key) to coefficient (value).
 
         Returns
         -------
         dict
-            map ``{predictor: coefficient}``
+            A map ``{predictor: coefficient}``.
         """
         return dict(zip(self.predictors, self.linear.coef_[0]))
 
     def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
-        """Fit the model
+        """Fit the model.
 
         Parameters
         ----------
