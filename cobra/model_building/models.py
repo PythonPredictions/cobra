@@ -157,7 +157,7 @@ class LogisticRegressionModel:
         y : pd.Series
             Dataset containing the target of each observation.
         split : str, optional
-            Split of the dataset (e.g. train-selection-validation).
+            Split name of the dataset (e.g. "train", "selection", or "validation").
 
         Returns
         -------
@@ -370,7 +370,7 @@ class LinearRegressionModel:
         y : pd.Series
             Dataset containing the target of each observation.
         split : str, optional
-            Split of the dataset (e.g. train-selection-validation).
+            Split name of the dataset (e.g. "train", "selection", or "validation").
 
         Returns
         -------
