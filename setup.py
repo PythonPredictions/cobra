@@ -13,11 +13,11 @@ README = (ROOT / "README.rst").read_text()
 setup(
     name="pythonpredictions-cobra",
     version=__version__,
-    description=("Package to build predictive models using "
-                 "logistic regression"),
+    description=("A Python package to build predictive linear and logistic regression "
+                 "models focused on performance and interpretation"),
     long_description=README,
     long_description_content_type="text/x-rst",
-    packages=find_packages(include=['cobra', 'cobra.*']),
+    packages=find_packages(include=["cobra", "cobra.*"]),
     url="https://github.com/PythonPredictions/cobra",
     license="MIT",
     author="Python Predictions",
@@ -27,7 +27,7 @@ setup(
         "pandas>=1.1.5",
         "scipy>=1.5.4",
         "scikit-learn>=0.24.1",
-        "matplotlib>=3.3.3",
+        "matplotlib>=3.4.3",
         "seaborn>=0.11.0",
-        "tqdm>=4.59.0"]
+        "tqdm>=4.62.2"]
 )

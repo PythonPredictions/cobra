@@ -1,5 +1,5 @@
 
-.. image:: material/logo.png
+.. image:: https://github.com/PythonPredictions/cobra/blob/master/material/logo.png?raw=true
     :width: 350
 
 
@@ -12,7 +12,7 @@
 
 ------------------------------------------------------------------------------------------------------------------------------------ 
 
-**Cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
+**Cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at `Python Predictions <https://www.pythonpredictions.com>`_ in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
 
 Main features
 =============
