@@ -1,3 +1,4 @@
+
 # third party imports
 import numpy as np
 import pandas as pd
@@ -5,12 +6,11 @@ from scipy import stats
 from sklearn.metrics import roc_auc_score, mean_squared_error
 from numpy import sqrt
 from sklearn.linear_model import LogisticRegression, LinearRegression
+
 # custom imports
 import cobra.utils as utils
 
-
 class LogisticRegressionModel:
-
     """Wrapper around the LogisticRegression class, with additional methods
     implemented such as evaluation (using AUC), getting a list of coefficients,
     a dictionary of coefficients per predictor, ... for convenience.
@@ -32,12 +32,12 @@ class LogisticRegressionModel:
         self._eval_metrics_by_split = {}
 
     def serialize(self) -> dict:
-        """Serialize model as JSON
+        """Serialize model as JSON.
 
         Returns
         -------
         dict
-            dictionary containing the serialized JSON
+            Dictionary containing the serialized JSON.
         """
         serialized_model = {
             "meta": "logistic-regression",
@@ -57,7 +57,7 @@ class LogisticRegressionModel:
         return serialized_model
 
     def deserialize(self, model_dict: dict):
-        """Deserialize a model previously stored as JSON
+        """Deserialize a model previously stored as JSON.
 
         Parameters
         ----------
@@ -67,7 +67,7 @@ class LogisticRegressionModel:
         Raises
         ------
         ValueError
-            In case JSON file is no valid serialized model
+            In case JSON file is no valid serialized model.
         """
 
         if not self._is_valid_dict(model_dict):
@@ -93,27 +93,27 @@ class LogisticRegressionModel:
         return self.logit.coef_[0]
 
     def get_intercept(self) -> float:
-        """Returns the intercept of the model
+        """Returns the intercept of the model.
 
         Returns
         -------
         float
-            intercept of the model
+            Intercept of the model.
         """
         return self.logit.intercept_[0]
 
     def get_coef_by_predictor(self) -> dict:
-        """Returns a dictionary mapping predictor (key) to coefficient (value)
+        """Returns a dictionary mapping predictor (key) to coefficient (value).
 
         Returns
         -------
         dict
-            map ``{predictor: coefficient}``
+            A map ``{predictor: coefficient}``.
         """
         return dict(zip(self.predictors, self.logit.coef_[0]))
 
     def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
-        """Fit the model
+        """Fit the model.
 
         Parameters
         ----------
@@ -127,7 +127,7 @@ class LogisticRegressionModel:
         self._is_fitted = True
 
     def score_model(self, X: pd.DataFrame) -> np.ndarray:
-        """Score a model on a (new) dataset
+        """Score a model on a (new) dataset.
 
         Parameters
         ----------
@@ -137,10 +137,10 @@ class LogisticRegressionModel:
         Returns
         -------
         np.ndarray
-            score of the model for each observation
+            Score (i.e. predicted probabilities) of the model for each observation.
         """
         # We select predictor columns (self.predictors) here to
-        # ensure we have the proper predictors and the proper order!!!
+        # ensure we have the proper predictors and the proper order
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
@@ -162,7 +162,7 @@ class LogisticRegressionModel:
         Returns
         -------
         float
-            the performance score of the model (AUC)
+            The performance score of the model (AUC).
         """
 
         if (split is None) or (split not in self._eval_metrics_by_split):
@@ -180,7 +180,7 @@ class LogisticRegressionModel:
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute the importance of each predictor in the model and return
-        it as a DataFrame
+        it as a DataFrame.
 
         Parameters
         ----------
@@ -190,7 +190,7 @@ class LogisticRegressionModel:
         Returns
         -------
         pd.DataFrame
-            DataFrame containing columns predictor and importance
+            DataFrame containing columns predictor and importance.
         """
 
         y_pred = self.score_model(data)
@@ -229,7 +229,6 @@ class LogisticRegressionModel:
 
 
 class LinearRegressionModel:
-
     """Wrapper around the LinearRegression class, with additional methods
     implemented such as evaluation (using RMSE), getting a list of coefficients,
     a dictionary of coefficients per predictor, ... for convenience.
@@ -341,7 +340,7 @@ class LinearRegressionModel:
         self._is_fitted = True
 
     def score_model(self, X: pd.DataFrame) -> np.ndarray:
-        """Score a model on a (new) dataset
+        """Score a model on a (new) dataset.
 
         Parameters
         ----------
@@ -351,10 +350,10 @@ class LinearRegressionModel:
         Returns
         -------
         np.ndarray
-            score of the model for each observation
+            Score of the model for each observation.
         """
         # We select predictor columns (self.predictors) here to
-        # ensure we have the proper predictors and the proper order!!!
+        # ensure we have the proper predictors and the proper order
         return self.linear.predict(X[self.predictors])
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
@@ -376,7 +375,7 @@ class LinearRegressionModel:
         Returns
         -------
         float
-            the performance score of the model (RMSE)
+            The performance score of the model (RMSE).
         """
 
         if (split is None) or (split not in self._eval_metrics_by_split):
@@ -394,7 +393,7 @@ class LinearRegressionModel:
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute the importance of each predictor in the model and return
-        it as a DataFrame
+        it as a DataFrame.
 
         Parameters
         ----------
@@ -404,7 +403,7 @@ class LinearRegressionModel:
         Returns
         -------
         pd.DataFrame
-            DataFrame containing columns predictor and importance
+            DataFrame containing columns predictor and importance.
         """
 
         y_pred = self.score_model(data)

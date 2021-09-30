@@ -1,14 +1,3 @@
-"""
-This module is a rework of
-https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py
-However, it is purely written in pandas instead of numpy because it is more intuitive.
-
-Also includes some custom modifications to align it with the Python Predictions methodology.
-
-Authors:
-- Geert Verstraeten (methodology)
-- Matthias Roels (implementation)
-"""
 
 # standard lib imports
 from copy import deepcopy
@@ -26,13 +15,18 @@ from sklearn.exceptions import NotFittedError
 
 log = logging.getLogger(__name__)
 
-
 class KBinsDiscretizer(BaseEstimator):
     """Bin continuous data into intervals of predefined size. It provides a
     way to partition continuous data into discrete values, i.e. transform
     continuous data into nominal data. This can make a linear model more
     expressive as it introduces nonlinearity to the model, while maintaining
     the interpretability of the model afterwards.
+
+    This module is a rework of
+    https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/preprocessing/_discretization.py,
+    though it is purely written in pandas instead of numpy because it is more intuitive. It also includes
+    some custom modifications to align it with the Python Predictions methodology. See the README of the
+    GitHub repository for more background information.
 
     Attributes
     ----------
@@ -48,7 +42,9 @@ class KBinsDiscretizer(BaseEstimator):
         Format string to display the bin labels
         e.g. ``min - max``, ``(min, max]``, ...
     n_bins : int
-        Number of bins to produce. Raises ValueError if ``n_bins < 2``.
+        Number of bins to produce. Raises ValueError if ``n_bins < 2``. A warning
+        is issued when a variable can only produce a lower number of bins than
+        asked for.
     starting_precision : int
         Initial precision for the bin edges to start from,
         can also be negative. Given a list of bin edges, the class will

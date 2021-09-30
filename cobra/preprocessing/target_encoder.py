@@ -1,12 +1,4 @@
-"""
-Incidence Replacement Module. The implementation is inspired by
-https://github.com/scikit-learn-contrib/category_encoders.
 
-Authors:
-
-- Geert Verstraeten (methodology)
-- Matthias Roels (implementation)
-"""
 import logging
 
 import pandas as pd
@@ -16,9 +8,7 @@ from sklearn.exceptions import NotFittedError
 
 log = logging.getLogger(__name__)
 
-
 class TargetEncoder(BaseEstimator):
-
     """Target encoding for categorical features, inspired by
     http://contrib.scikit-learn.org/category_encoders/targetencoder.html.
 
@@ -28,15 +18,14 @@ class TargetEncoder(BaseEstimator):
 
     Note that, when applying this target encoding, values of the categorical
     feature that have not been seen during fit will be imputed according to the
-    configured imputation strategy: replacement with the mean, minimum or
-    maximum value of the categorical variable.
+    configured imputation strategy (replacement with the mean, minimum or
+    maximum value of the categorical variable).
 
     The main problem with Target encoding is overfitting; the fact that we are
     encoding the feature based on target classes may lead to data leakage,
-    rendering the feature biased.
-    This can be solved using some type of regularization. A popular way to
-    handle this is to use cross-validation and compute the means in each
-    out-of-fold. However, the approach implemented here makes use of
+    rendering the feature biased. This can be solved using some type of regularization.
+    A popular way to handle this is to use cross-validation and compute the means
+    in each out-of-fold. However, the approach implemented here makes use of
     additive smoothing (https://en.wikipedia.org/wiki/Additive_smoothing).
 
     In summary:
@@ -44,19 +33,19 @@ class TargetEncoder(BaseEstimator):
     - with a binary classification target, a value of a categorical variable is
     replaced with:
 
-    [count(variable=value) * P(target=1|variable=value) + weight * P(target=1)]
-    / [count(variable=value) + weight]
+        [count(variable=value) * P(target=1|variable=value) + weight * P(target=1)]
+        / [count(variable=value) + weight]
 
     - with a regression target, a value of a categorical variable is replaced
     with:
 
-    [count(variable=value) * E(target|variable=value) + weight * E(target)]
-    / [count(variable=value) + weight]
+        [count(variable=value) * E(target|variable=value) + weight * E(target)]
+        / [count(variable=value) + weight]
 
     Attributes
     ----------
     imputation_strategy : str
-        in case there is a particular column which contains new categories,
+        In case there is a particular column which contains new categories,
         the encoding will lead to NULL values which should be imputed.
         Valid strategies then are to replace the NULL values with the global
         mean of the train set or the min (resp. max) incidence of the
@@ -87,7 +76,8 @@ class TargetEncoder(BaseEstimator):
         if weight == 0:
             log.warning("The target encoder's additive smoothing weight is "
                         "set to 0. This disables smoothing and may make the "
-                        "encoding prone to overfitting.")
+                        "encoding prone to overfitting. Increase the weight "
+                        "if needed.")
 
         self.weight = weight
         self.imputation_strategy = imputation_strategy
@@ -103,7 +93,7 @@ class TargetEncoder(BaseEstimator):
         -------
         dict
             Contains the attributes of TargetEncoder instance with the names
-            as keys
+            as keys.
         """
         params = self.get_params()
 
@@ -159,12 +149,12 @@ class TargetEncoder(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            data used to compute the mapping to encode the categorical
+            Data used to compute the mapping to encode the categorical
             variables with.
         column_names : list
-            Columns of data to be encoded
+            Columns of data to be encoded.
         target_column : str
-            Column name of the target
+            Column name of the target.
         """
         # compute global mean (target incidence in case of binary target)
         y = data[target_column]
@@ -186,10 +176,10 @@ class TargetEncoder(BaseEstimator):
         Parameters
         ----------
         X : pd.Series
-            data used to compute the encoding mapping for an individual
+            Data used to compute the encoding mapping for an individual
             categorical variable.
         y : pd.Series
-            series containing the targets for each observation (value) of
+            Series containing the targets for each observation (value) of
             this categorical variable.
 
         Returns
@@ -218,14 +208,14 @@ class TargetEncoder(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            the data to encode.
+            Data to encode.
         column_names : list
-            the name of the categorical columns in the data to be encoded.
+            Name of the categorical columns in the data to be encoded.
 
         Returns
         -------
         pd.DataFrame
-            the resulting transformed data.
+            The resulting transformed data.
 
         Raises
         ------
@@ -261,14 +251,14 @@ class TargetEncoder(BaseEstimator):
         Parameters
         ----------
         data : pd.DataFrame
-            the data to encode.
+            Data to encode.
         column_name : str
-            the name of the column in the data to be encoded.
+            Name of the column in the data to be encoded.
 
         Returns
         -------
         pd.DataFrame
-            the resulting transformed data.
+            Resulting transformed data.
         """
         new_column = TargetEncoder._clean_column_name(column_name)
 
@@ -298,21 +288,21 @@ class TargetEncoder(BaseEstimator):
     def fit_transform(self, data: pd.DataFrame,
                       column_names: list,
                       target_column: str) -> pd.DataFrame:
-        """Fit the encoder and transform the data
+        """Fit the encoder and transform the data.
 
         Parameters
         ----------
         data : pd.DataFrame
-            Data to be encoded
+            Data to be encoded.
         column_names : list
-            Columns of data to be encoded
+            Columns of data to be encoded.
         target_column : str
-            Column name of the target
+            Column name of the target.
 
         Returns
         -------
         pd.DataFrame
-            data with additional columns, holding the target-encoded variables.
+            Data with additional columns, holding the target-encoded variables.
         """
         self.fit(data, column_names, target_column)
         return self.transform(data, column_names)
@@ -326,12 +316,12 @@ class TargetEncoder(BaseEstimator):
         Parameters
         ----------
         column_name : str
-            column name to be cleaned
+            Column name to be cleaned.
 
         Returns
         -------
         str
-            cleaned column name
+            Cleaned column name.
         """
         if "_bin" in column_name:
             return column_name.replace("_bin", "") + "_enc"

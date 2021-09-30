@@ -1,17 +1,9 @@
-"""
-Module to perform univariate preselection and compute correlation amongst
-predictors
-Authors:
-- Geert Verstraeten (methodology)
-- Matthias Roels (current implementation)
-- Jan Benisek (initial implementation)
-"""
+
 import pandas as pd
 from sklearn.metrics import roc_auc_score, mean_squared_error
 from numpy import sqrt
 
 import cobra.utils as utils
-
 
 def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
                                     target_enc_selection_data: pd.DataFrame,

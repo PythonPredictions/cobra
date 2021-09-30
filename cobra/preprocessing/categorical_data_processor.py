@@ -1,18 +1,3 @@
-"""
-This class implements the Python Prediction's way of dealing with
-categorical data preprocessing. There are three steps involved here:
-
-- An optional regrouping of the different categories based on category size
-  and significance of the category w.r.t. the target
-- Missing value replacement with the additional category ``Missing``
-- Change of dtype to ``category`` (could potentially lead to memory
-  optimization)
-
-Authors:
-- Geert Verstraeten (methodology)
-- Jan Benisek (implementation)
-- Matthias Roels (implementation)
-"""
 
 # standard lib imports
 import re
@@ -29,10 +14,27 @@ from sklearn.exceptions import NotFittedError
 
 log = logging.getLogger(__name__)
 
-
 class CategoricalDataProcessor(BaseEstimator):
     """Regroups the categories of categorical variables based on significance
     with target variable.
+
+    This class implements the Python Prediction's way of dealing with
+    categorical data preprocessing. There are three steps involved:
+
+        - An optional regrouping of the different categories based on category size
+          and significance of the category w.r.t. the target.
+            - For a given categorical variable, all categories below the (weighted)
+              category size threshold are put into a rest category (by default ``Other``)
+            - The remaining categories are subject to a statistical test, if there is
+              sufficient dependence with the target variable compared to all other categories,
+              the category is kept as-is, otherwise it is also put into the rest category
+            - Beware: one can force categories to be kept, and if no single category passes
+              the statistical test, the categorical variable is left unprocessed altogether
+        - Missing value replacement with the additional category ``Missing``.
+        - Change of dtype to ``category`` (could potentially lead to memory
+          optimization).
+
+    See the README of the GitHub repository for more methodological background information.
 
     Attributes
     ----------
