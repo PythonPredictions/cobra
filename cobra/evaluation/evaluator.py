@@ -466,7 +466,7 @@ class ClassificationEvaluator():
     @staticmethod
     def _compute_lift_per_bin(y_true: np.ndarray,
                               y_pred: np.ndarray,
-                              n_bins: int = 10) -> tuple:
+                              n_bins: int=10) -> tuple:
         """Compute lift of the model for a given number of bins, returns x-labels,
         lifts and the target incidence to create cumulative response curves.
 

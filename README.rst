@@ -1,4 +1,6 @@
 
+.. image:: material/logo.png
+    :width: 300
 
 .. image:: https://img.shields.io/pypi/v/pythonpredictions-cobra.svg
     :target: https://pypi.org/project/pythonpredictions-cobra/
@@ -8,9 +10,6 @@
     :target: https://github.com/PythonPredictions/cobra/actions/workflows/development_CI.yaml
 
 ------------------------------------------------------------------------------------------------------------------------------------ 
-
-.. image:: material/logo.png
-    :width: 300
 
 **Cobra** is a Python package to build predictive models using linear or logistic regression with a focus on performance and interpretation. It consists of several modules for data preprocessing, feature selection and model evaluation. The underlying methodology was developed at Python Predictions in the course of hundreds of business-related prediction challenges. It has been tweaked, tested and optimized over the years based on feedback from clients, our team, and academic researchers.
 
@@ -23,7 +22,7 @@ Main features
    - create bins from continuous variables
    - regroup categorical variables based on statistical significance
    - replace missing values
-   - replace categories/bins with average of target values (linear regression) or incidence rate (logistic regression)
+   - add columns where categories/bins are replaced with average of target values (linear regression) or with incidence rate (logistic regression)
  
 - Perform univariate feature selection based on RMSE (linear regression) or AUC (logistic regression)
 - Compute correlation matrix of predictors
@@ -38,7 +37,7 @@ These instructions will get you a copy of the project up and running on your loc
 Requirements
 ------------
 
-This package requires only the usual Python packages for data science, being numpy, pandas, scipy, scikit-learn, matplotlib, seaborn, and tqdm. These packages, along with their versions are listed in ``requirements.txt`` and can be installed using ``pip``:    ::
+This package requires only the usual Python libraries for data science, being numpy, pandas, scipy, scikit-learn, matplotlib, seaborn, and tqdm. These packages, along with their versions are listed in ``requirements.txt`` and can be installed using ``pip``:    ::
 
   pip install -r requirements.txt
 

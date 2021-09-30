@@ -96,8 +96,8 @@ def compute_pig_table(basetable: pd.DataFrame,
 def plot_incidence(pig_tables: pd.DataFrame,
                    variable: str,
                    model_type: str,
-                   column_order: list = None,
-                   dim: tuple = (12, 8)):
+                   column_order: list=None,
+                   dim: tuple=(12, 8)):
     """Plots a Predictor Insights Graph (PIG), a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
     variable. When the target is a binary classification target,

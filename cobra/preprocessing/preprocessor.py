@@ -64,23 +64,23 @@ class PreProcessor(BaseEstimator):
 
     @classmethod
     def from_params(cls,
-                    model_type: str = "classification",
-                    n_bins: int = 10,
-                    strategy: str = "quantile",
-                    closed: str = "right",
-                    auto_adapt_bins: bool = False,
-                    starting_precision: int = 0,
-                    label_format: str = "{} - {}",
-                    change_endpoint_format: bool = False,
-                    regroup: bool = True,
-                    regroup_name: str = "Other",
-                    keep_missing: bool = True,
-                    category_size_threshold: int = 5,
-                    p_value_threshold: float = 0.001,
-                    scale_contingency_table: bool = True,
-                    forced_categories: dict = {},
-                    weight: float = 0.0,
-                    imputation_strategy: str = "mean"):
+                    model_type: str="classification",
+                    n_bins: int=10,
+                    strategy: str="quantile",
+                    closed: str="right",
+                    auto_adapt_bins: bool=False,
+                    starting_precision: int=0,
+                    label_format: str="{} - {}",
+                    change_endpoint_format: bool=False,
+                    regroup: bool=True,
+                    regroup_name: str="Other",
+                    keep_missing: bool=True,
+                    category_size_threshold: int=5,
+                    p_value_threshold: float=0.001,
+                    scale_contingency_table: bool=True,
+                    forced_categories: dict={},
+                    weight: float=0.0,
+                    imputation_strategy: str="mean"):
         """Constructor to instantiate PreProcessor from all the parameters
         that can be set in all its required (attribute) classes
         along with good default values.
