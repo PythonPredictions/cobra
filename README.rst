@@ -1,5 +1,5 @@
 
-.. image:: https://github.com/PythonPredictions/cobra/blob/master/material/logo.png?raw=true
+.. image:: https://github.com/PythonPredictions/cobra/raw/master/material/logo.png
     :width: 350
 
 
