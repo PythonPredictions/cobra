@@ -1,5 +1,5 @@
 
-# std lib imports
+# standard lib imports
 import inspect
 import time
 import math

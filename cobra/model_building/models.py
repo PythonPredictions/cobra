@@ -1,16 +1,18 @@
 
-# third party imports
 from typing import Callable, Optional
 
+# third party imports
 import numpy as np
 import pandas as pd
 from scipy import stats
 from sklearn.metrics import roc_auc_score, mean_squared_error
 from numpy import sqrt
 from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.metrics import roc_curve
 
 # custom imports
 import cobra.utils as utils
+from cobra.evaluation import ClassificationEvaluator
 
 class LogisticRegressionModel:
     """Wrapper around the LogisticRegression class, with additional methods
@@ -148,8 +150,8 @@ class LogisticRegressionModel:
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
                  split: str=None,
                  metric: Optional[Callable]=None) -> float:
-        """Evaluate the model on a given data set (X, y). The optional split
-        parameter is to indicate that the data set belongs to
+        """Evaluate the model on a given dataset (X, y). The optional split
+        parameter is to indicate that the dataset belongs to
         (train, selection, validation), so that the computation on these sets
         can be cached!
 
@@ -164,7 +166,7 @@ class LogisticRegressionModel:
         metric: Callable (function), optional
             Function that computes an evaluation metric to evaluate the model's
             performances, instead of the default metric (AUC).
-            The function should require y_true and y_pred arguments.
+            The function should require y_true and y_pred (binary output) arguments.
             Metric functions from sklearn can be used, for example, see
             https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
 
@@ -173,20 +175,25 @@ class LogisticRegressionModel:
         float
             The performance score of the model (AUC by default).
         """
-
-        if (split is None) or (split not in self._eval_metrics_by_split):
-
+        if metric is not None:  # decouple from _eval_metrics_by_split attribute
             y_pred = self.score_model(X)
 
-            if metric is None:
-                performance = roc_auc_score(y_true=y, y_score=y_pred)
-            else:
-                performance = metric(y_true=y, y_pred=y_pred)
+            fpr, tpr, thresholds = roc_curve(y_true=y, y_score=y_pred)
+            cutoff = (ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds))
+            y_pred_b = np.array([0 if pred <= cutoff else 1 for pred in y_pred])
 
-            if split is None:
-                return performance
-            else:
-                self._eval_metrics_by_split[split] = performance
+            performance = metric(y_true=y, y_pred=y_pred_b)
+
+            return performance
+        else:
+            if (split is None) or (split not in self._eval_metrics_by_split):
+                y_pred = self.score_model(X)
+                performance = roc_auc_score(y_true=y, y_score=y_pred)
+
+                if split is None:
+                    return performance
+                else:
+                    self._eval_metrics_by_split[split] = performance
 
         return self._eval_metrics_by_split[split]
 
@@ -371,8 +378,8 @@ class LinearRegressionModel:
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
                  split: str=None,
                  metric: Optional[Callable]=None) -> float:
-        """Evaluate the model on a given data set (X, y). The optional split
-        parameter is to indicate that the data set belongs to
+        """Evaluate the model on a given dataset (X, y). The optional split
+        parameter is to indicate that the dataset belongs to
         (train, selection, validation), so that the computation on these sets
         can be cached!
 
@@ -396,19 +403,20 @@ class LinearRegressionModel:
         float
             The performance score of the model (RMSE by default).
         """
-
-        if (split is None) or (split not in self._eval_metrics_by_split):
-
+        if metric is not None:  # decouple from _eval_metrics_by_split attribute
             y_pred = self.score_model(X)
-            if metric is None:
-                performance = sqrt(mean_squared_error(y_true=y, y_pred=y_pred))
-            else:
-                performance = metric(y_true=y, y_pred=y_pred)
+            performance = metric(y_true=y, y_pred=y_pred)
 
-            if split is None:
-                return performance
-            else:
-                self._eval_metrics_by_split[split] = performance
+            return performance
+        else:
+            if (split is None) or (split not in self._eval_metrics_by_split):
+                y_pred = self.score_model(X)
+                performance = sqrt(mean_squared_error(y_true=y, y_pred=y_pred))
+
+                if split is None:
+                    return performance
+                else:
+                    self._eval_metrics_by_split[split] = performance
 
         return self._eval_metrics_by_split[split]
 

@@ -61,7 +61,7 @@ class TestForwardFeatureSelection:
             mock_model_num_pred(3, model_type=model_type)
         ]
 
-        def mock_evaluate(self, X, y, split):  # on AUC scale, but gives the same for RMSE as it is a mock
+        def mock_evaluate(self, X, y, split, metric):  # on AUC scale, but gives the same for RMSE as it is a mock
             if split == "train":
                 return 0.612
             else:

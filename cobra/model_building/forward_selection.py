@@ -77,8 +77,8 @@ class ForwardFeatureSelection:
 
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
-                                   splits: list = ["train", "selection", "validation"],
-                                   metric: Optional[Callable] = None,
+                                   splits: list=["train", "selection", "validation"],
+                                   metric: Optional[Callable]=None,
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
         train-selection-validation) and return them along with a list of
@@ -170,7 +170,6 @@ class ForwardFeatureSelection:
         """
 
         assert "split" in train_data.columns, "The train_data input df does not include a split column."
-        print(train_data["split"].unique())
         assert len(set(["train", "selection"]).difference(set(train_data["split"].unique()))) == 0, \
             "The train_data input df does not include a 'train' and 'selection' split."
 

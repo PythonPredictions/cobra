@@ -88,13 +88,13 @@ class ClassificationEvaluator():
         """
         fpr, tpr, thresholds = roc_curve(y_true=y_true, y_score=y_pred)
 
-        # if probability_cutoff is not set, take the optimal cut off
+        # if probability_cutoff is not set, take the optimal cut-off
         if not self.probability_cutoff:
             self.probability_cutoff = (ClassificationEvaluator.
                                        _compute_optimal_cutoff(fpr, tpr,
                                                                thresholds))
 
-        # Transform probabilities to binary array using cut off:
+        # Transform probabilities to binary array using cut-off
         y_pred_b = np.array([0 if pred <= self.probability_cutoff else 1
                              for pred in y_pred])
 
