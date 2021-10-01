@@ -65,14 +65,14 @@ class CategoricalDataProcessor(BaseEstimator):
                   "scale_contingency_table", "forced_categories"]
 
     def __init__(self,
-                 model_type: str = "classification",
-                 regroup: bool = True,
-                 regroup_name: str = "Other",
-                 keep_missing: bool = True,
-                 category_size_threshold: int = 5,
-                 p_value_threshold: float = 0.001,
-                 scale_contingency_table: bool = True,
-                 forced_categories: dict = {}):
+                 model_type: str="classification",
+                 regroup: bool=True,
+                 regroup_name: str="Other",
+                 keep_missing: bool=True,
+                 category_size_threshold: int=5,
+                 p_value_threshold: float=0.001,
+                 scale_contingency_table: bool=True,
+                 forced_categories: dict={}):
         
         if model_type not in ["classification", "regression"]:
             raise ValueError("An unexpected model_type was provided. A valid model_type is either 'classification' or 'regression'.")
@@ -90,13 +90,13 @@ class CategoricalDataProcessor(BaseEstimator):
         self._cleaned_categories_by_column = {}
 
     def attributes_to_dict(self) -> dict:
-        """Return the attributes of CategoricalDataProcessor as a dictionary
+        """Return the attributes of CategoricalDataProcessor as a dictionary.
 
         Returns
         -------
         dict
             Contains the attributes of CategoricalDataProcessor instance with
-            the attribute name as key
+            the attribute name as key.
         """
         params = self.get_params()
 
@@ -120,7 +120,7 @@ class CategoricalDataProcessor(BaseEstimator):
         Raises
         ------
         ValueError
-            In case _cleaned_categories_by_column is not of type dict
+            In case _cleaned_categories_by_column is not of type dict.
         """
         _fitted_output = params.pop("_cleaned_categories_by_column", {})
 
@@ -144,7 +144,7 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def fit(self, data: pd.DataFrame, column_names: list,
             target_column: str):
-        """Fit the CategoricalDataProcessor
+        """Fit the CategoricalDataProcessor.
 
         Parameters
         ----------
@@ -195,7 +195,7 @@ class CategoricalDataProcessor(BaseEstimator):
         Returns
         -------
         list
-            list of categories to combine into a category "Other"
+            List of categories to combine into a category "Other".
         """
         model_type = self.model_type
 
@@ -256,20 +256,20 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def transform(self, data: pd.DataFrame,
                   column_names: list) -> pd.DataFrame:
-        """Transform the data
+        """Transform the data.
 
         Parameters
         ----------
         data : pd.DataFrame
-            data used to compute the mapping to encode the categorical
+            Data used to compute the mapping to encode the categorical
             variables with.
         column_names : list
-            Columns of data to be processed
+            Columns of data to be processed.
 
         Returns
         -------
         pd.DataFrame
-            data with additional transformed variables
+            Data with additional transformed variables.
         """
 
         if self.regroup and len(self._cleaned_categories_by_column) == 0:
@@ -293,7 +293,7 @@ class CategoricalDataProcessor(BaseEstimator):
                           column_name: str) -> pd.DataFrame:
         """Given a DataFrame, a column name and a list of categories to
         combine, create an additional column which combines these categories
-        into "Other"
+        into "Other".
 
         Parameters
         ----------
@@ -305,7 +305,7 @@ class CategoricalDataProcessor(BaseEstimator):
         Returns
         -------
         pd.DataFrame
-            original DataFrame with an added processed column
+            Original DataFrame with an added processed column.
         """
 
         column_name_clean = column_name + "_processed"
@@ -343,22 +343,22 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def fit_transform(self, data: pd.DataFrame, column_names: list,
                       target_column: str) -> pd.DataFrame:
-        """Fits to data, then transform it
+        """Fits the data, then transforms it.
 
         Parameters
         ----------
         data : pd.DataFrame
-            data used to compute the mapping to encode the categorical
+            Data used to compute the mapping to encode the categorical
             variables with.
         column_names : list
-            Columns of data to be processed
+            Columns of data to be processed.
         target_column : str
-            Column name of the target
+            Column name of the target.
 
         Returns
         -------
         pd.DataFrame
-            data with additional transformed variables
+            Data with additional transformed variables.
         """
 
         self.fit(data, column_names, target_column)
@@ -398,19 +398,19 @@ class CategoricalDataProcessor(BaseEstimator):
     @staticmethod
     def _replace_missings(data: pd.DataFrame,
                           column_names: Optional[list] = None) -> pd.DataFrame:
-        """Replace missing values (incl empty strings)
+        """Replace missing values (incl. empty strings).
 
         Parameters
         ----------
         data : pd.DataFrame
-            data to replace missings in
+            Data to replace missings in.
         column_names: list, optional
-            list of predictors to replace missings in
+            List of predictors to replace missings in.
 
         Returns
         -------
         list
-            list of unique values in the data
+            List of unique values in the data.
         """
         # replace missings (incl. empty string)
         regex = re.compile("^\\s+|\\s+$")
@@ -454,7 +454,7 @@ class CategoricalDataProcessor(BaseEstimator):
         Returns
         -------
         float
-            p-value of applied statistical test
+            The p-value of applied statistical test.
         """
         df = pd.concat([X, y], axis=1)
         df.columns = ["X", "y"]
@@ -484,13 +484,13 @@ class CategoricalDataProcessor(BaseEstimator):
     @staticmethod
     def _replace_categories(data: pd.Series, categories: set,
                             replace_with: str) -> pd.Series:
-        """replace categories in set with "Other" and transform the remaining
-        categories to strings to avoid type errors later on in the pipeline
+        """Replace categories in set with "Other" and transform the remaining
+        categories to strings to avoid type errors later on in the pipeline.
 
         Parameters
         ----------
         data : pd.Series
-            Dataset which contains the variable to be replaced
+            Dataset which contains the variable to be replaced.
         categories : set
             Cleaned categories.
         replace_with: str
@@ -499,7 +499,7 @@ class CategoricalDataProcessor(BaseEstimator):
         Returns
         -------
         pd.Series
-            Series with replaced categories
+            Series with replaced categories.
         """
         return data.apply(
             lambda x: str(x) if x in categories else replace_with)

@@ -1,11 +1,10 @@
+
 from contextlib import contextmanager
 import pytest
-
 import pandas as pd
 
 from cobra.model_building.models import LogisticRegressionModel, LinearRegressionModel
 from cobra.model_building.forward_selection import ForwardFeatureSelection
-
 
 @contextmanager
 def does_not_raise():
@@ -96,6 +95,18 @@ class TestForwardFeatureSelection:
 
         pd.testing.assert_frame_equal(actual, expected)
 
+    @pytest.mark.parametrize("model_type", ["classification", "regression"])
+    def test_ffs_train_data_assertions(self, model_type):
+
+        fw_selection = ForwardFeatureSelection(model_type=model_type)
+
+        with pytest.raises(AssertionError):  # no split column
+            fw_selection.fit(pd.DataFrame(), "target", predictors=[""])
+
+        df = mock_data(add_split_col=True, model_type=model_type)
+        with pytest.raises(AssertionError):  # not at least train & selection sets
+            fw_selection.fit(df[df["split"] == "train"], "target", predictors=[""])
+
     @pytest.mark.parametrize("model_type, max_predictors, expectation",
                              [("classification", 2, pytest.raises(ValueError)),
                               ("classification", 3, does_not_raise()),
@@ -137,8 +148,9 @@ class TestForwardFeatureSelection:
         mocker.patch("cobra.model_building.ForwardFeatureSelection._forward_selection",
                      mock_forward_selection)
 
+        df = mock_data(add_split_col=True, model_type=model_type)
         with expectation:
-            fw_selection.fit(pd.DataFrame(), "target",
+            fw_selection.fit(df, "target",  # data is ignored
                              predictors=predictors_list,
                              forced_predictors=forced_predictors_list,
                              excluded_predictors=[])

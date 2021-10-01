@@ -66,7 +66,7 @@ class TargetEncoder(BaseEstimator):
                  imputation_strategy: str="mean"):
 
         if weight < 0:
-            raise ValueError("The value of weight cannot be smaller than zero")
+            raise ValueError("The value of weight cannot be smaller than zero.")
         elif imputation_strategy not in self.valid_imputation_strategies:
             raise ValueError("Valid options for 'imputation_strategy' are {}."
                              " Got imputation_strategy={!r} instead."

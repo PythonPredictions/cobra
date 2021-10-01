@@ -29,7 +29,7 @@ class ForwardFeatureSelection:
         more or less with the maximum number of steps in the forward feature
         selection.
     pos_only : bool
-        Whether or not the model coefficients should all be positive.
+        Whether or not the model coefficients should all be positive (no sign flips).
     self._fitted_models : list
         List of fitted models.
     """
@@ -76,8 +76,7 @@ class ForwardFeatureSelection:
 
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
-                                   splits: list = ["train", "selection",
-                                                   "validation"]
+                                   splits: list=["train", "selection", "validation"]
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
         train-selection-validation) and return them along with a list of
@@ -111,7 +110,7 @@ class ForwardFeatureSelection:
                 "last_added_predictor": list(last_added_predictor)[0]
             }
 
-            # Evaluate model on each data set split,
+            # Evaluate model on each dataset split,
             # e.g. train-selection-validation
             tmp.update({
                 f"{split}_performance": model.evaluate(
@@ -139,7 +138,11 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model.
+            Data on which to fit the model. Should include a "train"
+            and "selection" split for correct model selection! The
+            "train" split is used to train a model, the "selection"
+            split is used to evaluate which model to include in the
+            actual forward feature selection.
         target_column_name : str
             Name of the target column.
         predictors : list
@@ -155,6 +158,12 @@ class ForwardFeatureSelection:
             In case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model.
         """
+
+        assert "split" in train_data.columns, "The train_data input df does not include a split column."
+        print(train_data["split"].unique())
+        assert len(set(["train", "selection"]).difference(set(train_data["split"].unique()))) == 0, \
+            "The train_data input df does not include a 'train' and 'selection' split."
+
         # remove excluded predictors from predictor lists
         filtered_predictors = [var for var in predictors
                                if (var not in excluded_predictors and
@@ -163,13 +172,13 @@ class ForwardFeatureSelection:
         # checks on predictor lists and self.max_predictors attr
         if len(forced_predictors) > self.max_predictors:
             raise ValueError("Size of forced_predictors cannot be bigger than "
-                             "max_predictors")
+                             "max_predictors.")
         elif len(forced_predictors) == self.max_predictors:
             log.info("Size of forced_predictors equals max_predictors "
                      "only one model will be trained...")
             # train model with all forced_predictors (only)
             (self._fitted_models
-             .append(self._train_model(train_data,
+             .append(self._train_model(train_data[train_data["split"] == "train"],
                                        target_column_name,
                                        forced_predictors)))
         else:
@@ -178,12 +187,14 @@ class ForwardFeatureSelection:
                                                           filtered_predictors,
                                                           forced_predictors)
 
-    def _forward_selection(self, train_data: pd.DataFrame,
-                           target_column_name: str, predictors: list,
+    def _forward_selection(self,
+                           train_data: pd.DataFrame,
+                           target_column_name: str,
+                           predictors: list,
                            forced_predictors: list = []) -> list:
         """Perform the forward feature selection algorithm to compute a list
         of models (with increasing performance). The length of the list,
-        i.e. the number of models is bounded by the max_predictors class
+        i.e. the number of models, is bounded by the max_predictors class
         attribute.
 
         Parameters
@@ -208,10 +219,11 @@ class ForwardFeatureSelection:
 
         max_steps = 1 + min(self.max_predictors,
                             len(predictors) + len(forced_predictors))
+
         for step in tqdm(range(1, max_steps), desc="Sequentially adding best "
                                                    "predictor..."):
             if step <= len(forced_predictors):
-                # first, we go through forced predictors
+                # first, we go through the forced predictors
                 candidate_predictors = [var for var in forced_predictors
                                         if var not in current_predictors]
             else:
@@ -230,13 +242,19 @@ class ForwardFeatureSelection:
                                           .union(set(model.predictors)))
 
                 fitted_models.append(model)
+            # else:
+            #     # If model returns None for the first time,
+            #     # one can in theory stop the feature selection process
+            #     # but we leave it run such that tqdm cleanly finishes
+            #     break
 
         if not fitted_models:
-            log.error("No models found in forward selection")
+            log.error("No models found in forward selection.")
 
         return fitted_models
 
-    def _find_next_best_model(self, train_data: pd.DataFrame,
+    def _find_next_best_model(self,
+                              train_data: pd.DataFrame,
                               target_column_name: str,
                               candidate_predictors: list,
                               current_predictors: list):
@@ -272,15 +290,19 @@ class ForwardFeatureSelection:
                              "for the given model_type specified as "
                              "ForwardFeatureSelection argument.")
 
+        fit_data = train_data[train_data["split"] == "train"]  # data to fit the models with
+        sel_data = train_data[train_data["split"] == "selection"]  # data to compare the models with
+
         for pred in candidate_predictors:
             # Train a model with an additional predictor
-            model = self._train_model(train_data, target_column_name,
+            model = self._train_model(fit_data, target_column_name,
                                       (current_predictors + [pred]))
+
             # Evaluate the model
             performance = (model
-                           .evaluate(train_data[current_predictors + [pred]],
-                                     train_data[target_column_name],
-                                     split="train"))
+                           .evaluate(sel_data[current_predictors + [pred]],
+                                     sel_data[target_column_name],
+                                     split="selection"))
 
             if self.pos_only and (not (model.get_coef() >= 0).all()):
                 continue

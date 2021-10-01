@@ -37,7 +37,7 @@ class PreProcessor(BaseEstimator):
         Instance of CategoricalDataProcessor to do the preprocessing of
         categorical variables.
     discretizer : KBinsDiscretizer
-        Instance of KBinsDiscretizer to do the prepocessing of continuous
+        Instance of KBinsDiscretizer to do the preprocessing of continuous
         variables by means of discretization.
     target_encoder : TargetEncoder
         Instance of TargetEncoder to do the incidence replacement.
@@ -347,9 +347,9 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def train_selection_validation_split(data: pd.DataFrame,
-                                         train_prop: float = 0.6,
-                                         selection_prop: float = 0.2,
-                                         validation_prop: float = 0.2) -> pd.DataFrame:
+                                         train_prop: float=0.6,
+                                         selection_prop: float=0.2,
+                                         validation_prop: float=0.2) -> pd.DataFrame:
         """Adds `split` column with train/selection/validation values
         to the dataset.
 
@@ -399,7 +399,6 @@ class PreProcessor(BaseEstimator):
         data['split'] = split
 
         return data
-
 
     def serialize_pipeline(self) -> dict:
         """Serialize the preprocessing pipeline by writing all its required

@@ -1,10 +1,9 @@
-import pytest
 
+import pytest
 import numpy as np
 import pandas as pd
 
 from cobra.preprocessing import CategoricalDataProcessor
-
 
 class TestCategoricalDataProcessor:
 

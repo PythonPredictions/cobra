@@ -40,7 +40,7 @@ class ClassificationEvaluator():
     cumulative_gains : tuple
         Data for plotting cumulative gains curve.
     evaluation_metrics : dict
-        Map containing various scalar evaluation metrics (precision, recall, accuracy, AUC, F1, etc.)
+        Map containing various scalar evaluation metrics (precision, recall, accuracy, AUC, F1, etc.).
     lift_at : float
         Parameter to determine at which top level percentage the lift of the
         model should be computed.
@@ -191,7 +191,7 @@ class ClassificationEvaluator():
             ax.set_xlabel("False Positive Rate", fontsize=15)
             ax.set_ylabel("True Positive Rate", fontsize=15)
             ax.legend(loc="lower right")
-            ax.set_title("ROC Curve", fontsize=20)
+            ax.set_title("ROC curve", fontsize=20)
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -274,7 +274,7 @@ class ClassificationEvaluator():
             ax.grid(False)
 
             # Description
-            ax.set_title("Cumulative response", fontsize=20)
+            ax.set_title("Cumulative Response curve", fontsize=20)
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -323,7 +323,7 @@ class ClassificationEvaluator():
             ax.grid(False)
 
             # Description
-            ax.set_title("Cumulative Lift", fontsize=20)
+            ax.set_title("Cumulative Lift curve", fontsize=20)
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -350,7 +350,7 @@ class ClassificationEvaluator():
             ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3,
                     ls="--", color="darkorange", label="random selection")
 
-            ax.set_title("Cumulative Gains", fontsize=20)
+            ax.set_title("Cumulative Gains curve", fontsize=20)
 
             # Format axes
             ax.set_xlim([0, 100])
@@ -681,7 +681,7 @@ class RegressionEvaluator():
             ax.set_xlabel("Index", fontsize=15)
             ax.set_ylabel("Value", fontsize=15)
             ax.legend(loc="best")
-            ax.set_title("Prediction Plot", fontsize=20)
+            ax.set_title("Predictions vs. Actuals", fontsize=20)
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -722,7 +722,7 @@ class RegressionEvaluator():
             ax.set_yticks(range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")])))+1, 1))
 
             ax.legend(loc="best")
-            ax.set_title("Q-Q Plot", fontsize=20)
+            ax.set_title("Q-Q plot", fontsize=20)
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")

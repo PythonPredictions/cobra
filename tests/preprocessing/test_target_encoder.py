@@ -1,9 +1,9 @@
+
 import pytest
 import pandas as pd
 from sklearn.exceptions import NotFittedError
 
 from cobra.preprocessing.target_encoder import TargetEncoder
-
 
 class TestTargetEncoder:
 

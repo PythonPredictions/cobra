@@ -1,13 +1,11 @@
+
 from contextlib import contextmanager
-import pytest
-
 from typing import Any
-
+import pytest
 import numpy as np
 import pandas as pd
 
 from cobra.preprocessing.preprocessor import PreProcessor
-
 
 @contextmanager
 def does_not_raise():

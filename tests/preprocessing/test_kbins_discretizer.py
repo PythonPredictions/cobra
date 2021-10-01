@@ -1,12 +1,10 @@
+
 from contextlib import contextmanager
 import pytest
-
 import numpy as np
 import pandas as pd
-import math
 
 from cobra.preprocessing.kbins_discretizer import KBinsDiscretizer
-
 
 @contextmanager
 def does_not_raise():
