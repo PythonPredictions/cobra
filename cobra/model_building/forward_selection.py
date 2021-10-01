@@ -186,7 +186,7 @@ class ForwardFeatureSelection:
                            forced_predictors: list = []) -> list:
         """Perform the forward feature selection algorithm to compute a list
         of models (with increasing performance). The length of the list,
-        i.e. the number of models is bounded by the max_predictors class
+        i.e. the number of models, is bounded by the max_predictors class
         attribute.
 
         Parameters
