@@ -170,7 +170,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
         ax.set_xlabel('{} bins' ''.format(variable), fontsize=16)
         ax.xaxis.set_tick_params(labelsize=14)
         plt.setp(ax.get_xticklabels(),
-                 rotation=90, ha="right", rotation_mode="anchor")
+                 rotation=45, ha="right", rotation_mode="anchor")
         ax.yaxis.set_tick_params(labelsize=14)
 
         if model_type == "classification":
@@ -211,7 +211,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
 
         # Set labels & ticks
         ax2.set_xlabel('{} bins' ''.format(variable), fontsize=16)
-        ax2.xaxis.set_tick_params(rotation=90, labelsize=14)
+        ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
 
         ax2.yaxis.set_tick_params(labelsize=14)
         ax2.yaxis.set_major_formatter(
