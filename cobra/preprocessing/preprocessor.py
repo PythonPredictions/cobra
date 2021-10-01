@@ -37,7 +37,7 @@ class PreProcessor(BaseEstimator):
         Instance of CategoricalDataProcessor to do the preprocessing of
         categorical variables.
     discretizer : KBinsDiscretizer
-        Instance of KBinsDiscretizer to do the prepocessing of continuous
+        Instance of KBinsDiscretizer to do the preprocessing of continuous
         variables by means of discretization.
     target_encoder : TargetEncoder
         Instance of TargetEncoder to do the incidence replacement.

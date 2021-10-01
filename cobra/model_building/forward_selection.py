@@ -110,7 +110,7 @@ class ForwardFeatureSelection:
                 "last_added_predictor": list(last_added_predictor)[0]
             }
 
-            # Evaluate model on each data set split,
+            # Evaluate model on each dataset split,
             # e.g. train-selection-validation
             tmp.update({
                 f"{split}_performance": model.evaluate(
@@ -138,9 +138,11 @@ class ForwardFeatureSelection:
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data on which to fit the model. The "train" split is used to
-            train a model, the "selection" split is used to evaluate
-            the actual forward feature selection.
+            Data on which to fit the model. Should include a "train"
+            and "selection" split for correct model selection! The
+            "train" split is used to train a model, the "selection"
+            split is used to evaluate which model to include in the
+            actual forward feature selection.
         target_column_name : str
             Name of the target column.
         predictors : list
@@ -156,6 +158,9 @@ class ForwardFeatureSelection:
             In case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model.
         """
+        assert all(s in ["train", "selection"] for s in train_data["split"].unique()), \
+            "The train_data input df does not include a 'train' and 'selection' split."
+
         # remove excluded predictors from predictor lists
         filtered_predictors = [var for var in predictors
                                if (var not in excluded_predictors and
@@ -164,13 +169,13 @@ class ForwardFeatureSelection:
         # checks on predictor lists and self.max_predictors attr
         if len(forced_predictors) > self.max_predictors:
             raise ValueError("Size of forced_predictors cannot be bigger than "
-                             "max_predictors")
+                             "max_predictors.")
         elif len(forced_predictors) == self.max_predictors:
             log.info("Size of forced_predictors equals max_predictors "
                      "only one model will be trained...")
             # train model with all forced_predictors (only)
             (self._fitted_models
-             .append(self._train_model(train_data,
+             .append(self._train_model(train_data[train_data["split"] == "train"],
                                        target_column_name,
                                        forced_predictors)))
         else:
