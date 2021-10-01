@@ -170,7 +170,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
         ax.set_xlabel('{} bins' ''.format(variable), fontsize=16)
         ax.xaxis.set_tick_params(labelsize=14)
         plt.setp(ax.get_xticklabels(),
-                 rotation=45, ha="right", rotation_mode="anchor")
+                 rotation=90, ha="right", rotation_mode="anchor")
         ax.yaxis.set_tick_params(labelsize=14)
 
         if model_type == "classification":
@@ -180,21 +180,19 @@ def plot_incidence(pig_tables: pd.DataFrame,
             ax.yaxis.set_major_formatter(
                 FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
         elif model_type == "regression":
-            # If both the difference between the highest avg target of all bins
-            # versus the global avg target AND the difference between the
-            # lowest avg target versus the global avg target are both smaller
-            # than 25% of the global avg target itself, we increase the y
-            # axis range, to avoid that the minor avg target differences are
-            # spread out over the configure figure height, suggesting
-            # incorrectly that there are big differences in avg target across
-            # the bins and versus the global avg target.
+            # If the difference between the highest avg. target of all bins
+            # versus the global avg. target AND the difference between the
+            # lowest avg. target versus the global avg. target are both smaller
+            # than 25% of the global avg. target itself, we increase the
+            # y-axis range, to avoid that the minor avg. target differences are
+            # spread out over the configured figure height, suggesting
+            # incorrectly that there are big differences in avg. target across
+            # the bins and versus the global avg. target.
             # (Motivation for the AND above: if on one end there IS enough
             # difference, the effect that we discuss here does not occur.)
-            global_avg_target = max(df_plot['global_avg_target']) # series of same number, for every bin.
-            if (np.abs((max(df_plot['avg_target']) - global_avg_target))
-                    / global_avg_target < 0.25) \
-                and (np.abs((min(df_plot['avg_target']) - global_avg_target))
-                    / global_avg_target < 0.25):
+            global_avg_target = max(df_plot['global_avg_target'])  # series of same number, for every bin.
+            if ((np.abs((max(df_plot['avg_target']) - global_avg_target)) / global_avg_target < 0.25)
+                    and (np.abs((min(df_plot['avg_target']) - global_avg_target)) / global_avg_target < 0.25)):
                 ax.set_ylim(global_avg_target * 0.75,
                             global_avg_target * 1.25)
 
@@ -213,7 +211,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
 
         # Set labels & ticks
         ax2.set_xlabel('{} bins' ''.format(variable), fontsize=16)
-        ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
+        ax2.xaxis.set_tick_params(rotation=90, labelsize=14)
 
         ax2.yaxis.set_tick_params(labelsize=14)
         ax2.yaxis.set_major_formatter(
@@ -234,9 +232,9 @@ def plot_incidence(pig_tables: pd.DataFrame,
             title = "Incidence plot - " + variable
         else:
             title = "Mean target plot - " + variable
-        fig.suptitle(title, fontsize=22, y=1.02)
+        fig.suptitle(title, fontsize=22)
         ax.legend(frameon=False, bbox_to_anchor=(0., 1.01, 1., .102),
-                  loc=3, ncol=3, mode="expand", borderaxespad=0.,
+                  loc=3, ncol=1, mode="expand", borderaxespad=0.,
                   prop={"size": 14})
 
         # Set order of layers
@@ -244,6 +242,9 @@ def plot_incidence(pig_tables: pd.DataFrame,
         ax.patch.set_visible(False)
 
         del df_plot
+
+        plt.tight_layout()
+        plt.margins(0.01)
 
         # Show
         plt.show()
