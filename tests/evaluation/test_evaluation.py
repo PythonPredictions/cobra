@@ -1,9 +1,10 @@
+
 import pytest
 import pandas as pd
 import numpy as np
+
 from cobra.evaluation import plot_incidence
 from cobra.evaluation import ClassificationEvaluator, RegressionEvaluator
-
 
 def mock_data():
     d = {'variable': ['education', 'education', 'education', 'education'],

@@ -1,8 +1,8 @@
+
 import numpy as np
 import pandas as pd
 
 from cobra.model_building.models import LogisticRegressionModel, LinearRegressionModel
-
 
 def mock_data():
     return pd.DataFrame({"var1_enc": [0.42] * 10,

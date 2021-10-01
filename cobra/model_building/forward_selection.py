@@ -158,7 +158,10 @@ class ForwardFeatureSelection:
             In case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model.
         """
-        assert all(s in ["train", "selection"] for s in train_data["split"].unique()), \
+
+        assert "split" in train_data.columns, "The train_data input df does not include a split column."
+        print(train_data["split"].unique())
+        assert len(set(["train", "selection"]).difference(set(train_data["split"].unique()))) == 0, \
             "The train_data input df does not include a 'train' and 'selection' split."
 
         # remove excluded predictors from predictor lists

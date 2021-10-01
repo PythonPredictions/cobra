@@ -1,9 +1,7 @@
-import pytest
 
 import pandas as pd
 
 from cobra.model_building import univariate_selection
-
 
 def mock_data():
     return pd.DataFrame({"var1_enc": [0.42] * 10,
