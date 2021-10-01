@@ -303,7 +303,7 @@ class LinearRegressionModel:
         np.array
             Array of model coefficients.
         """
-        return self.linear.coef_[0]
+        return self.linear.coef_
 
     def get_intercept(self) -> float:
         """Returns the intercept of the model.
@@ -323,7 +323,7 @@ class LinearRegressionModel:
         dict
             A map ``{predictor: coefficient}``.
         """
-        return dict(zip(self.predictors, self.linear.coef_[0]))
+        return dict(zip(self.predictors, self.linear.coef_))
 
     def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
         """Fit the model.

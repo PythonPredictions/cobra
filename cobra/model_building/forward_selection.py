@@ -211,6 +211,7 @@ class ForwardFeatureSelection:
 
         max_steps = 1 + min(self.max_predictors,
                             len(predictors) + len(forced_predictors))
+
         for step in tqdm(range(1, max_steps), desc="Sequentially adding best "
                                                    "predictor..."):
             if step <= len(forced_predictors):
@@ -233,9 +234,14 @@ class ForwardFeatureSelection:
                                           .union(set(model.predictors)))
 
                 fitted_models.append(model)
+            # else:
+            #     # If model returns None for the first time,
+            #     # one can in theory stop the feature selection process
+            #     # but we leave it run such that tqdm cleanly finishes
+            #     break
 
         if not fitted_models:
-            log.error("No models found in forward selection")
+            log.error("No models found in forward selection.")
 
         return fitted_models
 
@@ -283,6 +289,7 @@ class ForwardFeatureSelection:
             # Train a model with an additional predictor
             model = self._train_model(fit_data, target_column_name,
                                       (current_predictors + [pred]))
+
             # Evaluate the model
             performance = (model
                            .evaluate(sel_data[current_predictors + [pred]],
