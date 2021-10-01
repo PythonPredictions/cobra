@@ -1,5 +1,6 @@
 
 import logging
+from typing import Callable, Optional
 
 import pandas as pd
 from tqdm.auto import tqdm
@@ -76,7 +77,8 @@ class ForwardFeatureSelection:
 
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
-                                   splits: list=["train", "selection", "validation"]
+                                   splits: list = ["train", "selection", "validation"],
+                                   metric: Optional[Callable] = None,
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
         train-selection-validation) and return them along with a list of
@@ -92,6 +94,13 @@ class ForwardFeatureSelection:
             Name of the target column.
         splits : list, optional
             List of splits to compute performance on.
+        metric: Callable (function), optional
+            Function that computes an evaluation metric to evaluate the model's
+            performances, instead of the default metric (AUC for
+            classification, RMSE for regression).
+            The function should require y_true and y_pred arguments.
+            Metric functions from sklearn can be used, for example, see
+            https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
 
         Returns
         -------
@@ -116,7 +125,8 @@ class ForwardFeatureSelection:
                 f"{split}_performance": model.evaluate(
                     data[data["split"] == split],
                     data[data["split"] == split][target_column_name],
-                    split=split  # parameter used for caching
+                    split=split,  # parameter used for caching
+                    metric=metric
                 )
                 for split in splits
             })

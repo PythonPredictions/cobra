@@ -77,7 +77,8 @@ class TestForwardFeatureSelection:
 
         actual = (fw_selection
                   .compute_model_performances(data, "target",
-                                              splits=["train", "selection"]))
+                                              splits=["train", "selection"],
+                                              metric=None))
 
         expected = pd.DataFrame([
             {"predictors": ["var1_enc"],

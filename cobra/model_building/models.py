@@ -1,5 +1,7 @@
 
 # third party imports
+from typing import Callable, Optional
+
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -144,7 +146,8 @@ class LogisticRegressionModel:
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
-                 split: str=None) -> float:
+                 split: str=None,
+                 metric: Optional[Callable]=None) -> float:
         """Evaluate the model on a given data set (X, y). The optional split
         parameter is to indicate that the data set belongs to
         (train, selection, validation), so that the computation on these sets
@@ -158,18 +161,27 @@ class LogisticRegressionModel:
             Dataset containing the target of each observation.
         split : str, optional
             Split name of the dataset (e.g. "train", "selection", or "validation").
+        metric: Callable (function), optional
+            Function that computes an evaluation metric to evaluate the model's
+            performances, instead of the default metric (AUC).
+            The function should require y_true and y_pred arguments.
+            Metric functions from sklearn can be used, for example, see
+            https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
 
         Returns
         -------
         float
-            The performance score of the model (AUC).
+            The performance score of the model (AUC by default).
         """
 
         if (split is None) or (split not in self._eval_metrics_by_split):
 
             y_pred = self.score_model(X)
 
-            performance = roc_auc_score(y_true=y, y_score=y_pred)
+            if metric is None:
+                performance = roc_auc_score(y_true=y, y_score=y_pred)
+            else:
+                performance = metric(y_true=y, y_pred=y_pred)
 
             if split is None:
                 return performance
@@ -357,7 +369,8 @@ class LinearRegressionModel:
         return self.linear.predict(X[self.predictors])
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
-                 split: str=None) -> float:
+                 split: str=None,
+                 metric: Optional[Callable]=None) -> float:
         """Evaluate the model on a given data set (X, y). The optional split
         parameter is to indicate that the data set belongs to
         (train, selection, validation), so that the computation on these sets
@@ -371,18 +384,26 @@ class LinearRegressionModel:
             Dataset containing the target of each observation.
         split : str, optional
             Split name of the dataset (e.g. "train", "selection", or "validation").
+        metric: Callable (function), optional
+            Function that computes an evaluation metric to evaluate the model's
+            performances, instead of the default metric (RMSE).
+            The function should require y_true and y_pred arguments.
+            Metric functions from sklearn can be used, for example, see
+            https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
 
         Returns
         -------
         float
-            The performance score of the model (RMSE).
+            The performance score of the model (RMSE by default).
         """
 
         if (split is None) or (split not in self._eval_metrics_by_split):
 
             y_pred = self.score_model(X)
-
-            performance = sqrt(mean_squared_error(y_true=y, y_pred=y_pred))
+            if metric is None:
+                performance = sqrt(mean_squared_error(y_true=y, y_pred=y_pred))
+            else:
+                performance = metric(y_true=y, y_pred=y_pred)
 
             if split is None:
                 return performance
