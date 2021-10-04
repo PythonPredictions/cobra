@@ -14,7 +14,7 @@ setup(
     name="pythonpredictions-cobra",
     version=__version__,
     description=("A Python package to build predictive linear and logistic regression "
-                 "models focused on performance and interpretation"),
+                 "models focused on performance and interpretation."),
     long_description=README,
     long_description_content_type="text/x-rst",
     packages=find_packages(include=["cobra", "cobra.*"]),
