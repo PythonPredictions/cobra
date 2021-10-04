@@ -1,7 +1,6 @@
 
 .. image:: https://github.com/PythonPredictions/cobra/raw/master/material/logo.png
-    :width: 350
-
+    :width: 700
 
 .. image:: https://img.shields.io/pypi/v/pythonpredictions-cobra.svg
     :target: https://pypi.org/project/pythonpredictions-cobra/
@@ -54,7 +53,7 @@ The easiest way to install Cobra is using ``pip``:    ::
 
 
 Documentation and extra material
-=====================
+================================
 
 - A `blog post <https://www.pythonpredictions.com/news/the-little-trick-we-apply-to-obtain-explainability-by-design/>`_ on the overall methodology.
 
@@ -64,7 +63,7 @@ Documentation and extra material
 
 - A step-by-step `tutorial <https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_logistic_regression.ipynb>`_ for **logistic regression**.
 
-- A step-by-step `tutorial <https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_linear_regression.ipynb>`_ for **linear regression**.
+- A step-by-step `tutorial <https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_linear_regression.ipynb>`__ for **linear regression**.
 
 - Check out the Data Science Leuven Meetup `talk <https://www.youtube.com/watch?v=w7ceZZqMEaA&feature=youtu.be>`_ by one of the core developers (second presentation). His `slides <https://github.com/PythonPredictions/Cobra-DS-meetup-Leuven/blob/main/DS_Leuven_meetup_20210209_cobra.pdf>`_ and `related material <https://github.com/PythonPredictions/Cobra-DS-meetup-Leuven>`_ are also available.
 
@@ -72,6 +71,6 @@ Contributing to Cobra
 =====================
 
 We'd love you to contribute to the development of Cobra! There are many ways in which you can contribute, the most common of which is to contribute to the source code or documentation of the project. However, there are many other ways you can contribute (report issues, improve code coverage by adding unit tests, ...).
-We use GitHub issue to track all bugs and feature requests. Feel free to open an issue in case you found a bug or in case you wish to see a new feature added.
+We use GitHub issues to track all bugs and feature requests. Feel free to open an issue in case you found a bug or in case you wish to see a new feature added.
 
-For more details, check our `wiki <https://github.com/PythonPredictions/cobra/wiki/Contributing-guidelines-&-workflows>`_.
+For more details, check out our `wiki <https://github.com/PythonPredictions/cobra/wiki/Contributing-guidelines-&-workflows>`_.
