@@ -261,10 +261,9 @@ class LinearRegressionModel:
     """
 
     def __init__(self):
-        self.linear = LinearRegression(fit_intercept=True, normalize=False)
+        self.linear = LinearRegression(fit_intercept=True)
         self._is_fitted = False
-        # placeholder to keep track of a list of predictors
-        self.predictors = []
+        self.predictors = []  # placeholder to keep track of a list of predictors
         self._eval_metrics_by_split = {}
 
     def serialize(self) -> dict:

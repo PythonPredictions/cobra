@@ -61,9 +61,7 @@ Documentation and extra material
 
 - HTML documentation of the `individual modules <https://pythonpredictions.github.io/cobra.io/docstring/modules.html>`_.
 
-- A step-by-step `tutorial <https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_logistic_regression.ipynb>`_ for **logistic regression**.
-
-- A step-by-step `tutorial <https://pythonpredictions.github.io/cobra/tutorials/tutorial_Cobra_linear_regression.ipynb>`__ for **linear regression**.
+- Step-by-step `tutorials <https://github.com/PythonPredictions/cobra/blob/master/tutorials>`_ for a logistic and a linear regression use case.
 
 - Check out the Data Science Leuven Meetup `talk <https://www.youtube.com/watch?v=w7ceZZqMEaA&feature=youtu.be>`_ by one of the core developers (second presentation). His `slides <https://github.com/PythonPredictions/Cobra-DS-meetup-Leuven/blob/main/DS_Leuven_meetup_20210209_cobra.pdf>`_ and `related material <https://github.com/PythonPredictions/Cobra-DS-meetup-Leuven>`_ are also available.
 
