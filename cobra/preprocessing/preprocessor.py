@@ -1,60 +1,51 @@
-"""
-This module is a rework of the old cobra data_preparation.py. Here we will make
-use of the classes for discretization, preprocessing of categorical variables
-and incidence replacement. All of which will be employed to create a
-preprocessing pipeline, which can be stored as a JSON file so that it can
-easily be re-used for scoring.
 
-Authors:
-
-- Geert Verstraeten (methodology)
-- Matthias Roels (implementation)
-"""
-# std lib imports
+# standard lib imports
 import inspect
-from datetime import datetime
 import time
 import math
 import logging
 from random import shuffle
+from datetime import datetime
 
 # third party imports
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
+
 # custom imports
+from cobra.preprocessing import CategoricalDataProcessor
 from cobra.preprocessing import KBinsDiscretizer
 from cobra.preprocessing import TargetEncoder
-from cobra.preprocessing import CategoricalDataProcessor
 
 log = logging.getLogger(__name__)
 
-
 class PreProcessor(BaseEstimator):
-
     """This class implements a so-called facade pattern to define a
     higher-level interface to work with the CategoricalDataProcessor,
     KBinsDiscretizer and TargetEncoder classes, so that their fit and transform
-    methods are called in the correct order. Additionally, it provides features
-    such as (de)serialization to/from JSON so that preprocessing pipelines can
-    be stored and reloaded.
+    methods are called in the correct order.
+
+    Additionally, it provides methods such as (de)serialization to/from JSON
+    so that preprocessing pipelines can be stored and reloaded, example for scoring.
+
+    We refer to the README of the GitHub repository for more background information
+    on the preprocessing methodology.
 
     Attributes
     ----------
     categorical_data_processor : CategoricalDataProcessor
         Instance of CategoricalDataProcessor to do the preprocessing of
-        categorical variables. The model_type variable is specified
-        here (``classification`` or ``regression``).
+        categorical variables.
     discretizer : KBinsDiscretizer
-        Instance of KBinsDiscretizer to do the prepocessing of continuous
+        Instance of KBinsDiscretizer to do the preprocessing of continuous
         variables by means of discretization.
-    serialization_path : str
-        Path to save the pipeline to.
-    stratify_split : bool
-        Whether or not to stratify the train-test split.
     target_encoder : TargetEncoder
         Instance of TargetEncoder to do the incidence replacement.
+    is_fitted : bool
+        Whether or not object is yet fit.
+    model_type : str
+        The model_type variable as specified in CategoricalDataProcessor
+        (``classification`` or ``regression``).
     """
 
     def __init__(self,
@@ -63,33 +54,33 @@ class PreProcessor(BaseEstimator):
                  target_encoder: TargetEncoder,
                  is_fitted: bool = False):
 
-        self.model_type = categorical_data_processor.model_type
-
         self._categorical_data_processor = categorical_data_processor
         self._discretizer = discretizer
         self._target_encoder = target_encoder
 
         self._is_fitted = is_fitted
 
+        self.model_type = categorical_data_processor.model_type
+
     @classmethod
     def from_params(cls,
-                    model_type: str = "classification",
-                    n_bins: int = 10,
-                    strategy: str = "quantile",
-                    closed: str = "right",
-                    auto_adapt_bins: bool = False,
-                    starting_precision: int = 0,
-                    label_format: str = "{} - {}",
-                    change_endpoint_format: bool = False,
-                    regroup: bool = True,
-                    regroup_name: str = "Other",
-                    keep_missing: bool = True,
-                    category_size_threshold: int = 5,
-                    p_value_threshold: float = 0.001,
-                    scale_contingency_table: bool = True,
-                    forced_categories: dict = {},
-                    weight: float = 0.0,
-                    imputation_strategy: str = "mean"):
+                    model_type: str="classification",
+                    n_bins: int=10,
+                    strategy: str="quantile",
+                    closed: str="right",
+                    auto_adapt_bins: bool=False,
+                    starting_precision: int=0,
+                    label_format: str="{} - {}",
+                    change_endpoint_format: bool=False,
+                    regroup: bool=True,
+                    regroup_name: str="Other",
+                    keep_missing: bool=True,
+                    category_size_threshold: int=5,
+                    p_value_threshold: float=0.001,
+                    scale_contingency_table: bool=True,
+                    forced_categories: dict={},
+                    weight: float=0.0,
+                    imputation_strategy: str="mean"):
         """Constructor to instantiate PreProcessor from all the parameters
         that can be set in all its required (attribute) classes
         along with good default values.
@@ -129,11 +120,14 @@ class PreProcessor(BaseEstimator):
         keep_missing : bool
             Whether or not to keep missing as a separate category.
         category_size_threshold : int
-            Minimal size of a category to keep it as a separate category.
+            All categories with a size (corrected for incidence if applicable)
+            in the training set above this threshold are kept as a separate category,
+            if statistical significance w.r.t. target is detected. Remaining
+            categories are converted into ``Other`` (or else, cf. regroup_name).
         p_value_threshold : float
             Significance threshold for regrouping.
         forced_categories : dict
-            Map to prevent certain categories from being group into ``Other``
+            Map to prevent certain categories from being grouped into ``Other``
             for each column - dict of the form ``{col:[forced vars]}``.
         scale_contingency_table : bool
             Whether contingency table should be scaled before chi^2.
@@ -151,29 +145,26 @@ class PreProcessor(BaseEstimator):
         Returns
         -------
         PreProcessor
-            class encapsulating CategoricalDataProcessor,
-            KBinsDiscretizer, and TargetEncoder instances
-        """
-        categorical_data_processor = CategoricalDataProcessor(
-            model_type,
-            regroup,
-            regroup_name,
-            keep_missing,
-            category_size_threshold,
-            p_value_threshold,
-            scale_contingency_table,
-            forced_categories)
-
+            Class encapsulating CategoricalDataProcessor,
+            KBinsDiscretizer, and TargetEncoder instances.
+        """       
+        categorical_data_processor = CategoricalDataProcessor(model_type,
+                                                              regroup,
+                                                              regroup_name, keep_missing,
+                                                              category_size_threshold,
+                                                              p_value_threshold,
+                                                              scale_contingency_table,
+                                                              forced_categories)
+        
         discretizer = KBinsDiscretizer(n_bins, strategy, closed,
                                        auto_adapt_bins,
                                        starting_precision,
                                        label_format,
                                        change_endpoint_format)
-
+                
         target_encoder = TargetEncoder(weight, imputation_strategy)
 
-        return cls(model_type,
-                   categorical_data_processor, discretizer, target_encoder)
+        return cls(categorical_data_processor, discretizer, target_encoder)
 
     @classmethod
     def from_pipeline(cls, pipeline: dict):
@@ -183,27 +174,29 @@ class PreProcessor(BaseEstimator):
         Parameters
         ----------
         pipeline : dict
-            The (fitted) pipeline as a dictionary
+            The (fitted) pipeline as a dictionary.
 
         Returns
         -------
         PreProcessor
-            Instance of PreProcessor instantiated from a stored pipeline
+            Instance of PreProcessor instantiated from a stored pipeline.
 
         Raises
         ------
         ValueError
-            Description
+            If the loaded pipeline does not have all required parameters
+            and no others.
         """
 
         if not PreProcessor._is_valid_pipeline(pipeline):
-            raise ValueError("Invalid pipeline")  ## TODO: specify error
+            raise ValueError("Invalid pipeline, as it does not "
+                             "contain all and only the required parameters.")
 
         categorical_data_processor = CategoricalDataProcessor()
         categorical_data_processor.set_attributes_from_dict(
             pipeline["categorical_data_processor"]
         )
-        model_type = categorical_data_processor.model_type
+        # model_type = categorical_data_processor.model_type
 
         discretizer = KBinsDiscretizer()
         discretizer.set_attributes_from_dict(pipeline["discretizer"])
@@ -211,24 +204,23 @@ class PreProcessor(BaseEstimator):
         target_encoder = TargetEncoder()
         target_encoder.set_attributes_from_dict(pipeline["target_encoder"])
 
-        return cls(model_type,
-                   categorical_data_processor, discretizer, target_encoder,
+        return cls(categorical_data_processor, discretizer, target_encoder,
                    is_fitted=pipeline["_is_fitted"])
 
     def fit(self, train_data: pd.DataFrame, continuous_vars: list,
             discrete_vars: list, target_column_name: str):
-        """Fit the data to the preprocessing pipeline
+        """Fit the data to the preprocessing pipeline.
 
         Parameters
         ----------
         train_data : pd.DataFrame
-            Data to be preprocessed
+            Data to be preprocessed.
         continuous_vars : list
-            list of continuous variables
+            List of continuous variables.
         discrete_vars : list
-            list of discrete variables
+            List of discrete variables.
         target_column_name : str
-            Column name of the target
+            Column name of the target.
         """
 
         # get list of all variables
@@ -277,26 +269,26 @@ class PreProcessor(BaseEstimator):
 
     def transform(self, data: pd.DataFrame, continuous_vars: list,
                   discrete_vars: list) -> pd.DataFrame:
-        """Transform the data by applying the preprocessing pipeline
+        """Transform the data by applying the preprocessing pipeline.
 
         Parameters
         ----------
         data : pd.DataFrame
-            Data to be preprocessed
+            Data to be preprocessed.
         continuous_vars : list
-            list of continuous variables
+            List of continuous variables.
         discrete_vars : list
-            list of discrete variables
+            List of discrete variables.
 
         Returns
         -------
         pd.DataFrame
-            Transformed (preprocessed) data
+            Transformed (preprocessed) data.
 
         Raises
         ------
         NotFittedError
-            In case PreProcessor was not fitted first
+            In case PreProcessor was not fitted first.
         """
 
         start = time.time()
@@ -329,23 +321,23 @@ class PreProcessor(BaseEstimator):
     def fit_transform(self, train_data: pd.DataFrame, continuous_vars: list,
                       discrete_vars: list,
                       target_column_name: str) -> pd.DataFrame:
-        """Fit preprocessing pipeline and transform the data
+        """Fit preprocessing pipeline and transform the data.
 
         Parameters
         ----------
         train_data : pd.DataFrame
             Data to be preprocessed
         continuous_vars : list
-            list of continuous variables
+            List of continuous variables.
         discrete_vars : list
-            list of discrete variables
+            List of discrete variables.
         target_column_name : str
-            Column name of the target
+            Column name of the target.
 
         Returns
         -------
         pd.DataFrame
-            Transformed (preprocessed) data
+            Transformed (preprocessed) data.
         """
 
         self.fit(train_data, continuous_vars, discrete_vars,
@@ -355,27 +347,31 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def train_selection_validation_split(data: pd.DataFrame,
-                                         train_prop: float = 0.6,
-                                         selection_prop: float = 0.2,
-                                         validation_prop: float = 0.2)-> pd.DataFrame:
+                                         train_prop: float=0.6,
+                                         selection_prop: float=0.2,
+                                         validation_prop: float=0.2) -> pd.DataFrame:
         """Adds `split` column with train/selection/validation values
         to the dataset.
+
+        Train set = data on which the model is trained and on which the encoding is based.
+        Selection set = data used for univariate and forward feature selection. Often called the validation set.
+        Validation set = data that generates the final performance metrics. Often called the test set.
 
         Parameters
         ----------
         data : pd.DataFrame
-            Input dataset to split into train-selection and validation sets
+            Input dataset to split into train-selection and validation sets.
         train_prop : float, optional
-            Percentage data to put in train set
+            Percentage data to put in train set.
         selection_prop : float, optional
-            Percentage data to put in selection set
+            Percentage data to put in selection set.
         validation_prop : float, optional
-            Percentage data to put in validation set
+            Percentage data to put in validation set.
 
         Returns
         -------
         pd.DataFrame
-            DataFrame with additional split column
+            DataFrame with additional split column.
         """
         if not math.isclose(train_prop + selection_prop + validation_prop, 1.0):
             raise ValueError("The sum of train_prop, selection_prop and "
@@ -404,7 +400,6 @@ class PreProcessor(BaseEstimator):
 
         return data
 
-
     def serialize_pipeline(self) -> dict:
         """Serialize the preprocessing pipeline by writing all its required
         parameters to a dictionary to later store it as a JSON file.
@@ -412,7 +407,7 @@ class PreProcessor(BaseEstimator):
         Returns
         -------
         dict
-            Return the pipeline as a dictionary
+            Return the pipeline as a dictionary.
         """
         pipeline = {
             "metadata": {
@@ -440,7 +435,7 @@ class PreProcessor(BaseEstimator):
         Parameters
         ----------
         pipeline : dict
-            Loaded pipeline from json file
+            Loaded pipeline from JSON file.
         """
         keys = inspect.getfullargspec(PreProcessor.from_params).args
         valid_keys = set([key for key in keys
@@ -461,30 +456,30 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def _get_variable_list(continuous_vars: list, discrete_vars: list) -> list:
-        """merge lists of continuous_vars and discrete_vars and add suffix
-        "_bin" resp. "_processed" to the predictors
+        """Merge lists of continuous_vars and discrete_vars and add suffix
+        "_bin" resp. "_processed" to the predictors.
 
         Parameters
         ----------
         continuous_vars : list
-            list of continuous variables
+            List of continuous variables.
         discrete_vars : list
-            list of discrete variables
+            List of discrete variables.
 
         Returns
         -------
         list
-            Merged list of predictors with proper suffixes added
+            Merged list of predictors with proper suffixes added.
 
         Raises
         ------
         ValueError
-            in case both lists are empty
+            In case both lists are empty.
         """
         var_list = ([col + "_processed" for col in discrete_vars]
                     + [col + "_bin" for col in continuous_vars])
 
         if not var_list:
-            raise ValueError("Variable var_list is None or empty list")
+            raise ValueError("Variable var_list is None or empty list.")
 
         return var_list
