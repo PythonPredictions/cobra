@@ -42,7 +42,7 @@ This package requires only the usual Python libraries for data science, being nu
   pip install -r requirements.txt
 
 
-**Note**: if you want to install Cobra with e.g. pip, you don't have to install all of these requirements as these are automatically installed with Cobra itself.
+**Note**: if you want to install Cobra with e.g. pip, you don't have to install all these requirements as these are automatically installed with Cobra itself.
 
 Installation
 ------------

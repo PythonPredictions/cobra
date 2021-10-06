@@ -1,5 +1,4 @@
-# Runs CI when pushing to develop branch
-# runs pylint and pytest
+## Runs CI when pushing to develop branch
 
 name: CI_develop_action
 
