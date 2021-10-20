@@ -47,12 +47,16 @@ def plot_univariate_predictor_quality(df_metric: pd.DataFrame,
 
         # Set pretty axis
         sns.despine(ax=ax, right=True)
+        plt.ylabel("Predictor", fontsize=15)
+        plt.xlabel(metric, fontsize=15)
 
         # Remove white lines from the second axis
         ax.grid(False)
 
         if path is not None:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+        plt.gca().legend().set_title("")
 
         plt.show()
 
@@ -71,7 +75,7 @@ def plot_correlation_matrix(df_corr: pd.DataFrame,
         Path to store the figure.
     """
     fig, ax = plt.subplots(figsize=dim)
-    ax = sns.heatmap(df_corr, cmap='Blues')
+    ax = sns.heatmap(df_corr, cmap="Blues")
     ax.set_title("Correlation matrix", fontsize=20)
 
     if path is not None:
@@ -150,7 +154,7 @@ def plot_performance_curves(model_performance: pd.DataFrame,
         fig.suptitle('Performance curves forward feature selection',
                      fontsize=20)
         plt.title("Metric: "+metric_name, fontsize=15, loc="left")
-        plt.ylabel('Model performance')
+        plt.ylabel('Model performance', fontsize=15)
 
         if path is not None:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -184,8 +188,10 @@ def plot_variable_importance(df_variable_importance: pd.DataFrame,
         else:
             ax.set_title("Variable importance", fontsize=20)
 
-        # Set Axis - make them pretty
+        # Make pretty axis
         sns.despine(ax=ax, right=True)
+        plt.ylabel('Predictor', fontsize=15)
+        plt.xlabel('Importance', fontsize=15)
 
         # Remove white lines from the second axis
         ax.grid(False)
