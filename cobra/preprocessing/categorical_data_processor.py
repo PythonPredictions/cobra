@@ -39,10 +39,14 @@ class CategoricalDataProcessor(BaseEstimator):
     Attributes
     ----------
     category_size_threshold : int
-        All categories with a size (corrected for incidence if applicable)
-        in the training set above this threshold are kept as a separate category,
-        if statistical significance w.r.t. target is detected. Remaining
-        categories are converted into ``Other`` (or else, cf. regroup_name).
+        All categories with a size (i.e. number of samples with that
+        category value, potentially corrected for incidence if applicable)
+        in the training set above this threshold, are kept as a separate
+        category, if statistical significance w.r.t. target is detected.
+        Remaining categories are merged toghether into one category
+        named ``Other`` (or another name, cf. the parameter regroup_name).
+        A lower category_size_threshold thus means more categories are kept
+        for modeling direct relations with the target.
     forced_categories : dict
         Map to prevent certain categories from being grouped into ``Other``
         for each column - dict of the form ``{col:[forced vars]}``.
@@ -52,6 +56,8 @@ class CategoricalDataProcessor(BaseEstimator):
         Model type (``classification`` or ``regression``).
     p_value_threshold : float
         Significance threshold for regrouping.
+        A higher p_value_threshold means more categories are kept for
+        modeling direct relations with the target.
     regroup : bool
         Whether or not to regroup categories.
     regroup_name : str
