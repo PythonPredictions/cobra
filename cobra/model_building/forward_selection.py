@@ -14,10 +14,16 @@ class ForwardFeatureSelection:
     algorithm.
 
     Predictors are sequentially added to the model, starting with the one that
-    has the highest univariate predictive power, and then proceeding with those that
-    jointly lead to the best fit, optimizing for selection AUC or RMSE. Interaction
-    effects are not explicitly modeled, yet they are implicitly present given the
-    feature selection and the underlying feature correlation structure.
+    has the highest univariate predictive power, and then proceeding with those
+    that jointly lead to the best fit, optimizing (tuning) for model
+    performance on the selection set, measured with AUC (default for
+    classification), RMSE (default for regression) or a custom metric (when
+    passing the metric parameter and possibly also metric_args and
+    metric_kwargs.)
+
+    Interaction effects are not explicitly modeled, yet they are implicitly
+    present given the feature selection and the underlying feature
+    correlation structure.
 
     Attributes
     ----------
@@ -33,12 +39,61 @@ class ForwardFeatureSelection:
         Whether or not the model coefficients should all be positive (no sign flips).
     self._fitted_models : list
         List of fitted models.
+    metric : Callable (function), optional
+        Function that evaluates the model's performance, by calculating a
+        certain evaluation metric.
+        If the metric is not provided, the default metric AUC is used for
+        evaluating the model.
+        The metric functions from sklearn can be used, see
+        https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
+        You can also pass a custom function.
+        Examples for classification:
+        - ClassificationEvaluator._compute_lift(y_true=y_true,
+                                                y_score=y_pred,
+                                                lift_at=0.05)
+        - return_on_investment(y_true, y_pred,
+                              cost_of_letter=2.10,
+                              success_rate_of_letter=0.25,
+                              average_return_for_successful_letter=75.0)
+        Examples for regression:
+        - sklearn.metrics.r2_score(y_true, y_pred, *, sample_weight=None, multioutput='uniform_average')
+        - overall_estimated_commission_earned(y_true, y_pred,
+                                              avg_prob_buy_if_err_lower_than_20K=0.25,
+                                              avg_prob_buy_if_err_higher_than_20K=0.05,
+                                              pct_commission_on_buy=0.05)
+        Any metric function you provide here should be a function taking
+        y_true, y_pred and/or y_score arguments, of numpy array type,
+        and optionally also additional arguments, which you can pass
+        through the metric_args and metric_kwargs parameters.
+        If you are unsure which arguments of your metric function are
+        args/kwargs, then run inspect.getfullargspec(your_metric_function).
+    metric_args : dict, optional
+        Arguments (for example: lift_at=0.05) to be passed to the metric
+        function when evaluating the model's performance.
+        Example metric function in which this is required:
+        ClassificationEvaluator._compute_lift(y_true=y_true,
+                                              y_score=y_pred,
+                                              lift_at=0.05)
+    metric_kwargs : dict, optional
+        Keyword arguments (for example: normalize=True) to be passed to the
+        metric function when evaluating the model's performance.
+        Example metric function in which this is required (from
+        scikit-learn):
+        def accuracy_score(y_true, y_pred, *, normalize=True, sample_weight=None)
+    higher_is_better : bool, optional
+        Whether the model is performing better if the chosen evaluation
+        metric results in a higher score (higher_is_better=True),
+        or worse (higher_is_better=False, meaning "lower is better").
     """
 
     def __init__(self,
                  model_type: str="classification",
                  max_predictors: int=50,
-                 pos_only: bool=True):
+                 pos_only: bool=True,
+                 metric: Optional[Callable] = None,
+                 metric_args: Optional[dict] = None,
+                 metric_kwargs: Optional[dict] = None,
+                 higher_is_better: Optional[bool] = None):
 
         self.model_type = model_type
         if model_type == "classification":
@@ -48,6 +103,37 @@ class ForwardFeatureSelection:
 
         self.max_predictors = max_predictors
         self.pos_only = pos_only
+
+        if higher_is_better is None:
+            if metric is None:
+                if self.MLModel == LogisticRegressionModel:
+                    # If no custom evaluation metric is chosen,
+                    # the LogisticRegressionModel uses AUC as default metric,
+                    # so "higher is better" evaluation logic is applied on the
+                    # evaluation scores.
+                    self.higher_is_better = True
+                elif self.MLModel == LinearRegressionModel:
+                    # If no custom evaluation metric is chosen,
+                    # the LinearRegressionModel uses RMSE as default metric,
+                    # so "lower is better" evaluation logic is applied on the
+                    # evaluation scores.
+                    self.higher_is_better = False
+                else:
+                    raise ValueError("The configured machine learning model is "
+                                     "not the standard logistic regression or "
+                                     "linear regression model. "
+                                     "Therefore, please fill the metric and "
+                                     "higher_is_better arguments.")
+            else:
+                raise ValueError("You chose a custom evaluation metric. "
+                                 "Please fill the higher_is_better argument.")
+        else:
+            self.higher_is_better = higher_is_better
+
+        self.metric = metric
+        self.metric_args = metric_args
+        self.metric_kwargs = metric_kwargs
+
 
         self._fitted_models = []
 
@@ -77,8 +163,7 @@ class ForwardFeatureSelection:
 
     def compute_model_performances(self, data: pd.DataFrame,
                                    target_column_name: str,
-                                   splits: list=["train", "selection", "validation"],
-                                   metric: Optional[Callable]=None,
+                                   splits: list=["train", "selection", "validation"]
                                    ) -> pd.DataFrame:
         """Compute for each model the performance for different sets (e.g.
         train-selection-validation) and return them along with a list of
@@ -94,13 +179,6 @@ class ForwardFeatureSelection:
             Name of the target column.
         splits : list, optional
             List of splits to compute performance on.
-        metric: Callable (function), optional
-            Function that computes an evaluation metric to evaluate the model's
-            performances, instead of the default metric (AUC for
-            classification, RMSE for regression).
-            The function should require y_true and y_pred arguments.
-            Metric functions from sklearn can be used, for example, see
-            https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
 
         Returns
         -------
@@ -126,8 +204,9 @@ class ForwardFeatureSelection:
                     data[data["split"] == split],
                     data[data["split"] == split][target_column_name],
                     split=split,  # parameter used for caching
-                    metric=metric
-                )
+                    metric=self.metric,
+                    metric_args=self.metric_args,
+                    metric_kwargs=self.metric_kwargs)
                 for split in splits
             })
 
@@ -290,14 +369,14 @@ class ForwardFeatureSelection:
         """
         # placeholders
         best_model = None
-        if self.MLModel == LogisticRegressionModel:
-            best_performance = -1  # AUC metric is used
-        elif self.MLModel == LinearRegressionModel:
-            best_performance = float("inf")  # RMSE metric is used
+
+        # Set the performance intially with the worst possible value,
+        # depending on whether higher_is_better is true or false for the
+        # chosen evaluation metric.
+        if self.higher_is_better:
+            best_performance = -float("inf")
         else:
-            raise ValueError("No metric comparison method has been configured "
-                             "for the given model_type specified as "
-                             "ForwardFeatureSelection argument.")
+            best_performance = float("inf")
 
         fit_data = train_data[train_data["split"] == "train"]  # data to fit the models with
         sel_data = train_data[train_data["split"] == "selection"]  # data to compare the models with
@@ -311,19 +390,20 @@ class ForwardFeatureSelection:
             performance = (model
                            .evaluate(sel_data[current_predictors + [pred]],
                                      sel_data[target_column_name],
-                                     split="selection"))
+                                     split="selection",
+                                     metric=self.metric,
+                                     metric_args=self.metric_args,
+                                     metric_kwargs=self.metric_kwargs))
 
             if self.pos_only and (not (model.get_coef() >= 0).all()):
                 continue
 
             # Check if the model is better than the current best model
             # and if it is, replace the current best.
-            if self.MLModel == LogisticRegressionModel \
-                    and performance > best_performance:  # AUC metric is used
+            if self.higher_is_better and performance > best_performance:
                 best_performance = performance
                 best_model = model
-            elif self.MLModel == LinearRegressionModel \
-                    and performance < best_performance:  # RMSE metric is used
+            elif not self.higher_is_better and performance < best_performance:
                 best_performance = performance
                 best_model = model
 

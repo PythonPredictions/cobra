@@ -154,7 +154,7 @@ class ClassificationEvaluator():
             "matthews_corrcoef": matthews_corrcoef(y_true, y_pred_b),
             "lift at {}".format(lift_at): np.round(ClassificationEvaluator
                                                    ._compute_lift(y_true=y_true,
-                                                                  y_pred=y_pred,
+                                                                  y_score=y_pred,
                                                                   lift_at=lift_at), 2)
         })
 
@@ -493,7 +493,7 @@ class ClassificationEvaluator():
         """
 
         lifts = [ClassificationEvaluator._compute_lift(y_true=y_true,
-                                                       y_pred=y_pred,
+                                                       y_score=y_pred,
                                                        lift_at=perc_lift)
                  for perc_lift in np.linspace(1/n_bins, 1, num=n_bins, endpoint=True)]
 
@@ -502,15 +502,23 @@ class ClassificationEvaluator():
         return x_labels, lifts, y_true.mean()
 
     @staticmethod
-    def _compute_lift(y_true: np.ndarray, y_pred: np.ndarray,
+    def _compute_lift(y_true: np.ndarray,
+                      y_score: np.ndarray,
                       lift_at: float=0.05) -> float:
-        """Calculates lift given two arrays on specified level.
+        """
+        Calculate the lift metric for evaluation of the classifier model,
+        given the ground truth labels and the prediction scores
+        (scores or probabilities indicating the likelihood of the observations
+        being positive).
+        The lift metric is computed at a certain top level percentage - meaning
+        the selection percentage of observations from the evaluation data set,
+        after ordering them on descending prediction score.
 
         Parameters
         ----------
         y_true : np.ndarray
             True binary target data labels.
-        y_pred : np.ndarray
+        y_score : np.ndarray
             Target scores of the model.
         lift_at : float, optional
             At what top level percentage the lift should be computed.
@@ -523,7 +531,7 @@ class ClassificationEvaluator():
 
         # Make sure it is numpy array
         y_true_ = np.array(y_true)
-        y_pred_ = np.array(y_pred)
+        y_pred_ = np.array(y_score)
 
         # Make sure it has correct shape
         y_true_ = y_true_.reshape(len(y_true_), 1)

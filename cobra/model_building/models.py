@@ -1,4 +1,4 @@
-
+import inspect
 from typing import Callable, Optional
 
 # third party imports
@@ -22,11 +22,11 @@ class LogisticRegressionModel:
     Attributes
     ----------
     logit : LogisticRegression
-        scikit-learn logistic regression model.
+        The scikit-learn logistic regression model that is trained and
+        afterwards used for making predictions.
     predictors : list
         List of predictors used in the model.
     """
-
     def __init__(self):
         self.logit = LogisticRegression(fit_intercept=True, C=1e9,
                                         solver='liblinear', random_state=42)
@@ -148,8 +148,10 @@ class LogisticRegressionModel:
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
-                 split: str=None,
-                 metric: Optional[Callable]=None) -> float:
+                 split: str = None,
+                 metric: Optional[Callable] = None,
+                 metric_args: Optional[dict] = None,
+                 metric_kwargs: Optional[dict] = None) -> float:
         """Evaluate the model on a given dataset (X, y). The optional split
         parameter is to indicate that the dataset belongs to
         (train, selection, validation), so that the computation on these sets
@@ -163,39 +165,97 @@ class LogisticRegressionModel:
             Dataset containing the target of each observation.
         split : str, optional
             Split name of the dataset (e.g. "train", "selection", or "validation").
-        metric: Callable (function), optional
-            Function that computes an evaluation metric to evaluate the model's
-            performances, instead of the default metric (AUC).
-            The function should require y_true and y_pred (binary output) arguments.
-            Metric functions from sklearn can be used, for example, see
+        metric : Callable (function), optional
+            Function that evaluates the model's performance, by calculating a
+            certain evaluation metric.
+            If the metric is not provided, the default metric AUC is used for
+            evaluating the model.
+            The metric functions from sklearn can be used, see
             https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
+            You can also pass a custom function.
+            Examples:
+            - ClassificationEvaluator._compute_lift(y_true=y_true,
+                                                    y_score=y_pred,
+                                                    lift_at=0.05)
+            - return_on_investment(y_true, y_pred,
+                                  cost_of_letter=2.10,
+                                  success_rate_of_letter=0.25,
+                                  average_return_for_successful_letter=75.0)
+            Any metric function you provide here should be a function taking
+            y_true, y_pred and/or y_score arguments, of numpy array type,
+            and optionally also additional arguments, which you can pass
+            through the metric_args and metric_kwargs parameters.
+            If you are unsure which arguments of your metric function are
+            args/kwargs, then run inspect.getfullargspec(your_metric_function).
+        metric_args : dict, optional
+            Arguments (for example: lift_at=0.05) to be passed to the metric
+            function when evaluating the model's performance.
+            Example metric function in which this is required:
+            ClassificationEvaluator._compute_lift(y_true=y_true,
+                                                  y_score=y_pred,
+                                                  lift_at=0.05)
+        metric_kwargs : dict, optional
+            Keyword arguments (for example: normalize=True) to be passed to the
+            metric function when evaluating the model's performance.
+            Example metric function in which this is required (from
+            scikit-learn):
+            def accuracy_score(y_true, y_pred, *, normalize=True, sample_weight=None)
 
         Returns
         -------
         float
             The performance score of the model (AUC by default).
         """
-        if metric is not None:  # decouple from _eval_metrics_by_split attribute
-            y_pred = self.score_model(X)
+        y_score = self.score_model(X)
 
-            fpr, tpr, thresholds = roc_curve(y_true=y, y_score=y_pred)
-            cutoff = (ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds))
-            y_pred_b = np.array([0 if pred <= cutoff else 1 for pred in y_pred])
+        if metric is None:
+            # No custom evaluation metric was chosen. We use AUC as default
+            # evaluation metric:
+            performance = roc_auc_score(y_true=y, y_score=y_score)
 
-            performance = metric(y_true=y, y_pred=y_pred_b)
+        else:
+            # A custom evaluation metric was chosen. With the default
+            # metric AUC, the performance could be scored over all possible
+            # thresholds and based on y_score;
+            # now, with any evaluation metric possibly being used, y_pred may
+            # be required instead of y_score, which requires determining the
+            # optimal threshold first and then calculating y_pred.
+            fpr, tpr, thresholds = roc_curve(y_true=y, y_score=y_score)
+            cutoff = ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr,
+                                                                     thresholds)
+            y_pred = np.array([0 if score <= cutoff
+                               else 1
+                               for score in y_score])
 
+            # Compute the model performance with the chosen metric function,
+            # pass all arguments this function could potentially need,
+            # including optional keyword arguments that were passed when
+            # initializing this model.
+            args = {
+                "y_true": y,
+                "y_pred": y_pred,
+                "y_score": y_score,
+                "y_proba": y_score
+            }
+            if metric_args is not None and isinstance(metric_args, dict):
+                args = {**args, **metric_args}
+            args = {
+                arg: val
+                for arg, val in args.items()
+                # we can't provide too much arguments vs. the args of the
+                # metric's signature:
+                if arg in inspect.getfullargspec(metric).args
+            }
+            if metric_kwargs is None:
+                metric_kwargs = {}
+            performance = metric(**args, **metric_kwargs)
+
+        if split is None:
             return performance
         else:
-            if (split is None) or (split not in self._eval_metrics_by_split):
-                y_pred = self.score_model(X)
-                performance = roc_auc_score(y_true=y, y_score=y_pred)
-
-                if split is None:
-                    return performance
-                else:
-                    self._eval_metrics_by_split[split] = performance
-
-        return self._eval_metrics_by_split[split]
+            if split not in self._eval_metrics_by_split:
+                self._eval_metrics_by_split[split] = performance # caching
+            return self._eval_metrics_by_split[split]
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute the importance of each predictor in the model and return
@@ -376,7 +436,9 @@ class LinearRegressionModel:
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
                  split: str=None,
-                 metric: Optional[Callable]=None) -> float:
+                 metric: Optional[Callable] = None,
+                 metric_args: Optional[dict] = None,
+                 metric_kwargs: Optional[dict] = None) -> float:
         """Evaluate the model on a given dataset (X, y). The optional split
         parameter is to indicate that the dataset belongs to
         (train, selection, validation), so that the computation on these sets
@@ -390,34 +452,86 @@ class LinearRegressionModel:
             Dataset containing the target of each observation.
         split : str, optional
             Split name of the dataset (e.g. "train", "selection", or "validation").
-        metric: Callable (function), optional
-            Function that computes an evaluation metric to evaluate the model's
-            performances, instead of the default metric (RMSE).
-            The function should require y_true and y_pred arguments.
-            Metric functions from sklearn can be used, for example, see
+        metric : Callable (function), optional
+            Function that evaluates the model's performance, by calculating a
+            certain evaluation metric.
+            If the metric is not provided, the default metric AUC is used for
+            evaluating the model.
+            The metric functions from sklearn can be used, see
             https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
+            You can also pass a custom function.
+            Examples:
+            - sklearn.metrics.r2_score(y_true, y_pred, *, sample_weight=None, multioutput='uniform_average')
+            - overall_estimated_commission_earned(y_true, y_pred,
+                                                  avg_prob_buy_if_err_lower_than_20K=0.25,
+                                                  avg_prob_buy_if_err_higher_than_20K=0.05,
+                                                  pct_commission_on_buy=0.05)
+            Any metric function you provide here should be a function taking
+            y_true, y_pred and/or y_score arguments, of numpy array type,
+            and optionally also additional arguments, which you can pass
+            through the metric_args and metric_kwargs parameters.
+            If you are unsure which arguments of your metric function are
+            args/kwargs, then run inspect.getfullargspec(your_metric_function).
+        metric_args : dict, optional
+            Arguments (for example: lift_at=0.05) to be passed to the metric
+            function when evaluating the model's performance.
+            Example metric function in which this is required:
+            overall_estimated_commission_earned(y_true, y_pred,
+                                                avg_prob_buy_if_err_lower_than_20K=0.25,
+                                                avg_prob_buy_if_err_higher_than_20K=0.05,
+                                                pct_commission_on_buy=0.05)
+        metric_kwargs : dict, optional
+            Keyword arguments (for example: normalize=True) to be passed to the
+            metric function when evaluating the model's performance.
+            Example metric function in which this is required (from
+            scikit-learn):
+            sklearn.metrics.r2_score(y_true, y_pred, *, sample_weight=None, multioutput='uniform_average')
 
         Returns
         -------
         float
             The performance score of the model (RMSE by default).
         """
-        if metric is not None:  # decouple from _eval_metrics_by_split attribute
-            y_pred = self.score_model(X)
-            performance = metric(y_true=y, y_pred=y_pred)
+        y_pred = self.score_model(X)
 
-            return performance
+        if metric is None:
+            # No custom evaluation metric was chosen. We use RMSE as default
+            # evaluation metric:
+            performance = sqrt(mean_squared_error(y_true=y, y_pred=y_pred))
+
         else:
-            if (split is None) or (split not in self._eval_metrics_by_split):
-                y_pred = self.score_model(X)
-                performance = sqrt(mean_squared_error(y_true=y, y_pred=y_pred))
+            # A custom evaluation metric was chosen. With the default
+            # metric RMSE, the performance could be scored over all possible
+            # based on y_score;
+            # now, with any evaluation metric possibly being used, y_pred may
+            # be required instead of y_score, so we'll first calculate y_pred.
+            # Compute the model performance with the chosen metric function,
+            # pass all arguments this function could potentially need,
+            # including optional keyword arguments that were passed when
+            # initializing this model.
+            args = {
+                "y_true": y,
+                "y_pred": y_pred
+            }
+            if metric_args is not None and isinstance(metric_args, dict):
+                args = {**args, **metric_args}
+            args = {
+                arg: val
+                for arg, val in args.items()
+                # we can't provide too much arguments vs. the args of the
+                # metric's signature:
+                if arg in inspect.getfullargspec(metric).args
+            }
+            if metric_kwargs is None:
+                metric_kwargs = {}
+            performance = metric(**args, **metric_kwargs)
 
-                if split is None:
-                    return performance
-                else:
-                    self._eval_metrics_by_split[split] = performance
-
-        return self._eval_metrics_by_split[split]
+            if split is None:
+                return performance
+            else:
+                if split not in self._eval_metrics_by_split:
+                    self._eval_metrics_by_split[split] = performance  # caching
+                return self._eval_metrics_by_split[split]
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute the importance of each predictor in the model and return
