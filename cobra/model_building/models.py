@@ -25,14 +25,30 @@ class LogisticRegressionModel:
         scikit-learn logistic regression model.
     predictors : list
         List of predictors used in the model.
+    kwargs: dict, optional
+        Pass a dictionary here (optional!), to override Cobra's default
+        choice of hyperparameter values for the scikit-learn
+        LogisticRegression model that is used behind the scenes. Our defaults
+        are: fit_intercept=True, C=1e9, solver='liblinear', random_state=42.
+        See scikit-learn's documentation of the possible hyperparameters and
+        values that can be set:
+        https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
     """
 
-    def __init__(self):
-        self.logit = LogisticRegression(fit_intercept=True, C=1e9,
-                                        solver='liblinear', random_state=42)
+    def __init__(self, **kwargs):
+        # Initialize a scikit-learn linear regression model,
+        # with custom arguments passed by the data scientist (if any),
+        # supplemented with Cobra's default arguments, if a custom value was
+        # not provided by the data scientist for overriding purposes:
+        default_kwargs = dict(fit_intercept=True, C=1e9, solver='liblinear',
+                              random_state=42)
+        for kwarg, val in default_kwargs.items():
+            if kwarg not in kwargs:
+                kwargs[kwarg] = val
+        self.logit = LogisticRegression(**kwargs)
+
         self._is_fitted = False
-        # placeholder to keep track of a list of predictors
-        self.predictors = []
+        self.predictors = []  # placeholder to keep track of a list of predictors
         self._eval_metrics_by_split = {}
 
     def serialize(self) -> dict:
@@ -258,10 +274,27 @@ class LinearRegressionModel:
         scikit-learn linear regression model.
     predictors : list
         List of predictors used in the model.
+    kwargs: dict, optional
+        Pass a dictionary here (optional!), to override Cobra's default
+        choice of hyperparameter values for the scikit-learn
+        LinearRegression model that is used behind the scenes. Our default
+        setting is only fit_intercept=True.
+        See scikit-learn's documentation of the possible hyperparameters and
+        values that can be set:
+        https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html
     """
 
-    def __init__(self):
-        self.linear = LinearRegression(fit_intercept=True)
+    def __init__(self, **kwargs):
+        # Initialize a scikit-learn linear regression model,
+        # with custom arguments passed by the data scientist (if any),
+        # supplemented with Cobra's default arguments, if a custom value was
+        # not provided by the data scientist for overriding purposes:
+        default_kwargs = dict(fit_intercept=True)
+        for kwarg, val in default_kwargs.items():
+            if kwarg not in kwargs:
+                kwargs[kwarg] = val
+        self.linear = LinearRegression(**kwargs)
+
         self._is_fitted = False
         self.predictors = []  # placeholder to keep track of a list of predictors
         self._eval_metrics_by_split = {}
