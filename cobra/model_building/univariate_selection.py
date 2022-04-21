@@ -1,20 +1,23 @@
-
+"""Calculate the univariate quality of predictors."""
 import pandas as pd
 from sklearn.metrics import roc_auc_score, mean_squared_error
 from numpy import sqrt
 
 import cobra.utils as utils
 
-def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
-                                    target_enc_selection_data: pd.DataFrame,
-                                    predictors: list,
-                                    target_column: str,
-                                    model_type: str = "classification",
-                                    preselect_auc_threshold: float = 0.053,
-                                    preselect_rmse_threshold: float = 5,
-                                    preselect_overtrain_threshold: float = 0.05
-                                    ) -> pd.DataFrame:
-    """Perform a preselection of predictors based on an AUC (in case of
+def compute_univariate_preselection(
+    target_enc_train_data: pd.DataFrame,
+    target_enc_selection_data: pd.DataFrame,
+    predictors: list,
+    target_column: str,
+    model_type: str = "classification",
+    preselect_auc_threshold: float = 0.053,
+    preselect_rmse_threshold: float = 5,
+    preselect_overtrain_threshold: float = 0.05
+) -> pd.DataFrame:
+    """Perform a preselection of predictors.
+    
+    The preselection is based on an AUC (in case of
     classification) or a RMSE (in case of regression) threshold of
     a univariate model on a train and selection dataset and return a DataFrame
     containing for each variable the train and selection AUC or RMSE along with a
@@ -128,7 +131,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     return df_out
 
 def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
-    """Wrapper function to extract a list of predictors from df_metric.
+    """Extract a list of predictors from df_metric.
 
     Parameters
     ----------
@@ -142,7 +145,6 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
     list
         List of preselected predictors.
     """
-
     if "AUC selection" in df_metric.columns:
         predictor_list = (df_metric[df_metric["preselection"]]
                           .sort_values(by="AUC selection", ascending=False)
@@ -156,8 +158,7 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
 
 def compute_correlations(target_enc_train_data: pd.DataFrame,
                          predictors: list) -> pd.DataFrame:
-    """Given a DataFrame and a list of predictors, compute the correlations
-    amongst the predictors in the DataFrame.
+    """Compute the correlations amongst the predictors in the DataFrame.
 
     Parameters
     ----------
@@ -172,7 +173,6 @@ def compute_correlations(target_enc_train_data: pd.DataFrame,
     pd.DataFrame
         The correlation matrix of the training set.
     """
-
     correlations = target_enc_train_data[predictors].corr()
 
     predictors_cleaned = [utils.clean_predictor_name(predictor)

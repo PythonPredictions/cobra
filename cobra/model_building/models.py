@@ -1,3 +1,4 @@
+"""Contains all types of models supported by Cobra."""
 
 from typing import Callable, Optional
 
@@ -15,7 +16,10 @@ import cobra.utils as utils
 from cobra.evaluation import ClassificationEvaluator
 
 class LogisticRegressionModel:
-    """Wrapper around the LogisticRegression class, with additional methods
+    """
+    Cobra's LogisticRegression model.
+
+    Wrapper around the LogisticRegression class, with additional methods
     implemented such as evaluation (using AUC), getting a list of coefficients,
     a dictionary of coefficients per predictor, ... for convenience.
 
@@ -28,6 +32,7 @@ class LogisticRegressionModel:
     """
 
     def __init__(self):
+        """Initialize the LogisticRegressionModel class."""
         self.logit = LogisticRegression(fit_intercept=True, C=1e9,
                                         solver='liblinear', random_state=42)
         self._is_fitted = False
@@ -73,7 +78,6 @@ class LogisticRegressionModel:
         ValueError
             In case JSON file is no valid serialized model.
         """
-
         if not self._is_valid_dict(model_dict):
             raise ValueError("No valid serialized model")
 
@@ -87,7 +91,7 @@ class LogisticRegressionModel:
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
     def get_coef(self) -> np.array:
-        """Returns the model coefficients.
+        """Return the model coefficients.
 
         Returns
         -------
@@ -97,7 +101,7 @@ class LogisticRegressionModel:
         return self.logit.coef_[0]
 
     def get_intercept(self) -> float:
-        """Returns the intercept of the model.
+        """Return the intercept of the model.
 
         Returns
         -------
@@ -107,7 +111,7 @@ class LogisticRegressionModel:
         return self.logit.intercept_[0]
 
     def get_coef_by_predictor(self) -> dict:
-        """Returns a dictionary mapping predictor (key) to coefficient (value).
+        """Return a dictionary mapping predictor (key) to coefficient (value).
 
         Returns
         -------
@@ -150,7 +154,10 @@ class LogisticRegressionModel:
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
                  split: str=None,
                  metric: Optional[Callable]=None) -> float:
-        """Evaluate the model on a given dataset (X, y). The optional split
+        """
+        Evaluate the model on a given dataset (X, y).
+
+        The optional split
         parameter is to indicate that the dataset belongs to
         (train, selection, validation), so that the computation on these sets
         can be cached!
@@ -198,8 +205,7 @@ class LogisticRegressionModel:
         return self._eval_metrics_by_split[split]
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Compute the importance of each predictor in the model and return
-        it as a DataFrame.
+        """Compute the importance of each predictor in the model.
 
         Parameters
         ----------
@@ -211,7 +217,6 @@ class LogisticRegressionModel:
         pd.DataFrame
             DataFrame containing columns predictor and importance.
         """
-
         y_pred = self.score_model(data)
 
         importance_by_variable = {
@@ -230,7 +235,7 @@ class LogisticRegressionModel:
                 .reset_index(drop=True))
 
     def _is_valid_dict(self, model_dict: dict) -> bool:
-
+        """Check if the model dictionary is valid."""
         if ("meta" not in model_dict
                 or model_dict["meta"] != "logistic-regression"):
             return False
@@ -248,7 +253,10 @@ class LogisticRegressionModel:
 
 
 class LinearRegressionModel:
-    """Wrapper around the LinearRegression class, with additional methods
+    """
+    Cobra's LinearRegression model.
+
+    Wrapper around the LinearRegression class, with additional methods
     implemented such as evaluation (using RMSE), getting a list of coefficients,
     a dictionary of coefficients per predictor, ... for convenience.
 
@@ -261,6 +269,7 @@ class LinearRegressionModel:
     """
 
     def __init__(self):
+        """Initialize the LinearRegression class."""
         self.linear = LinearRegression(fit_intercept=True, normalize=False)
         self._is_fitted = False
         # placeholder to keep track of a list of predictors
@@ -303,7 +312,6 @@ class LinearRegressionModel:
         ValueError
             In case JSON file is no valid serialized model.
         """
-
         if not self._is_valid_dict(model_dict):
             raise ValueError("No valid serialized model")
 
@@ -315,7 +323,7 @@ class LinearRegressionModel:
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
     def get_coef(self) -> np.array:
-        """Returns the model coefficients.
+        """Return the model coefficients.
 
         Returns
         -------
@@ -325,7 +333,7 @@ class LinearRegressionModel:
         return self.linear.coef_
 
     def get_intercept(self) -> float:
-        """Returns the intercept of the model.
+        """Return the intercept of the model.
 
         Returns
         -------
@@ -335,7 +343,7 @@ class LinearRegressionModel:
         return self.linear.intercept_[0]
 
     def get_coef_by_predictor(self) -> dict:
-        """Returns a dictionary mapping predictor (key) to coefficient (value).
+        """Return a dictionary mapping predictor (key) to coefficient (value).
 
         Returns
         -------
@@ -378,7 +386,9 @@ class LinearRegressionModel:
     def evaluate(self, X: pd.DataFrame, y: pd.Series,
                  split: str=None,
                  metric: Optional[Callable]=None) -> float:
-        """Evaluate the model on a given dataset (X, y). The optional split
+        """Evaluate the model on a given dataset (X, y).
+
+        The optional split
         parameter is to indicate that the dataset belongs to
         (train, selection, validation), so that the computation on these sets
         can be cached!
@@ -421,8 +431,7 @@ class LinearRegressionModel:
         return self._eval_metrics_by_split[split]
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Compute the importance of each predictor in the model and return
-        it as a DataFrame.
+        """Compute the importance of each predictor in the model.
 
         Parameters
         ----------
@@ -434,7 +443,6 @@ class LinearRegressionModel:
         pd.DataFrame
             DataFrame containing columns predictor and importance.
         """
-
         y_pred = self.score_model(data)
 
         importance_by_variable = {
@@ -453,7 +461,7 @@ class LinearRegressionModel:
                 .reset_index(drop=True))
 
     def _is_valid_dict(self, model_dict: dict) -> bool:
-
+        """Check if the model dictionary is valid."""
         if ("meta" not in model_dict
                 or model_dict["meta"] != "linear-regression"):
             return False

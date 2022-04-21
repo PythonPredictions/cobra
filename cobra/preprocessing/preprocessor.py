@@ -1,3 +1,4 @@
+"""Preprocess data."""
 
 # standard lib imports
 import inspect
@@ -20,7 +21,10 @@ from cobra.preprocessing import TargetEncoder
 log = logging.getLogger(__name__)
 
 class PreProcessor(BaseEstimator):
-    """This class implements a so-called facade pattern to define a
+    """
+    Preprocess data.
+
+    This class implements a so-called facade pattern to define a
     higher-level interface to work with the CategoricalDataProcessor,
     KBinsDiscretizer and TargetEncoder classes, so that their fit and transform
     methods are called in the correct order.
@@ -48,12 +52,14 @@ class PreProcessor(BaseEstimator):
         (``classification`` or ``regression``).
     """
 
-    def __init__(self,
-                 categorical_data_processor: CategoricalDataProcessor,
-                 discretizer: KBinsDiscretizer,
-                 target_encoder: TargetEncoder,
-                 is_fitted: bool = False):
-
+    def __init__(
+        self,
+        categorical_data_processor: CategoricalDataProcessor,
+        discretizer: KBinsDiscretizer,
+        target_encoder: TargetEncoder,
+        is_fitted: bool = False
+    ):
+        """Initialize the PreProcessor class."""
         self._categorical_data_processor = categorical_data_processor
         self._discretizer = discretizer
         self._target_encoder = target_encoder
@@ -63,27 +69,28 @@ class PreProcessor(BaseEstimator):
         self.model_type = categorical_data_processor.model_type
 
     @classmethod
-    def from_params(cls,
-                    model_type: str="classification",
-                    n_bins: int=10,
-                    strategy: str="quantile",
-                    closed: str="right",
-                    auto_adapt_bins: bool=False,
-                    starting_precision: int=0,
-                    label_format: str="{} - {}",
-                    change_endpoint_format: bool=False,
-                    regroup: bool=True,
-                    regroup_name: str="Other",
-                    keep_missing: bool=True,
-                    category_size_threshold: int=5,
-                    p_value_threshold: float=0.001,
-                    scale_contingency_table: bool=True,
-                    forced_categories: dict={},
-                    weight: float=0.0,
-                    imputation_strategy: str="mean"):
-        """Constructor to instantiate PreProcessor from all the parameters
-        that can be set in all its required (attribute) classes
-        along with good default values.
+    def from_params(
+        cls,
+        model_type: str="classification",
+        n_bins: int=10,
+        strategy: str="quantile",
+        closed: str="right",
+        auto_adapt_bins: bool=False,
+        starting_precision: int=0,
+        label_format: str="{} - {}",
+        change_endpoint_format: bool=False,
+        regroup: bool=True,
+        regroup_name: str="Other",
+        keep_missing: bool=True,
+        category_size_threshold: int=5,
+        p_value_threshold: float=0.001,
+        scale_contingency_table: bool=True,
+        forced_categories: dict={},
+        weight: float=0.0,
+        imputation_strategy: str="mean"
+    ):
+        """
+        Instantiate a PreProcessor from given or default params.
 
         Parameters
         ----------
@@ -168,8 +175,11 @@ class PreProcessor(BaseEstimator):
 
     @classmethod
     def from_pipeline(cls, pipeline: dict):
-        """Constructor to instantiate PreProcessor from a (fitted) pipeline
-        which was stored as a JSON file and passed to this function as a dict.
+        """
+        Instantiate a PreProcessor from a (fitted) pipeline.
+
+        The pipeline should be stored as a JSON file and passed to this function
+        as a dict.
 
         Parameters
         ----------
@@ -187,7 +197,6 @@ class PreProcessor(BaseEstimator):
             If the loaded pipeline does not have all required parameters
             and no others.
         """
-
         if not PreProcessor._is_valid_pipeline(pipeline):
             raise ValueError("Invalid pipeline, as it does not "
                              "contain all and only the required parameters.")
@@ -222,7 +231,6 @@ class PreProcessor(BaseEstimator):
         target_column_name : str
             Column name of the target.
         """
-
         # get list of all variables
         preprocessed_variable_names = (PreProcessor
                                        ._get_variable_list(continuous_vars,
@@ -290,7 +298,6 @@ class PreProcessor(BaseEstimator):
         NotFittedError
             In case PreProcessor was not fitted first.
         """
-
         start = time.time()
 
         if not self._is_fitted:
@@ -339,7 +346,6 @@ class PreProcessor(BaseEstimator):
         pd.DataFrame
             Transformed (preprocessed) data.
         """
-
         self.fit(train_data, continuous_vars, discrete_vars,
                  target_column_name)
 
@@ -350,8 +356,7 @@ class PreProcessor(BaseEstimator):
                                          train_prop: float=0.6,
                                          selection_prop: float=0.2,
                                          validation_prop: float=0.2) -> pd.DataFrame:
-        """Adds `split` column with train/selection/validation values
-        to the dataset.
+        """Add `split` column with train/selection/validation values to the dataset.
 
         Train set = data on which the model is trained and on which the encoding is based.
         Selection set = data used for univariate and forward feature selection. Often called the validation set.
@@ -401,7 +406,10 @@ class PreProcessor(BaseEstimator):
         return data
 
     def serialize_pipeline(self) -> dict:
-        """Serialize the preprocessing pipeline by writing all its required
+        """
+        Serialize the preprocessing pipeline.
+
+        This is done by writing all its required
         parameters to a dictionary to later store it as a JSON file.
 
         Returns
@@ -429,8 +437,7 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def _is_valid_pipeline(pipeline: dict) -> bool:
-        """Validate the loaded pipeline by checking if all required parameters
-        are present (and no others!).
+        """Validate the loaded pipeline by checking if only the required parameters are present.
 
         Parameters
         ----------
@@ -456,8 +463,9 @@ class PreProcessor(BaseEstimator):
 
     @staticmethod
     def _get_variable_list(continuous_vars: list, discrete_vars: list) -> list:
-        """Merge lists of continuous_vars and discrete_vars and add suffix
-        "_bin" resp. "_processed" to the predictors.
+        """Merge lists of continuous_vars and discrete_vars.
+
+        Suffixes "_bin" resp. "_processed" are added to the predictors.
 
         Parameters
         ----------

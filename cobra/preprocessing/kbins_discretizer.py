@@ -1,4 +1,4 @@
-
+"""Binning of continous data."""
 # standard lib imports
 from copy import deepcopy
 from typing import List
@@ -16,7 +16,10 @@ from sklearn.exceptions import NotFittedError
 log = logging.getLogger(__name__)
 
 class KBinsDiscretizer(BaseEstimator):
-    """Bin continuous data into intervals of predefined size. It provides a
+    """
+    Discretize continuous values into categorical values.
+
+    Bin continuous data into intervals of predefined size. It provides a
     way to partition continuous data into discrete values, i.e. transform
     continuous data into nominal data. This can make a linear model more
     expressive as it introduces nonlinearity to the model, while maintaining
@@ -63,13 +66,15 @@ class KBinsDiscretizer(BaseEstimator):
                   "starting_precision", "label_format",
                   "change_endpoint_format"]
 
-    def __init__(self, n_bins: int = 10, strategy: str = "quantile",
-                 closed: str = "right",
-                 auto_adapt_bins: bool = False,
-                 starting_precision: int = 0,
-                 label_format: str = "{} - {}",
-                 change_endpoint_format: bool = False):
-
+    def __init__(
+        self, n_bins: int = 10, strategy: str = "quantile",
+        closed: str = "right",
+        auto_adapt_bins: bool = False,
+        starting_precision: int = 0,
+        label_format: str = "{} - {}",
+        change_endpoint_format: bool = False
+    ):
+        """Initialize the KBinsDiscretizer."""
         # validate number of bins
         self._validate_n_bins(n_bins)
 
@@ -85,8 +90,7 @@ class KBinsDiscretizer(BaseEstimator):
         self._bins_by_column = {}
 
     def _validate_n_bins(self, n_bins: int):
-        """Check if ``n_bins`` is of the proper type and if it is bigger
-        than two
+        """Check if ``n_bins`` is of the proper type and if it is bigger than one.
 
         Parameters
         ----------
@@ -109,7 +113,7 @@ class KBinsDiscretizer(BaseEstimator):
                              .format(KBinsDiscretizer.__name__, n_bins))
 
     def attributes_to_dict(self) -> dict:
-        """Return the attributes of KBinsDiscretizer in a dictionary
+        """Return the attributes of KBinsDiscretizer as a dictionary.
 
         Returns
         -------
@@ -127,8 +131,7 @@ class KBinsDiscretizer(BaseEstimator):
         return params
 
     def set_attributes_from_dict(self, params: dict):
-        """Set instance attributes from a dictionary of values with key the
-        name of the attribute.
+        """Set instance attributes from a dictionary.
 
         Parameters
         ----------
@@ -163,7 +166,7 @@ class KBinsDiscretizer(BaseEstimator):
         return self
 
     def fit(self, data: pd.DataFrame, column_names: list):
-        """Fits the estimator
+        """Fit the estimator.
 
         Parameters
         ----------
@@ -172,7 +175,6 @@ class KBinsDiscretizer(BaseEstimator):
         column_names : list
             Names of the columns of the DataFrame to discretize
         """
-
         if self.strategy not in self.valid_strategies:
             raise ValueError("{}: valid options for 'strategy' are {}. "
                              "Got strategy={!r} instead."
@@ -194,7 +196,7 @@ class KBinsDiscretizer(BaseEstimator):
 
     def _fit_column(self, data: pd.DataFrame,
                     column_name: str) -> List[tuple]:
-        """Compute bins for a specific column in data
+        """Compute bins for a specific column in data.
 
         Parameters
         ----------
@@ -254,8 +256,10 @@ class KBinsDiscretizer(BaseEstimator):
 
     def transform(self, data: pd.DataFrame,
                   column_names: list) -> pd.DataFrame:
-        """Discretizes the data in the given list of columns by mapping each
-        number to the appropriate bin computed by the fit method
+        """Discretize the data in the given list of columns.
+
+        This is done by mapping each number to
+        the appropriate bin computed by the fit method.
 
         Parameters
         ----------
@@ -291,9 +295,7 @@ class KBinsDiscretizer(BaseEstimator):
     def _transform_column(self, data: pd.DataFrame,
                           column_name: str,
                           bins: List[tuple]) -> pd.DataFrame:
-        """Given a DataFrame, a column name and a list of bins,
-        create an additional column which determines the bin in which the value
-        of column_name lies in.
+        """Create a new column with binned values of column_name.
 
         Parameters
         ----------
@@ -309,7 +311,6 @@ class KBinsDiscretizer(BaseEstimator):
         pd.DataFrame
             original DataFrame with an added binned column
         """
-
         interval_idx = KBinsDiscretizer._create_index(bins, self.closed)
 
         column_name_bin = column_name + "_bin"
@@ -337,7 +338,7 @@ class KBinsDiscretizer(BaseEstimator):
 
     def fit_transform(self, data: pd.DataFrame,
                       column_names: list) -> pd.DataFrame:
-        """Fits to data, then transform it
+        """Fit to data, then transform it.
 
         Parameters
         ----------
@@ -357,8 +358,7 @@ class KBinsDiscretizer(BaseEstimator):
     def _compute_bin_edges(self, data: pd.DataFrame, column_name: str,
                            n_bins: int, col_min: float,
                            col_max: float) -> list:
-        """Compute the bin edges for a given column, a DataFrame and the number
-        of required bins
+        """Compute the desired bin edges.
 
         Parameters
         ----------
@@ -378,7 +378,6 @@ class KBinsDiscretizer(BaseEstimator):
         list
             list of bin edges from which to compute the bins
         """
-
         bin_edges = []
         if self.strategy == "quantile":
             bin_edges = list(data[column_name]
@@ -411,8 +410,10 @@ class KBinsDiscretizer(BaseEstimator):
         return list(dict.fromkeys(bin_edges))
 
     def _compute_minimal_precision_of_bin_edges(self, bin_edges: list) -> int:
-        """Compute the minimal precision of a list of bin_edges so that we end
-        up with a strictly ascending sequence of different numbers even when rounded.
+        """Compute the minimal precision of a list of bin_edges.
+
+        This way we end up with a strictly ascending sequence of
+        different numbers even when rounded.
         The starting_precision attribute will be used as the initial precision.
         In case of a negative starting_precision, the bin edges will be rounded
         to the nearest 10, 100, ... (e.g. 5.55 -> 10, 246 -> 200, ...)
@@ -427,7 +428,6 @@ class KBinsDiscretizer(BaseEstimator):
         int
             minimal precision for the bin edges
         """
-
         precision = self.starting_precision
         while True:
             cont = False
@@ -443,8 +443,8 @@ class KBinsDiscretizer(BaseEstimator):
                 return precision
 
     def _compute_bins_from_edges(self, bin_edges: list) -> List[tuple]:
-        """Given a list of bin edges, compute the minimal precision for which
-        we can make meaningful bins and make those bins
+        """
+        Return bins with the minimal precision.
 
         Parameters
         ----------
@@ -471,9 +471,13 @@ class KBinsDiscretizer(BaseEstimator):
         return bins
 
     @staticmethod
-    def _create_index(intervals: List[tuple],
-                      closed: str = "right") -> pd.IntervalIndex:
-        """Create an pd.IntervalIndex based on a list of tuples.
+    def _create_index(
+        intervals: List[tuple],
+        closed: str = "right"
+    ) -> pd.IntervalIndex:
+        """
+        Create an pd.IntervalIndex based on a list of tuples.
+
         This is basically a wrapper around pd.IntervalIndex.from_tuples
         However, the lower bound of the first entry in the list (the lower bin)
         is replaced by -np.inf. Similarly, the upper bound of the last entry in
@@ -492,7 +496,6 @@ class KBinsDiscretizer(BaseEstimator):
         pd.IntervalIndex
             Description
         """
-
         # check if closed is of the proper form
         if closed not in ["left", "right"]:
             raise ValueError("{}: valid options for 'closed' are {}. "
@@ -511,8 +514,8 @@ class KBinsDiscretizer(BaseEstimator):
         return pd.IntervalIndex.from_tuples(_intervals, closed)
 
     def _create_bin_labels(self, bins: List[tuple]) -> list:
-        """Given a list of bins, create a list of string containing the bins
-        as a string with a specific format (e.g. bin labels)
+        """
+        Stringify the bin bounds to be used as bin labels.
 
         Parameters
         ----------

@@ -1,3 +1,4 @@
+"""Feature forward selection."""
 
 import logging
 from typing import Callable, Optional
@@ -10,8 +11,7 @@ from cobra.model_building import LogisticRegressionModel, LinearRegressionModel
 log = logging.getLogger(__name__)
 
 class ForwardFeatureSelection:
-    """Perform forward feature selection for a given dataset using a given
-    algorithm.
+    """Perform forward feature selection for a given dataset using a given algorithm.
 
     Predictors are sequentially added to the model, starting with the one that
     has the highest univariate predictive power, and then proceeding with those that
@@ -35,11 +35,13 @@ class ForwardFeatureSelection:
         List of fitted models.
     """
 
-    def __init__(self,
-                 model_type: str="classification",
-                 max_predictors: int=50,
-                 pos_only: bool=True):
-
+    def __init__(
+        self,
+        model_type: str="classification",
+        max_predictors: int=50,
+        pos_only: bool=True
+    ):
+        """Initialize the ForwardFeatureSelection class."""
         self.model_type = model_type
         if model_type == "classification":
             self.MLModel = LogisticRegressionModel
@@ -75,14 +77,17 @@ class ForwardFeatureSelection:
 
         return self._fitted_models[step]
 
-    def compute_model_performances(self, data: pd.DataFrame,
-                                   target_column_name: str,
-                                   splits: list=["train", "selection", "validation"],
-                                   metric: Optional[Callable]=None,
-                                   ) -> pd.DataFrame:
-        """Compute for each model the performance for different sets (e.g.
-        train-selection-validation) and return them along with a list of
-        predictors used in the model. Note that the computation of the
+    def compute_model_performances(
+        self, data: pd.DataFrame,
+        target_column_name: str,
+        splits: list=["train", "selection", "validation"],
+        metric: Optional[Callable]=None,
+    ) -> pd.DataFrame:
+        """
+        Compute for each model the performance for different sets.
+        
+        Different sets could be cross validation, train-selection-validation, ...
+        Note that the computation of the
         performance for each split is cached inside the model itself, so it
         is inexpensive to perform it multiple times!
 
@@ -168,7 +173,6 @@ class ForwardFeatureSelection:
             In case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model.
         """
-
         assert "split" in train_data.columns, "The train_data input df does not include a split column."
         assert len(set(["train", "selection"]).difference(set(train_data["split"].unique()))) == 0, \
             "The train_data input df does not include a 'train' and 'selection' split."
@@ -196,14 +200,18 @@ class ForwardFeatureSelection:
                                                           filtered_predictors,
                                                           forced_predictors)
 
-    def _forward_selection(self,
-                           train_data: pd.DataFrame,
-                           target_column_name: str,
-                           predictors: list,
-                           forced_predictors: list = []) -> list:
-        """Perform the forward feature selection algorithm to compute a list
-        of models (with increasing performance). The length of the list,
-        i.e. the number of models, is bounded by the max_predictors class
+    def _forward_selection(
+        self,
+        train_data: pd.DataFrame,
+        target_column_name: str,
+        predictors: list,
+        forced_predictors: list = []
+    ) -> list:
+        """Perform the forward feature selection algorithm.
+        
+        The algorithm will compute a list of models (with increasing performance).
+        The length of the list, i.e. the number of models,
+        is bounded by the max_predictors class
         attribute.
 
         Parameters
@@ -262,12 +270,17 @@ class ForwardFeatureSelection:
 
         return fitted_models
 
-    def _find_next_best_model(self,
-                              train_data: pd.DataFrame,
-                              target_column_name: str,
-                              candidate_predictors: list,
-                              current_predictors: list):
-        """Given a list of current predictors which are already selected to
+    def _find_next_best_model(
+        self,
+        train_data: pd.DataFrame,
+        target_column_name: str,
+        candidate_predictors: list,
+        current_predictors: list
+    ):
+        """
+        Find the next best model with candidate predictors.
+        
+        Given a list of current predictors which are already selected to
         be include in the model, find amongst a list candidate predictors
         the predictor to add to the selected list so that the resulting model
         has the best performance.

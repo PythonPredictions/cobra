@@ -1,3 +1,4 @@
+"""Create Predictor Insight Graph tables."""
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -98,7 +99,9 @@ def plot_incidence(pig_tables: pd.DataFrame,
                    model_type: str,
                    column_order: list=None,
                    dim: tuple=(12, 8)):
-    """Plots a Predictor Insights Graph (PIG), a graph in which the mean
+    """Plot a Predictor Insights Graph (PIG).
+    
+    A PIG is a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
     variable. When the target is a binary classification target,
     the plotted mean target value is a true incidence rate.

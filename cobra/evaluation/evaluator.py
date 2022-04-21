@@ -1,3 +1,4 @@
+"""Evaluate the created model."""
 
 import numpy as np
 import pandas as pd
@@ -26,8 +27,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
 class ClassificationEvaluator():
-    """Evaluator class encapsulating classification model metrics
-    and plotting functionality.
+    """Evaluator class encapsulating classification model metrics and plotting functionality.
 
     Attributes
     ----------
@@ -56,11 +56,13 @@ class ClassificationEvaluator():
         (by default 10, so deciles).
     """
 
-    def __init__(self,
-                 probability_cutoff: float=None,
-                 lift_at: float=0.05,
-                 n_bins: int = 10):
-
+    def __init__(
+        self,
+        probability_cutoff: float=None,
+        lift_at: float=0.05,
+        n_bins: int = 10
+    ):
+        """Initialize the ClassificationEvaluator."""
         self.y_true = None
         self.y_pred = None
 
@@ -76,8 +78,7 @@ class ClassificationEvaluator():
         self.cumulative_gains = None
 
     def fit(self, y_true: np.ndarray, y_pred: np.ndarray):
-        """Fit the evaluator by computing the relevant evaluation metrics on
-        the inputs.
+        """Fit the evaluator by computing the relevant evaluation metrics on the inputs.
 
         Parameters
         ----------
@@ -119,8 +120,7 @@ class ClassificationEvaluator():
                                 y_pred: np.ndarray,
                                 y_pred_b: np.ndarray,
                                 lift_at: float) -> pd.Series:
-        """Convenient function to compute various scalar performance measures
-        and return them in a pd.Series.
+        """Compute various scalar performance measures.
 
         Parameters
         ----------
@@ -168,7 +168,6 @@ class ClassificationEvaluator():
         dim : tuple, optional
             Tuple with width and length of the plot.
         """
-
         if self.roc_curve is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
@@ -211,7 +210,6 @@ class ClassificationEvaluator():
         labels : list, optional
             Optional list of labels, default "0" and "1".
         """
-
         if self.confusion_matrix is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
@@ -240,7 +238,6 @@ class ClassificationEvaluator():
         dim : tuple, optional
             Tuple with width and length of the plot.
         """
-
         if self.lift_curve is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
@@ -291,7 +288,6 @@ class ClassificationEvaluator():
         dim : tuple, optional
             Tuple with width and length of the plot.
         """
-
         if self.lift_curve is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
@@ -340,7 +336,6 @@ class ClassificationEvaluator():
         dim : tuple, optional
             Tuple with width and length of the plot.
         """
-
         with plt.style.context("seaborn-whitegrid"):
             fig, ax = plt.subplots(figsize=dim)
 
@@ -375,8 +370,7 @@ class ClassificationEvaluator():
     @staticmethod
     def _find_optimal_cutoff(y_true: np.ndarray,
                              y_pred: np.ndarray) -> float:
-        """Find the optimal probability cut off point for a
-        classification model. Wrapper around _compute_optimal_cutoff.
+        """Find the optimal probability cut off point for a classification model.
 
         Parameters
         ----------
@@ -396,8 +390,7 @@ class ClassificationEvaluator():
     @staticmethod
     def _compute_optimal_cutoff(fpr: np.ndarray, tpr: np.ndarray,
                                 thresholds: np.ndarray) -> float:
-        """Find the optimal probability cut-off point for a
-        classification model.
+        """Calculate the optimal probability cut-off point for a classification model.
 
         The optimal cut-off would be where TPR is high and FPR is low, hence
         TPR - (1-FPR) should be zero or close to zero for the optimal cut-off.
@@ -426,8 +419,7 @@ class ClassificationEvaluator():
     @staticmethod
     def _compute_cumulative_gains(y_true: np.ndarray,
                                   y_pred: np.ndarray) -> tuple:
-        """Compute cumulative gains of the model, returns percentages and
-        gains cumulative gains curves.
+        """Compute cumulative gains of the model.
 
         Code from (https://github.com/reiinakano/scikit-plot/blob/
                    2dd3e6a76df77edcbd724c4db25575f70abb57cb/
@@ -445,7 +437,6 @@ class ClassificationEvaluator():
         tuple
             With x-labels, and gains.
         """
-
         # make y_true a boolean vector
         y_true = (y_true == 1)
 
@@ -467,8 +458,7 @@ class ClassificationEvaluator():
     def _compute_lift_per_bin(y_true: np.ndarray,
                               y_pred: np.ndarray,
                               n_bins: int=10) -> tuple:
-        """Compute lift of the model for a given number of bins, returns x-labels,
-        lifts and the target incidence to create cumulative response curves.
+        """Compute lift of the model for a given number of bins.
 
         Parameters
         ----------
@@ -485,7 +475,6 @@ class ClassificationEvaluator():
         tuple
             Includes x-labels, lifts per decile, and target incidence.
         """
-
         lifts = [ClassificationEvaluator._compute_lift(y_true=y_true,
                                                        y_pred=y_pred,
                                                        lift_at=perc_lift)
@@ -498,7 +487,7 @@ class ClassificationEvaluator():
     @staticmethod
     def _compute_lift(y_true: np.ndarray, y_pred: np.ndarray,
                       lift_at: float=0.05) -> float:
-        """Calculates lift given two arrays on specified level.
+        """Calculate lift on a specified level.
 
         Parameters
         ----------
@@ -514,7 +503,6 @@ class ClassificationEvaluator():
         float
             Lift of the model.
         """
-
         # Make sure it is numpy array
         y_true_ = np.array(y_true)
         y_pred_ = np.array(y_pred)
@@ -544,8 +532,7 @@ class ClassificationEvaluator():
 
 
 class RegressionEvaluator():
-    """Evaluator class encapsulating regression model metrics
-    and plotting functionality.
+    """Evaluator class encapsulating regression model metrics and plotting functionality.
 
     Attributes
     ----------
@@ -560,7 +547,7 @@ class RegressionEvaluator():
     """
 
     def __init__(self):
-
+        """Initialize the RegressionEvaluator."""
         self.y_true = None
         self.y_pred = None
 
@@ -569,8 +556,7 @@ class RegressionEvaluator():
         self.qq = None
 
     def fit(self, y_true: np.ndarray, y_pred: np.ndarray):
-        """Fit the evaluator by computing the relevant evaluation metrics on
-        the inputs.
+        """Fit the evaluator by computing the relevant evaluation metrics on the inputs.
 
         Parameters
         ----------
@@ -591,8 +577,7 @@ class RegressionEvaluator():
     @staticmethod
     def _compute_scalar_metrics(y_true: np.ndarray,
                                 y_pred: np.ndarray) -> pd.Series:
-        """Convenient function to compute various scalar performance measures
-        and return them in a pd.Series.
+        """Compute various scalar performance measures.
 
         Parameters
         ----------
@@ -620,8 +605,7 @@ class RegressionEvaluator():
     @staticmethod
     def _compute_qq_residuals(y_true: np.ndarray,
                               y_pred: np.ndarray) -> pd.Series:
-        """Convenience function to compute various scalar performance measures
-        and return them in a pd.Series.
+        """Compute various scalar performance measures.
 
         Parameters
         ----------
@@ -698,7 +682,6 @@ class RegressionEvaluator():
         dim : tuple, optional
             Tuple with width and length of the plot.
         """
-
         if self.qq is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")

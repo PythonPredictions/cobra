@@ -1,3 +1,4 @@
+"""Process categorical data."""
 
 # standard lib imports
 import re
@@ -15,8 +16,7 @@ from sklearn.exceptions import NotFittedError
 log = logging.getLogger(__name__)
 
 class CategoricalDataProcessor(BaseEstimator):
-    """Regroups the categories of categorical variables based on significance
-    with target variable.
+    """Regroup categorical variables based on significance with target variable.
 
     This class implements the Python Prediction's way of dealing with
     categorical data preprocessing. There are three steps involved:
@@ -64,16 +64,18 @@ class CategoricalDataProcessor(BaseEstimator):
                   "category_size_threshold", "p_value_threshold",
                   "scale_contingency_table", "forced_categories"]
 
-    def __init__(self,
-                 model_type: str="classification",
-                 regroup: bool=True,
-                 regroup_name: str="Other",
-                 keep_missing: bool=True,
-                 category_size_threshold: int=5,
-                 p_value_threshold: float=0.001,
-                 scale_contingency_table: bool=True,
-                 forced_categories: dict={}):
-        
+    def __init__(
+        self,
+        model_type: str="classification",
+        regroup: bool=True,
+        regroup_name: str="Other",
+        keep_missing: bool=True,
+        category_size_threshold: int=5,
+        p_value_threshold: float=0.001,
+        scale_contingency_table: bool=True,
+        forced_categories: dict={}
+    ):
+        """Initialize the CategoricalDataProcessor."""
         if model_type not in ["classification", "regression"]:
             raise ValueError("An unexpected model_type was provided. A valid model_type is either 'classification' or 'regression'.")
 
@@ -108,8 +110,7 @@ class CategoricalDataProcessor(BaseEstimator):
         return params
 
     def set_attributes_from_dict(self, params: dict):
-        """Set instance attributes from a dictionary of values with key the
-        name of the attribute.
+        """Set instance attributes from a dictionary of values with key the name of the attribute.
 
         Parameters
         ----------
@@ -156,7 +157,6 @@ class CategoricalDataProcessor(BaseEstimator):
         target_column : str
             Column name of the target.
         """
-
         if not self.regroup:
             # We do not need to fit anything if regroup is set to False!
             log.info("regroup was set to False, so no fitting is required")
@@ -181,7 +181,10 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def _fit_column(self, data: pd.DataFrame, column_name: str,
                     target_column) -> set:
-        """Compute which categories to regroup into "Other"
+        """
+        Fit all necessary columns into "Other".
+    
+        Computes which categories to regroup into "Other"
         for a particular column, and return those that need
         to be kept as-is.
 
@@ -271,7 +274,6 @@ class CategoricalDataProcessor(BaseEstimator):
         pd.DataFrame
             Data with additional transformed variables.
         """
-
         if self.regroup and len(self._cleaned_categories_by_column) == 0:
             msg = ("{} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
@@ -291,9 +293,7 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def _transform_column(self, data: pd.DataFrame,
                           column_name: str) -> pd.DataFrame:
-        """Given a DataFrame, a column name and a list of categories to
-        combine, create an additional column which combines these categories
-        into "Other".
+        """Create an additional column which combines categories into "Other".
 
         Parameters
         ----------
@@ -307,7 +307,6 @@ class CategoricalDataProcessor(BaseEstimator):
         pd.DataFrame
             Original DataFrame with an added processed column.
         """
-
         column_name_clean = column_name + "_processed"
         data.loc[:, column_name_clean] = data[column_name].astype(object)
 
@@ -343,7 +342,7 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def fit_transform(self, data: pd.DataFrame, column_names: list,
                       target_column: str) -> pd.DataFrame:
-        """Fits the data, then transforms it.
+        """Fit and transform the data.
 
         Parameters
         ----------
@@ -360,7 +359,6 @@ class CategoricalDataProcessor(BaseEstimator):
         pd.DataFrame
             Data with additional transformed variables.
         """
-
         self.fit(data, column_names, target_column)
         return self.transform(data, column_names)
 
@@ -368,7 +366,9 @@ class CategoricalDataProcessor(BaseEstimator):
     def _get_small_categories(predictor_series: pd.Series,
                               incidence: float,
                               category_size_threshold: int) -> set:
-        """Fetch categories with a size below a certain threshold.
+        """
+        Fetch categories with a size below a certain threshold.
+
         Note that we use an additional weighting with the overall incidence.
 
         Parameters
@@ -430,7 +430,10 @@ class CategoricalDataProcessor(BaseEstimator):
     def _compute_p_value(X: pd.Series, y: pd.Series, category: str,
                          model_type: str,
                          scale_contingency_table: bool) -> float:
-        """Calculates p-value in order to evaluate whether category of
+        """
+        Calculate p-value.
+        
+        Calculate p-value in order to evaluate whether category of
         interest is significantly different from the rest of the
         categories, given the target variable.
 
@@ -484,8 +487,11 @@ class CategoricalDataProcessor(BaseEstimator):
     @staticmethod
     def _replace_categories(data: pd.Series, categories: set,
                             replace_with: str) -> pd.Series:
-        """Replace categories in set with "Other" and transform the remaining
-        categories to strings to avoid type errors later on in the pipeline.
+        """
+        Replace categories in set with "Other".
+
+        Transforms the remaining categories to strings
+        to avoid type errors later on in the pipeline.
 
         Parameters
         ----------

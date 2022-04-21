@@ -1,3 +1,5 @@
+"""The evaluation module includes utils and plots to evaluate a created model."""
+
 from .pigs_tables import generate_pig_tables
 from .pigs_tables import compute_pig_table
 from .pigs_tables import plot_incidence
