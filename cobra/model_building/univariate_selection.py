@@ -5,6 +5,7 @@ from numpy import sqrt
 
 import cobra.utils as utils
 
+
 def compute_univariate_preselection(
     target_enc_train_data: pd.DataFrame,
     target_enc_selection_data: pd.DataFrame,
@@ -16,7 +17,7 @@ def compute_univariate_preselection(
     preselect_overtrain_threshold: float = 0.05
 ) -> pd.DataFrame:
     """Perform a preselection of predictors.
-    
+
     The preselection is based on an AUC (in case of
     classification) or a RMSE (in case of regression) threshold of
     a univariate model on a train and selection dataset and return a DataFrame
@@ -130,6 +131,7 @@ def compute_univariate_preselection(
 
     return df_out
 
+
 def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
     """Extract a list of predictors from df_metric.
 
@@ -155,6 +157,7 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
                           .predictor.tolist())
 
     return [col + "_enc" for col in predictor_list]
+
 
 def compute_correlations(target_enc_train_data: pd.DataFrame,
                          predictors: list) -> pd.DataFrame:

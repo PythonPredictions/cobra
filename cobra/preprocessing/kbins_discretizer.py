@@ -15,6 +15,7 @@ from sklearn.exceptions import NotFittedError
 
 log = logging.getLogger(__name__)
 
+
 class KBinsDiscretizer(BaseEstimator):
     """
     Discretize continuous values into categorical values.
@@ -399,12 +400,12 @@ class KBinsDiscretizer(BaseEstimator):
             log.warning(f"Column {column_name} "
                         "has NaNs present in bin definitions")
 
-        # Make absolutely sure bin edges are ordered, 
+        # Make absolutely sure bin edges are ordered,
         # in very rare situations this wasn't the case
-        # due to rounding in quantile calculation (e.g. 
+        # due to rounding in quantile calculation (e.g.
         # distributions with strong mass for same value)
         bin_edges = sorted(bin_edges)
-        
+
         # Make sure the bin_edges are unique
         # and order remains the same
         return list(dict.fromkeys(bin_edges))
@@ -460,7 +461,7 @@ class KBinsDiscretizer(BaseEstimator):
         # this can be a negative number, which then
         # rounds numbers to the nearest 10, 100, ...
         precision = self._compute_minimal_precision_of_bin_edges(bin_edges)
-        
+
         bins = []
         for a, b in zip(bin_edges, bin_edges[1:]):
             fmt_a = round(a, precision)

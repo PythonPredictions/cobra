@@ -26,6 +26,10 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
+
+DEFAULT_LABELS = ["0", "1"]
+
+
 class ClassificationEvaluator():
     """Evaluator class encapsulating classification model metrics and plotting functionality.
 
@@ -58,8 +62,8 @@ class ClassificationEvaluator():
 
     def __init__(
         self,
-        probability_cutoff: float=None,
-        lift_at: float=0.05,
+        probability_cutoff: float = None,
+        lift_at: float = 0.05,
         n_bins: int = 10
     ):
         """Initialize the ClassificationEvaluator."""
@@ -144,6 +148,12 @@ class ClassificationEvaluator():
                 F1
                 Matthews correlation coefficient
                 Lift at given percentage
+
+        Raises
+        ----------
+        ValueError
+            The `column_order` and `pig_tables` parameters do not contain
+            the same set of variables.
         """
         return pd.Series({
             "accuracy": accuracy_score(y_true, y_pred_b),
@@ -152,13 +162,16 @@ class ClassificationEvaluator():
             "recall": recall_score(y_true, y_pred_b),
             "F1": f1_score(y_true, y_pred_b, average=None)[1],
             "matthews_corrcoef": matthews_corrcoef(y_true, y_pred_b),
-            "lift at {}".format(lift_at): np.round(ClassificationEvaluator
-                                                   ._compute_lift(y_true=y_true,
-                                                                  y_pred=y_pred,
-                                                                  lift_at=lift_at), 2)
+            f"lift at {lift_at}": np.round(
+                ClassificationEvaluator
+                ._compute_lift(
+                    y_true=y_true,
+                    y_pred=y_pred,
+                    lift_at=lift_at
+                ), 2)
         })
 
-    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_roc_curve(self, path: str = None, dim: tuple = (12, 8)):
         """Plot ROC curve of the model.
 
         Parameters
@@ -167,6 +180,11 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Raises
+        ----------
+        NotFittedError
+            The instance is not fitted yet.
         """
         if self.roc_curve is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
@@ -178,12 +196,12 @@ class ClassificationEvaluator():
 
         with plt.style.context("seaborn-whitegrid"):
 
-            fig, ax = plt.subplots(figsize=dim)
+            fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             ax.plot(self.roc_curve["fpr"],
                     self.roc_curve["tpr"],
                     color="cornflowerblue", linewidth=3,
-                    label="ROC curve (area = {s:.3})".format(s=auc))
+                    label=f"ROC curve (area = {auc:.3})")
 
             ax.plot([0, 1], [0, 1], color="darkorange", linewidth=3,
                     linestyle="--")
@@ -197,8 +215,11 @@ class ClassificationEvaluator():
 
         plt.show()
 
-    def plot_confusion_matrix(self, path: str=None, dim: tuple=(12, 8),
-                              labels: list=["0", "1"]):
+    def plot_confusion_matrix(
+        self, path: str = None,
+        dim: tuple = (12, 8),
+        labels: list = None
+    ):
         """Plot the confusion matrix.
 
         Parameters
@@ -209,14 +230,20 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         labels : list, optional
             Optional list of labels, default "0" and "1".
+
+        Raises
+        ----------
+        NotFittedError
+            The instance is not fitted yet.
         """
+        labels = labels or DEFAULT_LABELS
         if self.confusion_matrix is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        fig, ax = plt.subplots(figsize=dim)
+        fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
         ax = sns.heatmap(self.confusion_matrix,
                          annot=self.confusion_matrix.astype(str),
                          fmt="s", cmap="Blues",
@@ -228,7 +255,7 @@ class ClassificationEvaluator():
 
         plt.show()
 
-    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_response_curve(self, path: str = None, dim: tuple = (12, 8)):
         """Plot cumulative response curve.
 
         Parameters
@@ -237,6 +264,11 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Raises
+        ----------
+        NotFittedError
+            The instance is not fitted yet.
         """
         if self.lift_curve is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
@@ -249,7 +281,7 @@ class ClassificationEvaluator():
         lifts = np.array(lifts)*inc_rate*100
 
         with plt.style.context("seaborn-ticks"):
-            fig, ax = plt.subplots(figsize=dim)
+            fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             plt.bar(x_labels[::-1], lifts, align="center",
                     color="cornflowerblue")
@@ -278,7 +310,7 @@ class ClassificationEvaluator():
 
             plt.show()
 
-    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_lift_curve(self, path: str = None, dim: tuple = (12, 8)):
         """Plot lift per decile.
 
         Parameters
@@ -287,6 +319,11 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Raises
+        ----------
+        NotFittedError
+            The instance is not fitted yet.
         """
         if self.lift_curve is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
@@ -297,7 +334,7 @@ class ClassificationEvaluator():
         x_labels, lifts, _ = self.lift_curve
 
         with plt.style.context("seaborn-ticks"):
-            fig, ax = plt.subplots(figsize=dim)
+            fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             plt.bar(x_labels[::-1], lifts, align="center",
                     color="cornflowerblue")
@@ -326,7 +363,7 @@ class ClassificationEvaluator():
 
             plt.show()
 
-    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_gains(self, path: str = None, dim: tuple = (12, 8)):
         """Plot cumulative gains per decile.
 
         Parameters
@@ -337,7 +374,7 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         """
         with plt.style.context("seaborn-whitegrid"):
-            fig, ax = plt.subplots(figsize=dim)
+            fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
                     color="cornflowerblue", linewidth=3,
@@ -354,11 +391,11 @@ class ClassificationEvaluator():
             # Format ticks
             ticks_loc_y = ax.get_yticks().tolist()
             ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc_y))
-            ax.set_yticklabels(["{:3.0f}%".format(x) for x in ticks_loc_y])
+            ax.set_yticklabels([f"{x:3.0f}%" for x in ticks_loc_y])
 
             ticks_loc_x = ax.get_xticks().tolist()
             ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc_x))
-            ax.set_xticklabels(["{:3.0f}%".format(x) for x in ticks_loc_x])
+            ax.set_xticklabels([f"{x:3.0f}%" for x in ticks_loc_x])
 
             # Legend
             ax.legend(loc="lower right")
@@ -384,8 +421,8 @@ class ClassificationEvaluator():
         float
             Optimal cut-off probability for the model.
         """
-        return ClassificationEvaluator._compute_optimal_cutoff(roc_curve(y_true=y_true,
-                                                                         y_score=y_pred))
+        fpr, tpr, thresholds = roc_curve(y_true=y_true, y_score=y_pred)
+        return ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds)
 
     @staticmethod
     def _compute_optimal_cutoff(fpr: np.ndarray, tpr: np.ndarray,
@@ -455,9 +492,11 @@ class ClassificationEvaluator():
         return percentages, gains
 
     @staticmethod
-    def _compute_lift_per_bin(y_true: np.ndarray,
-                              y_pred: np.ndarray,
-                              n_bins: int=10) -> tuple:
+    def _compute_lift_per_bin(
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        n_bins: int = 10
+    ) -> tuple:
         """Compute lift of the model for a given number of bins.
 
         Parameters
@@ -485,8 +524,11 @@ class ClassificationEvaluator():
         return x_labels, lifts, y_true.mean()
 
     @staticmethod
-    def _compute_lift(y_true: np.ndarray, y_pred: np.ndarray,
-                      lift_at: float=0.05) -> float:
+    def _compute_lift(
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        lift_at: float = 0.05
+    ) -> float:
         """Calculate lift on a specified level.
 
         Parameters
@@ -619,7 +661,7 @@ class RegressionEvaluator():
         pd.Series
             Theoretical quantiles and associated actual residuals.
         """
-        ## also possible directly via statsmodels.api.qqplot()
+        # also possible directly via statsmodels.api.qqplot()
 
         n = len(y_true)
 
@@ -636,7 +678,7 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_predictions(self, path: str = None, dim: tuple = (12, 8)):
         """Plot predictions from the model against actual values.
 
         Parameters
@@ -645,17 +687,24 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Raises
+        ----------
+        NotFittedError
+            The instance is not fitted yet.
         """
         if self.y_true is None and self.y_pred is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
+
+            raise NotFittedError(msg.format(self.__class__.__name__))
 
         y_true = self.y_true
         y_pred = self.y_pred
 
         with plt.style.context("seaborn-whitegrid"):
 
-            fig, ax = plt.subplots(figsize=dim)
+            fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             x = np.arange(1, len(y_true)+1)
 
@@ -672,7 +721,7 @@ class RegressionEvaluator():
 
         plt.show()
 
-    def plot_qq(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_qq(self, path: str = None, dim: tuple = (12, 8)):
         """Display a Q-Q plot from the standardized prediction residuals.
 
         Parameters
@@ -681,6 +730,11 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Raises
+        ----------
+        NotFittedError
+            The instance is not fitted yet.
         """
         if self.qq is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
@@ -690,7 +744,7 @@ class RegressionEvaluator():
 
         with plt.style.context("seaborn-whitegrid"):
 
-            fig, ax = plt.subplots(figsize=dim)
+            fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             x = self.qq["quantiles"]
             y = self.qq["residuals"]

@@ -7,7 +7,9 @@ from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
+
 log = logging.getLogger(__name__)
+
 
 class TargetEncoder(BaseEstimator):
     """
@@ -67,8 +69,8 @@ class TargetEncoder(BaseEstimator):
     valid_imputation_strategies = ("mean", "min", "max")
 
     def __init__(
-        self, weight: float=0.0,
-        imputation_strategy: str="mean"
+        self, weight: float = 0.0,
+        imputation_strategy: str = "mean"
     ):
         """Initialize the TargetEncoder class."""
         if weight < 0:

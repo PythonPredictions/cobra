@@ -10,6 +10,12 @@ from cobra.model_building import LogisticRegressionModel, LinearRegressionModel
 
 log = logging.getLogger(__name__)
 
+
+DEFAULT_SPLIT_NAMES = ["train", "selection", "validation"]
+DEFAULT_FORCED_PREDICTORS = []
+DEFAULT_EXCLUDED_PREDICTORS = []
+
+
 class ForwardFeatureSelection:
     """Perform forward feature selection for a given dataset using a given algorithm.
 
@@ -37,9 +43,9 @@ class ForwardFeatureSelection:
 
     def __init__(
         self,
-        model_type: str="classification",
-        max_predictors: int=50,
-        pos_only: bool=True
+        model_type: str = "classification",
+        max_predictors: int = 50,
+        pos_only: bool = True
     ):
         """Initialize the ForwardFeatureSelection class."""
         self.model_type = model_type
@@ -80,12 +86,12 @@ class ForwardFeatureSelection:
     def compute_model_performances(
         self, data: pd.DataFrame,
         target_column_name: str,
-        splits: list=["train", "selection", "validation"],
-        metric: Optional[Callable]=None,
+        splits: list = None,
+        metric: Optional[Callable] = None,
     ) -> pd.DataFrame:
         """
         Compute for each model the performance for different sets.
-        
+
         Different sets could be cross validation, train-selection-validation, ...
         Note that the computation of the
         performance for each split is cached inside the model itself, so it
@@ -99,7 +105,7 @@ class ForwardFeatureSelection:
             Name of the target column.
         splits : list, optional
             List of splits to compute performance on.
-        metric: Callable (function), optional
+        metric : Callable (function), optional
             Function that computes an evaluation metric to evaluate the model's
             performances, instead of the default metric (AUC for
             classification, RMSE for regression).
@@ -113,6 +119,7 @@ class ForwardFeatureSelection:
             Contains for each model the performance for train, selection and
             validation sets as well as the set of predictors used in this model.
         """
+        splits = splits or DEFAULT_SPLIT_NAMES
         results = []
         predictor_set = set([])
 
@@ -145,9 +152,13 @@ class ForwardFeatureSelection:
 
         return df
 
-    def fit(self, train_data: pd.DataFrame, target_column_name: str,
-            predictors: list, forced_predictors: list=[],
-            excluded_predictors: list=[]):
+    def fit(
+        self, train_data: pd.DataFrame,
+        target_column_name: str,
+        predictors: list,
+        forced_predictors: list = None,
+        excluded_predictors: list = None
+    ):
         """Fit the forward feature selection estimator.
 
         Parameters
@@ -178,6 +189,8 @@ class ForwardFeatureSelection:
             "The train_data input df does not include a 'train' and 'selection' split."
 
         # remove excluded predictors from predictor lists
+        forced_predictors = forced_predictors or DEFAULT_FORCED_PREDICTORS
+        excluded_predictors = excluded_predictors or DEFAULT_EXCLUDED_PREDICTORS
         filtered_predictors = [var for var in predictors
                                if (var not in excluded_predictors and
                                    var not in forced_predictors)]
@@ -205,10 +218,10 @@ class ForwardFeatureSelection:
         train_data: pd.DataFrame,
         target_column_name: str,
         predictors: list,
-        forced_predictors: list = []
+        forced_predictors: list = None
     ) -> list:
         """Perform the forward feature selection algorithm.
-        
+
         The algorithm will compute a list of models (with increasing performance).
         The length of the list, i.e. the number of models,
         is bounded by the max_predictors class
@@ -231,6 +244,7 @@ class ForwardFeatureSelection:
             List of fitted models where the index of the list indicates the
             number of predictors minus one (as indices start from 0).
         """
+        forced_predictors = forced_predictors or DEFAULT_FORCED_PREDICTORS
         fitted_models = []
         current_predictors = []
 
@@ -279,7 +293,7 @@ class ForwardFeatureSelection:
     ):
         """
         Find the next best model with candidate predictors.
-        
+
         Given a list of current predictors which are already selected to
         be include in the model, find amongst a list candidate predictors
         the predictor to add to the selected list so that the resulting model
@@ -300,6 +314,12 @@ class ForwardFeatureSelection:
         -------
         self.MLModel
             Best performing model.
+
+        Raises
+        ----------
+        ValueError
+            The `column_order` and `pig_tables` parameters do not contain
+            the same set of variables.
         """
         # placeholders
         best_model = None

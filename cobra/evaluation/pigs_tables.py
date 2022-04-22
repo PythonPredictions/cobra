@@ -6,12 +6,15 @@ import seaborn as sns
 import numpy as np
 from matplotlib.ticker import FuncFormatter
 
-import cobra.utils as utils
+from cobra import utils
 
-def generate_pig_tables(basetable: pd.DataFrame,
-                        id_column_name: str,
-                        target_column_name: str,
-                        preprocessed_predictors: list) -> pd.DataFrame:
+
+def generate_pig_tables(
+    basetable: pd.DataFrame,
+    id_column_name: str,
+    target_column_name: str,
+    preprocessed_predictors: list
+) -> pd.DataFrame:
     """Compute PIG tables for all predictors in preprocessed_predictors.
 
     The output is a DataFrame with columns ``variable``, ``label``,
@@ -94,13 +97,15 @@ def compute_pig_table(basetable: pd.DataFrame,
     return res[column_order]
 
 
-def plot_incidence(pig_tables: pd.DataFrame,
-                   variable: str,
-                   model_type: str,
-                   column_order: list=None,
-                   dim: tuple=(12, 8)):
+def plot_incidence(
+    pig_tables: pd.DataFrame,
+    variable: str,
+    model_type: str,
+    column_order: list = None,
+    dim: tuple = (12, 8)
+):
     """Plot a Predictor Insights Graph (PIG).
-    
+
     A PIG is a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
     variable. When the target is a binary classification target,
@@ -123,6 +128,12 @@ def plot_incidence(pig_tables: pd.DataFrame,
         on the PIG.
     dim: tuple, default=(12, 8)
         Optional tuple to configure the width and length of the plot.
+
+    Raises
+    ----------
+    ValueError
+        The `column_order` and `pig_tables` parameters do not contain
+        the same set of variables.
     """
     if model_type not in ["classification", "regression"]:
         raise ValueError("An unexpected value was set for the model_type "
@@ -170,7 +181,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
         # Set labels & ticks
         ax.set_ylabel('incidence' if model_type == "classification" else "mean target value",
                       fontsize=16)
-        ax.set_xlabel('{} bins' ''.format(variable), fontsize=16)
+        ax.set_xlabel(f'{variable} bins' '', fontsize=16)
         ax.xaxis.set_tick_params(labelsize=14)
         plt.setp(ax.get_xticklabels(),
                  rotation=45, ha="right", rotation_mode="anchor")
@@ -181,7 +192,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
             # so format them as percentages
             ax.set_yticks(np.arange(0, max(df_plot['avg_target'])+0.05, 0.05))
             ax.yaxis.set_major_formatter(
-                FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
+                FuncFormatter(lambda y, _: f'{y:.1%}'))
         elif model_type == "regression":
             # If the difference between the highest avg. target of all bins
             # versus the global avg. target AND the difference between the
@@ -213,12 +224,12 @@ def plot_incidence(pig_tables: pd.DataFrame,
                 align='center', color="#939598", zorder=1)
 
         # Set labels & ticks
-        ax2.set_xlabel('{} bins' ''.format(variable), fontsize=16)
+        ax2.set_xlabel(f'{variable} bins' '', fontsize=16)
         ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
 
         ax2.yaxis.set_tick_params(labelsize=14)
         ax2.yaxis.set_major_formatter(
-            FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
+            FuncFormatter(lambda y, _: f'{y:.1%}'))
         ax2.set_ylabel('population size', fontsize=16)
         ax2.tick_params(axis='y', colors="#939598")
         ax2.yaxis.label.set_color('#939598')

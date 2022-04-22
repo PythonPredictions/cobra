@@ -20,6 +20,7 @@ from cobra.preprocessing import TargetEncoder
 
 log = logging.getLogger(__name__)
 
+
 class PreProcessor(BaseEstimator):
     """
     Preprocess data.
@@ -71,23 +72,23 @@ class PreProcessor(BaseEstimator):
     @classmethod
     def from_params(
         cls,
-        model_type: str="classification",
-        n_bins: int=10,
-        strategy: str="quantile",
-        closed: str="right",
-        auto_adapt_bins: bool=False,
-        starting_precision: int=0,
-        label_format: str="{} - {}",
-        change_endpoint_format: bool=False,
-        regroup: bool=True,
-        regroup_name: str="Other",
-        keep_missing: bool=True,
-        category_size_threshold: int=5,
-        p_value_threshold: float=0.001,
-        scale_contingency_table: bool=True,
-        forced_categories: dict={},
-        weight: float=0.0,
-        imputation_strategy: str="mean"
+        model_type: str = "classification",
+        n_bins: int = 10,
+        strategy: str = "quantile",
+        closed: str = "right",
+        auto_adapt_bins: bool = False,
+        starting_precision: int = 0,
+        label_format: str = "{} - {}",
+        change_endpoint_format: bool = False,
+        regroup: bool = True,
+        regroup_name: str = "Other",
+        keep_missing: bool = True,
+        category_size_threshold: int = 5,
+        p_value_threshold: float = 0.001,
+        scale_contingency_table: bool = True,
+        forced_categories: dict = {},
+        weight: float = 0.0,
+        imputation_strategy: str = "mean"
     ):
         """
         Instantiate a PreProcessor from given or default params.
@@ -154,7 +155,7 @@ class PreProcessor(BaseEstimator):
         PreProcessor
             Class encapsulating CategoricalDataProcessor,
             KBinsDiscretizer, and TargetEncoder instances.
-        """       
+        """
         categorical_data_processor = CategoricalDataProcessor(model_type,
                                                               regroup,
                                                               regroup_name, keep_missing,
@@ -162,13 +163,13 @@ class PreProcessor(BaseEstimator):
                                                               p_value_threshold,
                                                               scale_contingency_table,
                                                               forced_categories)
-        
+
         discretizer = KBinsDiscretizer(n_bins, strategy, closed,
                                        auto_adapt_bins,
                                        starting_precision,
                                        label_format,
                                        change_endpoint_format)
-                
+
         target_encoder = TargetEncoder(weight, imputation_strategy)
 
         return cls(categorical_data_processor, discretizer, target_encoder)
@@ -352,10 +353,12 @@ class PreProcessor(BaseEstimator):
         return self.transform(train_data, continuous_vars, discrete_vars)
 
     @staticmethod
-    def train_selection_validation_split(data: pd.DataFrame,
-                                         train_prop: float=0.6,
-                                         selection_prop: float=0.2,
-                                         validation_prop: float=0.2) -> pd.DataFrame:
+    def train_selection_validation_split(
+        data: pd.DataFrame,
+        train_prop: float = 0.6,
+        selection_prop: float = 0.2,
+        validation_prop: float = 0.2
+    ) -> pd.DataFrame:
         """Add `split` column with train/selection/validation values to the dataset.
 
         Train set = data on which the model is trained and on which the encoding is based.
@@ -394,10 +397,12 @@ class PreProcessor(BaseEstimator):
         size_valid = int(validation_prop * nrows)
         correction = nrows - (size_train+size_select+size_valid)
 
-        split = ['train'] * size_train \
-                + ['train'] * correction \
-                + ['selection'] * size_select \
-                + ['validation'] * size_valid
+        split = (
+            ['train'] * size_train
+            + ['train'] * correction
+            + ['selection'] * size_select
+            + ['validation'] * size_valid
+        )
 
         shuffle(split)
 

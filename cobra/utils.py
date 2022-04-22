@@ -1,5 +1,6 @@
 """Cobra utils."""
 
+
 def clean_predictor_name(predictor_name: str) -> str:
     """
     Clean the predictor name.

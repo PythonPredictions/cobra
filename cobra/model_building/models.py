@@ -6,14 +6,14 @@ from typing import Callable, Optional
 import numpy as np
 import pandas as pd
 from scipy import stats
-from sklearn.metrics import roc_auc_score, mean_squared_error
+from sklearn.metrics import mean_squared_error, roc_auc_score, roc_curve
 from numpy import sqrt
 from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.metrics import roc_curve
 
 # custom imports
 import cobra.utils as utils
 from cobra.evaluation import ClassificationEvaluator
+
 
 class LogisticRegressionModel:
     """
@@ -151,9 +151,11 @@ class LogisticRegressionModel:
         # ensure we have the proper predictors and the proper order
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
-    def evaluate(self, X: pd.DataFrame, y: pd.Series,
-                 split: str=None,
-                 metric: Optional[Callable]=None) -> float:
+    def evaluate(
+        self, X: pd.DataFrame, y: pd.Series,
+        split: str = None,
+        metric: Optional[Callable] = None
+    ) -> float:
         """
         Evaluate the model on a given dataset (X, y).
 
@@ -383,9 +385,11 @@ class LinearRegressionModel:
         # ensure we have the proper predictors and the proper order
         return self.linear.predict(X[self.predictors])
 
-    def evaluate(self, X: pd.DataFrame, y: pd.Series,
-                 split: str=None,
-                 metric: Optional[Callable]=None) -> float:
+    def evaluate(
+        self, X: pd.DataFrame, y: pd.Series,
+        split: str = None,
+        metric: Optional[Callable] = None
+    ) -> float:
         """Evaluate the model on a given dataset (X, y).
 
         The optional split
@@ -425,8 +429,7 @@ class LinearRegressionModel:
 
                 if split is None:
                     return performance
-                else:
-                    self._eval_metrics_by_split[split] = performance
+                self._eval_metrics_by_split[split] = performance
 
         return self._eval_metrics_by_split[split]
 
@@ -460,7 +463,8 @@ class LinearRegressionModel:
         return (df.sort_values(by="importance", ascending=False)
                 .reset_index(drop=True))
 
-    def _is_valid_dict(self, model_dict: dict) -> bool:
+    @staticmethod
+    def _is_valid_dict(model_dict: dict) -> bool:
         """Check if the model dictionary is valid."""
         if ("meta" not in model_dict
                 or model_dict["meta"] != "linear-regression"):
@@ -468,7 +472,7 @@ class LinearRegressionModel:
 
         attr = ["coef_", "intercept_", "predictors"]
         for key in attr:
-            if not (key in model_dict or type(model_dict[key]) != list):
+            if not (key in model_dict or not isinstance(model_dict[key], list)):
                 return False
 
         if ("params" not in model_dict

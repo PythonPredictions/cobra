@@ -15,6 +15,7 @@ from sklearn.exceptions import NotFittedError
 
 log = logging.getLogger(__name__)
 
+
 class CategoricalDataProcessor(BaseEstimator):
     """Regroup categorical variables based on significance with target variable.
 
@@ -66,18 +67,21 @@ class CategoricalDataProcessor(BaseEstimator):
 
     def __init__(
         self,
-        model_type: str="classification",
-        regroup: bool=True,
-        regroup_name: str="Other",
-        keep_missing: bool=True,
-        category_size_threshold: int=5,
-        p_value_threshold: float=0.001,
-        scale_contingency_table: bool=True,
-        forced_categories: dict={}
+        model_type: str = "classification",
+        regroup: bool = True,
+        regroup_name: str = "Other",
+        keep_missing: bool = True,
+        category_size_threshold: int = 5,
+        p_value_threshold: float = 0.001,
+        scale_contingency_table: bool = True,
+        forced_categories: dict = {}
     ):
         """Initialize the CategoricalDataProcessor."""
         if model_type not in ["classification", "regression"]:
-            raise ValueError("An unexpected model_type was provided. A valid model_type is either 'classification' or 'regression'.")
+            raise ValueError(
+                "An unexpected model_type was provided. "
+                "A valid model_type is either 'classification' or 'regression'."
+                )
 
         self.model_type = model_type
         self.regroup = regroup
@@ -183,7 +187,7 @@ class CategoricalDataProcessor(BaseEstimator):
                     target_column) -> set:
         """
         Fit all necessary columns into "Other".
-    
+
         Computes which categories to regroup into "Other"
         for a particular column, and return those that need
         to be kept as-is.
@@ -432,7 +436,7 @@ class CategoricalDataProcessor(BaseEstimator):
                          scale_contingency_table: bool) -> float:
         """
         Calculate p-value.
-        
+
         Calculate p-value in order to evaluate whether category of
         interest is significantly different from the rest of the
         categories, given the target variable.
