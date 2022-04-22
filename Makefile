@@ -23,11 +23,11 @@ lint:
 	@echo 'lint OK'
 
 lint-minimal:
-	pylint E cobra
+	pylint -E cobra
 	@echo 'lint minimal OK'
 
 typecheck:
-	mypy cobra
+	mypy cobra --allow-redefinition --allow-untyped-globals --ignore-missing-imports
 	@echo 'typecheck OK'
 
 codestyle:

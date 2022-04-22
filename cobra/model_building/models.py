@@ -233,8 +233,10 @@ class LogisticRegressionModel:
                                     orient="index").reset_index()
         df.columns = ["predictor", "importance"]
 
-        return (df.sort_values(by="importance", ascending=False)
-                .reset_index(drop=True))
+        return (
+            df.sort_values(by="importance", ascending=False)
+            .reset_index(drop=True)
+        )
 
     def _is_valid_dict(self, model_dict: dict) -> bool:
         """Check if the model dictionary is valid."""
@@ -456,12 +458,16 @@ class LinearRegressionModel:
             for predictor in self.predictors
         }
 
-        df = pd.DataFrame.from_dict(importance_by_variable,
-                                    orient="index").reset_index()
+        df = pd.DataFrame.from_dict(
+            importance_by_variable,
+            orient="index"
+        ).reset_index()
         df.columns = ["predictor", "importance"]
 
-        return (df.sort_values(by="importance", ascending=False)
-                .reset_index(drop=True))
+        return (
+            df.sort_values(by="importance", ascending=False)
+            .reset_index(drop=True)
+        )
 
     @staticmethod
     def _is_valid_dict(model_dict: dict) -> bool:

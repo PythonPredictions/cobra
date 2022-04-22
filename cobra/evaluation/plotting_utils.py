@@ -40,13 +40,18 @@ def plot_univariate_predictor_quality(
         metric = "RMSE"
         ascending = True
 
-    df = (df_metric[df_metric["preselection"]]
-          .sort_values(by=metric+" selection", ascending=ascending))
+    df = (
+        df_metric[df_metric["preselection"]]
+        .sort_values(by=metric+" selection", ascending=ascending)
+    )
 
-    df = pd.melt(df, id_vars=["predictor"],
-                 value_vars=[metric+" train", metric+" selection"],
-                 var_name="split",
-                 value_name=metric)
+    df = pd.melt(
+        df,
+        id_vars=["predictor"],
+        value_vars=[metric+" train", metric+" selection"],
+        var_name="split",
+        value_name=metric
+    )
 
     # plot data
     with plt.style.context("seaborn-ticks"):
@@ -127,28 +132,39 @@ def plot_performance_curves(
         elif model_type == "regression":
             metric_name = "RMSE"
 
-    max_metric = np.round(max(max(model_performance['train_performance']),
-                              max(model_performance['selection_performance']),
-                              max(model_performance['validation_performance'])), 1)
+    max_metric = np.round(
+        max(
+            max(model_performance['train_performance']),
+            max(model_performance['selection_performance']),
+            max(model_performance['validation_performance'])
+        ), 1)
 
     with plt.style.context("seaborn-whitegrid"):
-
         fig, ax = plt.subplots(figsize=dim)
 
-        plt.plot(model_performance['train_performance'], marker=".",
-                 markersize=20, linewidth=3, label="train",
-                 color=colors["train"])
-        plt.plot(model_performance['selection_performance'], marker=".",
-                 markersize=20, linewidth=3, label="selection",
-                 color=colors["selection"])
-        plt.plot(model_performance['validation_performance'], marker=".",
-                 markersize=20, linewidth=3, label="validation",
-                 color=colors["validation"])
+        plt.plot(
+            model_performance['train_performance'], marker=".",
+            markersize=20, linewidth=3, label="train",
+            color=colors["train"]
+        )
+        plt.plot(
+            model_performance['selection_performance'], marker=".",
+            markersize=20, linewidth=3, label="selection",
+            color=colors["selection"]
+        )
+        plt.plot(
+            model_performance['validation_performance'], marker=".",
+            markersize=20, linewidth=3, label="validation",
+            color=colors["validation"]
+        )
 
         # Set x- and y-ticks
         ax.set_xticks(np.arange(len(model_performance['last_added_predictor'])))
-        ax.set_xticklabels(model_performance['last_added_predictor'].tolist(),
-                           rotation=40, ha='right')
+        ax.set_xticklabels(
+            model_performance['last_added_predictor'].tolist(),
+            rotation=40,
+            ha='right'
+        )
 
         if model_type == "classification":
             ax.set_yticks(np.arange(0.5, max_metric + 0.02, 0.05))
@@ -160,9 +176,11 @@ def plot_performance_curves(
 
         # Make pretty
         ax.legend(loc='lower right')
-        fig.suptitle('Performance curves forward feature selection',
-                     fontsize=20)
-        plt.title("Metric: "+metric_name, fontsize=15, loc="left")
+        fig.suptitle(
+            'Performance curves forward feature selection',
+            fontsize=20
+        )
+        plt.title("Metric: " + metric_name, fontsize=15, loc="left")
         plt.ylabel('Model performance')
 
         if path is not None:
@@ -192,9 +210,11 @@ def plot_variable_importance(
     """
     with plt.style.context("seaborn-ticks"):
         fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
-        ax = sns.barplot(x="importance", y="predictor",
-                         data=df_variable_importance,
-                         color="cornflowerblue")
+        ax = sns.barplot(
+            x="importance", y="predictor",
+            data=df_variable_importance,
+            color="cornflowerblue"
+        )
         if title:
             ax.set_title(title)
         else:

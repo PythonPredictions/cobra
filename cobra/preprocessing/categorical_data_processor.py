@@ -61,9 +61,11 @@ class CategoricalDataProcessor(BaseEstimator):
         Whether contingency table should be scaled before chi^2.
     """
 
-    valid_keys = ["model_type", "regroup", "regroup_name", "keep_missing",
-                  "category_size_threshold", "p_value_threshold",
-                  "scale_contingency_table", "forced_categories"]
+    valid_keys = [
+        "model_type", "regroup", "regroup_name", "keep_missing",
+        "category_size_threshold", "p_value_threshold",
+        "scale_contingency_table", "forced_categories"
+    ]
 
     def __init__(
         self,
@@ -81,7 +83,7 @@ class CategoricalDataProcessor(BaseEstimator):
             raise ValueError(
                 "An unexpected model_type was provided. "
                 "A valid model_type is either 'classification' or 'regression'."
-                )
+            )
 
         self.model_type = model_type
         self.regroup = regroup
@@ -130,9 +132,11 @@ class CategoricalDataProcessor(BaseEstimator):
         _fitted_output = params.pop("_cleaned_categories_by_column", {})
 
         if type(_fitted_output) != dict:
-            raise ValueError("_cleaned_categories_by_column is expected to "
-                             "be a dict but is of type {} instead"
-                             .format(type(_fitted_output)))
+            raise ValueError(
+                "_cleaned_categories_by_column is expected to "
+                "be a dict but is of type {} instead"
+                .format(type(_fitted_output))
+            )
 
         # Clean out params dictionary to remove unknown keys (for safety!)
         params = {key: params[key] for key in params if key in self.valid_keys}
@@ -147,8 +151,12 @@ class CategoricalDataProcessor(BaseEstimator):
 
         return self
 
-    def fit(self, data: pd.DataFrame, column_names: list,
-            target_column: str):
+    def fit(
+        self,
+        data: pd.DataFrame,
+        column_names: list,
+        target_column: str
+    ):
         """Fit the CategoricalDataProcessor.
 
         Parameters
@@ -166,12 +174,15 @@ class CategoricalDataProcessor(BaseEstimator):
             log.info("regroup was set to False, so no fitting is required")
             return None
 
-        for column_name in tqdm(column_names, desc="Fitting category "
-                                                   "regrouping..."):
-
+        for column_name in tqdm(
+            column_names,
+            desc="Fitting category regrouping..."
+        ):
             if column_name not in data.columns:
-                log.warning("DataFrame has no column '{}', so it will be "
-                            "skipped in fitting" .format(column_name))
+                log.warning(
+                    "DataFrame has no column '{}', so it will be "
+                    "skipped in fitting" .format(column_name)
+                )
                 continue
 
             cleaned_cats = self._fit_column(data, column_name, target_column)
@@ -220,9 +231,11 @@ class CategoricalDataProcessor(BaseEstimator):
         combined_categories = set()
 
         # replace missings and get unique categories as a list
-        X = (CategoricalDataProcessor
-             ._replace_missings(data[column_name])
-             .astype(object))
+        X = (
+            CategoricalDataProcessor
+            ._replace_missings(data[column_name])
+            .astype(object)
+        )
 
         unique_categories = list(X.unique())
 
@@ -235,21 +248,28 @@ class CategoricalDataProcessor(BaseEstimator):
 
         # get small categories and add them to the merged category list
         # does not apply incidence factor when model_type = "regression"
-        small_categories = (CategoricalDataProcessor
-                            ._get_small_categories(
-                                X,
-                                incidence,
-                                self.category_size_threshold))
+        small_categories = (
+            CategoricalDataProcessor
+            ._get_small_categories(
+                X,
+                incidence,
+                self.category_size_threshold
+            )
+        )
         combined_categories = combined_categories.union(small_categories)
 
         for category in unique_categories:
             if category in small_categories:
                 continue
 
-            pval = (CategoricalDataProcessor
-                    ._compute_p_value(X, y, category,
-                                      model_type,
-                                      self.scale_contingency_table))
+            pval = (
+                CategoricalDataProcessor
+                ._compute_p_value(
+                    X, y, category,
+                    model_type,
+                    self.scale_contingency_table
+                )
+            )
 
             # if not significant, add it to the list
             if pval > self.p_value_threshold:
@@ -261,8 +281,11 @@ class CategoricalDataProcessor(BaseEstimator):
 
         return set(unique_categories).difference(combined_categories)
 
-    def transform(self, data: pd.DataFrame,
-                  column_names: list) -> pd.DataFrame:
+    def transform(
+        self,
+        data: pd.DataFrame,
+        column_names: list
+    ) -> pd.DataFrame:
         """Transform the data.
 
         Parameters
@@ -279,24 +302,26 @@ class CategoricalDataProcessor(BaseEstimator):
             Data with additional transformed variables.
         """
         if self.regroup and len(self._cleaned_categories_by_column) == 0:
-            msg = ("{} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
+            msg = (
+                "{} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         for column_name in column_names:
 
             if column_name not in data.columns:
-                log.warning("Unknown column '{}' will be skipped"
-                            .format(column_name))
+                log.warning("Unknown column '{}' will be skipped".format(column_name))
                 continue
 
             data = self._transform_column(data, column_name)
 
         return data
 
-    def _transform_column(self, data: pd.DataFrame,
-                          column_name: str) -> pd.DataFrame:
+    def _transform_column(
+        self, data: pd.DataFrame,
+        column_name: str
+    ) -> pd.DataFrame:
         """Create an additional column which combines categories into "Other".
 
         Parameters
@@ -315,11 +340,13 @@ class CategoricalDataProcessor(BaseEstimator):
         data.loc[:, column_name_clean] = data[column_name].astype(object)
 
         # Fill missings first
-        data.loc[:, column_name_clean] = (CategoricalDataProcessor
-                                          ._replace_missings(
-                                              data,
-                                              column_name_clean
-                                              ))
+        data.loc[:, column_name_clean] = (
+            CategoricalDataProcessor
+            ._replace_missings(
+                data,
+                column_name_clean
+            )
+        )
 
         if self.regroup:
             categories = self._cleaned_categories_by_column.get(column_name)
@@ -332,20 +359,26 @@ class CategoricalDataProcessor(BaseEstimator):
                                 "and will be skipped".format(column_name))
                 return data
 
-            data.loc[:, column_name_clean] = (CategoricalDataProcessor
-                                              ._replace_categories(
-                                                  data[column_name_clean],
-                                                  categories,
-                                                  self.regroup_name))
+            data.loc[:, column_name_clean] = (
+                CategoricalDataProcessor
+                ._replace_categories(
+                    data[column_name_clean],
+                    categories,
+                    self.regroup_name
+                )
+            )
 
         # change data to categorical
-        data.loc[:, column_name_clean] = (data[column_name_clean]
-                                          .astype("category"))
+        data.loc[:, column_name_clean] = data[column_name_clean].astype("category")
 
         return data
 
-    def fit_transform(self, data: pd.DataFrame, column_names: list,
-                      target_column: str) -> pd.DataFrame:
+    def fit_transform(
+        self,
+        data: pd.DataFrame,
+        column_names: list,
+        target_column: str
+    ) -> pd.DataFrame:
         """Fit and transform the data.
 
         Parameters
@@ -367,9 +400,11 @@ class CategoricalDataProcessor(BaseEstimator):
         return self.transform(data, column_names)
 
     @staticmethod
-    def _get_small_categories(predictor_series: pd.Series,
-                              incidence: float,
-                              category_size_threshold: int) -> set:
+    def _get_small_categories(
+        predictor_series: pd.Series,
+        incidence: float,
+        category_size_threshold: int
+    ) -> set:
         """
         Fetch categories with a size below a certain threshold.
 
@@ -400,8 +435,10 @@ class CategoricalDataProcessor(BaseEstimator):
         return set(category_counts[bool_mask].index.tolist())
 
     @staticmethod
-    def _replace_missings(data: pd.DataFrame,
-                          column_names: Optional[list] = None) -> pd.DataFrame:
+    def _replace_missings(
+        data: pd.DataFrame,
+        column_names: Optional[list] = None
+    ) -> pd.DataFrame:
         """Replace missing values (incl. empty strings).
 
         Parameters
@@ -431,9 +468,13 @@ class CategoricalDataProcessor(BaseEstimator):
         return temp
 
     @staticmethod
-    def _compute_p_value(X: pd.Series, y: pd.Series, category: str,
-                         model_type: str,
-                         scale_contingency_table: bool) -> float:
+    def _compute_p_value(
+        X: pd.Series,
+        y: pd.Series,
+        category: str,
+        model_type: str,
+        scale_contingency_table: bool
+    ) -> float:
         """
         Calculate p-value.
 
@@ -483,14 +524,19 @@ class CategoricalDataProcessor(BaseEstimator):
             pval = stats.chi2_contingency(contingency_table, correction=False)[1]
 
         elif model_type == "regression":
-            pval = stats.kruskal(df.y[df.other_categories == 0],
-                                 df.y[df.other_categories == 1])[1]
+            pval = stats.kruskal(
+                df.y[df.other_categories == 0],
+                df.y[df.other_categories == 1]
+            )[1]
 
         return pval
 
     @staticmethod
-    def _replace_categories(data: pd.Series, categories: set,
-                            replace_with: str) -> pd.Series:
+    def _replace_categories(
+        data: pd.Series,
+        categories: set,
+        replace_with: str
+    ) -> pd.Series:
         """
         Replace categories in set with "Other".
 

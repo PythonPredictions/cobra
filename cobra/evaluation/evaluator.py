@@ -120,10 +120,12 @@ class ClassificationEvaluator():
         self.cumulative_gains = ClassificationEvaluator._compute_cumulative_gains(y_true, y_pred)
 
     @staticmethod
-    def _compute_scalar_metrics(y_true: np.ndarray,
-                                y_pred: np.ndarray,
-                                y_pred_b: np.ndarray,
-                                lift_at: float) -> pd.Series:
+    def _compute_scalar_metrics(
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        y_pred_b: np.ndarray,
+        lift_at: float
+    ) -> pd.Series:
         """Compute various scalar performance measures.
 
         Parameters
@@ -187,17 +189,16 @@ class ClassificationEvaluator():
             The instance is not fitted yet.
         """
         if self.roc_curve is None:
-            msg = ("This {} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
+            msg = (
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         auc = float(self.scalar_metrics.loc["AUC"])
 
         with plt.style.context("seaborn-whitegrid"):
-
             fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
-
             ax.plot(self.roc_curve["fpr"],
                     self.roc_curve["tpr"],
                     color="cornflowerblue", linewidth=3,
@@ -238,16 +239,19 @@ class ClassificationEvaluator():
         """
         labels = labels or DEFAULT_LABELS
         if self.confusion_matrix is None:
-            msg = ("This {} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
+            msg = (
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
-        ax = sns.heatmap(self.confusion_matrix,
-                         annot=self.confusion_matrix.astype(str),
-                         fmt="s", cmap="Blues",
-                         xticklabels=labels, yticklabels=labels)
+        ax = sns.heatmap(
+            self.confusion_matrix,
+            annot=self.confusion_matrix.astype(str),
+            fmt="s", cmap="Blues",
+            xticklabels=labels, yticklabels=labels
+        )
         ax.set_title("Confusion matrix", fontsize=20)
 
         if path:
@@ -271,27 +275,37 @@ class ClassificationEvaluator():
             The instance is not fitted yet.
         """
         if self.lift_curve is None:
-            msg = ("This {} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
+            msg = (
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         x_labels, lifts, inc_rate = self.lift_curve
-
         lifts = np.array(lifts)*inc_rate*100
 
         with plt.style.context("seaborn-ticks"):
             fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
-            plt.bar(x_labels[::-1], lifts, align="center",
-                    color="cornflowerblue")
+            plt.bar(
+                x_labels[::-1],
+                lifts,
+                align="center",
+                color="cornflowerblue")
             plt.ylabel("response (%)", fontsize=16)
             plt.xlabel("decile", fontsize=16)
             ax.set_xticks(x_labels)
             ax.set_xticklabels(x_labels)
 
-            plt.axhline(y=inc_rate*100, color="darkorange", linestyle="--",
-                        xmin=0.05, xmax=0.95, linewidth=3, label="Incidence")
+            plt.axhline(
+                y=inc_rate*100,
+                color="darkorange",
+                linestyle="--",
+                xmin=0.05,
+                xmax=0.95,
+                linewidth=3,
+                label="Incidence"
+            )
 
             # Legend
             ax.legend(loc="upper right")
@@ -326,9 +340,10 @@ class ClassificationEvaluator():
             The instance is not fitted yet.
         """
         if self.lift_curve is None:
-            msg = ("This {} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
+            msg = (
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         x_labels, lifts, _ = self.lift_curve
@@ -343,8 +358,15 @@ class ClassificationEvaluator():
             ax.set_xticks(x_labels)
             ax.set_xticklabels(x_labels)
 
-            plt.axhline(y=1, color="darkorange", linestyle="--",
-                        xmin=0.05, xmax=0.95, linewidth=3, label="Baseline")
+            plt.axhline(
+                y=1,
+                color="darkorange",
+                linestyle="--",
+                xmin=0.05,
+                xmax=0.95,
+                linewidth=3,
+                label="Baseline"
+            )
 
             # Legend
             ax.legend(loc="upper right")
@@ -405,8 +427,10 @@ class ClassificationEvaluator():
             plt.show()
 
     @staticmethod
-    def _find_optimal_cutoff(y_true: np.ndarray,
-                             y_pred: np.ndarray) -> float:
+    def _find_optimal_cutoff(
+        y_true: np.ndarray,
+        y_pred: np.ndarray
+    ) -> float:
         """Find the optimal probability cut off point for a classification model.
 
         Parameters
@@ -425,8 +449,11 @@ class ClassificationEvaluator():
         return ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds)
 
     @staticmethod
-    def _compute_optimal_cutoff(fpr: np.ndarray, tpr: np.ndarray,
-                                thresholds: np.ndarray) -> float:
+    def _compute_optimal_cutoff(
+        fpr: np.ndarray,
+        tpr: np.ndarray,
+        thresholds: np.ndarray
+    ) -> float:
         """Calculate the optimal probability cut-off point for a classification model.
 
         The optimal cut-off would be where TPR is high and FPR is low, hence
@@ -454,8 +481,10 @@ class ClassificationEvaluator():
         return thresholds[optimal_index][0]
 
     @staticmethod
-    def _compute_cumulative_gains(y_true: np.ndarray,
-                                  y_pred: np.ndarray) -> tuple:
+    def _compute_cumulative_gains(
+        y_true: np.ndarray,
+        y_pred: np.ndarray
+    ) -> tuple:
         """Compute cumulative gains of the model.
 
         Code from (https://github.com/reiinakano/scikit-plot/blob/
@@ -514,10 +543,15 @@ class ClassificationEvaluator():
         tuple
             Includes x-labels, lifts per decile, and target incidence.
         """
-        lifts = [ClassificationEvaluator._compute_lift(y_true=y_true,
-                                                       y_pred=y_pred,
-                                                       lift_at=perc_lift)
-                 for perc_lift in np.linspace(1/n_bins, 1, num=n_bins, endpoint=True)]
+        lifts = [
+            ClassificationEvaluator
+            ._compute_lift(
+                y_true=y_true,
+                y_pred=y_pred,
+                lift_at=perc_lift
+            )
+            for perc_lift in np.linspace(1/n_bins, 1, num=n_bins, endpoint=True)
+        ]
 
         x_labels = [len(lifts)-x for x in np.arange(0, len(lifts), 1)]
 
@@ -562,14 +596,14 @@ class ClassificationEvaluator():
         avg_incidence = np.einsum("ij->j", y_true_)/float(len(y_true_))
 
         # Sort and filter data
-        data_sorted = (y_data[y_data[:, 1].argsort()[::-1]][:stop, 0]
-                       .reshape(stop, 1))
+        data_sorted = (
+            y_data[y_data[:, 1].argsort()[::-1]][:stop, 0]
+            .reshape(stop, 1)
+        )
 
         # Calculate lift (einsum is a very fast way of summing, but needs specific shape)
         inc_in_top_n = np.einsum("ij->j", data_sorted)/float(len(data_sorted))
-
         lift = np.round(inc_in_top_n/avg_incidence, 2)[0]
-
         return lift
 
 
@@ -617,8 +651,10 @@ class RegressionEvaluator():
         self.qq = RegressionEvaluator._compute_qq_residuals(y_true, y_pred)
 
     @staticmethod
-    def _compute_scalar_metrics(y_true: np.ndarray,
-                                y_pred: np.ndarray) -> pd.Series:
+    def _compute_scalar_metrics(
+        y_true: np.ndarray,
+        y_pred: np.ndarray
+    ) -> pd.Series:
         """Compute various scalar performance measures.
 
         Parameters
@@ -645,8 +681,10 @@ class RegressionEvaluator():
         })
 
     @staticmethod
-    def _compute_qq_residuals(y_true: np.ndarray,
-                              y_pred: np.ndarray) -> pd.Series:
+    def _compute_qq_residuals(
+        y_true: np.ndarray,
+        y_pred: np.ndarray
+    ) -> pd.Series:
         """Compute various scalar performance measures.
 
         Parameters
@@ -694,16 +732,16 @@ class RegressionEvaluator():
             The instance is not fitted yet.
         """
         if self.y_true is None and self.y_pred is None:
-            msg = ("This {} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
+            msg = (
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         y_true = self.y_true
         y_pred = self.y_pred
 
         with plt.style.context("seaborn-whitegrid"):
-
             fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             x = np.arange(1, len(y_true)+1)
@@ -737,13 +775,13 @@ class RegressionEvaluator():
             The instance is not fitted yet.
         """
         if self.qq is None:
-            msg = ("This {} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
-
+            msg = (
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         with plt.style.context("seaborn-whitegrid"):
-
             fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             x = self.qq["quantiles"]

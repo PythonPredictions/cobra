@@ -38,10 +38,12 @@ def generate_pig_tables(
         DataFrame containing a PIG table for all predictors.
     """
     pigs = [
-        compute_pig_table(basetable,
-                          column_name,
-                          target_column_name,
-                          id_column_name)
+        compute_pig_table(
+            basetable,
+            column_name,
+            target_column_name,
+            id_column_name
+        )
         for column_name in sorted(preprocessed_predictors)
         if column_name not in [id_column_name, target_column_name]
     ]
@@ -49,10 +51,12 @@ def generate_pig_tables(
     return output
 
 
-def compute_pig_table(basetable: pd.DataFrame,
-                      predictor_column_name: str,
-                      target_column_name: str,
-                      id_column_name: str) -> pd.DataFrame:
+def compute_pig_table(
+    basetable: pd.DataFrame,
+    predictor_column_name: str,
+    target_column_name: str,
+    id_column_name: str
+) -> pd.DataFrame:
     """Compute the PIG table of a given predictor for a given target.
 
     Parameters
@@ -76,12 +80,17 @@ def compute_pig_table(basetable: pd.DataFrame,
     # group by the binned variable, compute the incidence
     # (=mean of the target for the given bin) and compute the bin size
     # (e.g. COUNT(id_column_name)). After that, rename the columns
-    res = (basetable.groupby(predictor_column_name)
-           .agg({target_column_name: "mean", id_column_name: "size"})
-           .reset_index()
-           .rename(columns={predictor_column_name: "label",
-                            target_column_name: "avg_target",
-                            id_column_name: "pop_size"}))
+    res = (
+        basetable
+        .groupby(predictor_column_name)
+        .agg({target_column_name: "mean", id_column_name: "size"})
+        .reset_index()
+        .rename(columns={
+            predictor_column_name: "label",
+            target_column_name: "avg_target",
+            id_column_name: "pop_size"
+        })
+    )
 
     # add the column name to a variable column
     # add the average incidence
@@ -136,9 +145,11 @@ def plot_incidence(
         the same set of variables.
     """
     if model_type not in ["classification", "regression"]:
-        raise ValueError("An unexpected value was set for the model_type "
-                         "parameter. Expected 'classification' or "
-                         "'regression'.")
+        raise ValueError(
+            "An unexpected value was set for the model_type "
+            "parameter. Expected 'classification' or "
+            "'regression'."
+        )
 
     df_plot = pig_tables[pig_tables['variable'] == variable].copy()
 
@@ -149,8 +160,10 @@ def plot_incidence(
                 'the same set of variables.')
 
         df_plot['label'] = df_plot['label'].astype('category')
-        df_plot['label'].cat.reorder_categories(column_order,
-                                                inplace=True)
+        df_plot['label'].cat.reorder_categories(
+            column_order,
+            inplace=True
+        )
 
         df_plot.sort_values(by=['label'], ascending=True, inplace=True)
         df_plot.reset_index(inplace=True)
@@ -179,12 +192,18 @@ def plot_incidence(
         ax.plot(np.nan, "#939598", linewidth=6, label='bin size')
 
         # Set labels & ticks
-        ax.set_ylabel('incidence' if model_type == "classification" else "mean target value",
-                      fontsize=16)
+        ax.set_ylabel(
+            'incidence' if model_type == "classification" else "mean target value",
+            fontsize=16
+        )
         ax.set_xlabel(f'{variable} bins' '', fontsize=16)
         ax.xaxis.set_tick_params(labelsize=14)
-        plt.setp(ax.get_xticklabels(),
-                 rotation=45, ha="right", rotation_mode="anchor")
+        plt.setp(
+            ax.get_xticklabels(),
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor"
+        )
         ax.yaxis.set_tick_params(labelsize=14)
 
         if model_type == "classification":
@@ -247,9 +266,15 @@ def plot_incidence(
         else:
             title = "Mean target plot - " + variable
         fig.suptitle(title, fontsize=22)
-        ax.legend(frameon=False, bbox_to_anchor=(0., 1.01, 1., .102),
-                  loc=3, ncol=1, mode="expand", borderaxespad=0.,
-                  prop={"size": 14})
+        ax.legend(
+            frameon=False,
+            bbox_to_anchor=(0., 1.01, 1., .102),
+            loc=3,
+            ncol=1,
+            mode="expand",
+            borderaxespad=0.,
+            prop={"size": 14}
+        )
 
         # Set order of layers
         ax.set_zorder(1)
