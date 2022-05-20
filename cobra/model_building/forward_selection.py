@@ -43,7 +43,12 @@ class ForwardFeatureSelection:
         List of fitted models.
     """
 
-    def __init__(self, model_type: str = "classification", max_predictors: int = 50, pos_only: bool = True):
+    def __init__(
+        self,
+        model_type: str = "classification",
+        max_predictors: int = 50,
+        pos_only: bool = True,
+    ):
         """Initialize the ForwardFeatureSelection class."""
         self.model_type = model_type
         if model_type == "classification":
@@ -75,7 +80,10 @@ class ForwardFeatureSelection:
             In case step is larger than the number of available models.
         """
         if len(self._fitted_models) <= step:
-            raise ValueError(f"No model available for step {step}. " "The first step starts from index 0.")
+            raise ValueError(
+                f"No model available for step {step}. "
+                "The first step starts from index 0."
+            )
 
         return self._fitted_models[step]
 
@@ -122,7 +130,10 @@ class ForwardFeatureSelection:
 
         for model in self._fitted_models:
             last_added_predictor = set(model.predictors).difference(predictor_set)
-            tmp = {"predictors": model.predictors, "last_added_predictor": list(last_added_predictor)[0]}
+            tmp = {
+                "predictors": model.predictors,
+                "last_added_predictor": list(last_added_predictor)[0],
+            }
 
             # Evaluate model on each dataset split,
             # e.g. train-selection-validation
@@ -179,26 +190,44 @@ class ForwardFeatureSelection:
             In case the number of forced predictors is larger than the maximum
             number of allowed predictors in the model.
         """
-        assert "split" in train_data.columns, "The train_data input df does not include a split column."
         assert (
-            len(set(["train", "selection"]).difference(set(train_data["split"].unique()))) == 0
+            "split" in train_data.columns
+        ), "The train_data input df does not include a split column."
+        assert (
+            len(
+                set(["train", "selection"]).difference(
+                    set(train_data["split"].unique())
+                )
+            )
+            == 0
         ), "The train_data input df does not include a 'train' and 'selection' split."
 
         # remove excluded predictors from predictor lists
         forced_predictors = forced_predictors or DEFAULT_FORCED_PREDICTORS
         excluded_predictors = excluded_predictors or DEFAULT_EXCLUDED_PREDICTORS
         filtered_predictors = [
-            var for var in predictors if (var not in excluded_predictors and var not in forced_predictors)
+            var
+            for var in predictors
+            if (var not in excluded_predictors and var not in forced_predictors)
         ]
 
         # checks on predictor lists and self.max_predictors attr
         if len(forced_predictors) > self.max_predictors:
-            raise ValueError("Size of forced_predictors cannot be bigger than " "max_predictors.")
+            raise ValueError(
+                "Size of forced_predictors cannot be bigger than " "max_predictors."
+            )
         elif len(forced_predictors) == self.max_predictors:
-            log.info("Size of forced_predictors equals max_predictors " "only one model will be trained...")
+            log.info(
+                "Size of forced_predictors equals max_predictors "
+                "only one model will be trained..."
+            )
             # train model with all forced_predictors (only)
             self._fitted_models.append(
-                self._train_model(train_data[train_data["split"] == "train"], target_column_name, forced_predictors)
+                self._train_model(
+                    train_data[train_data["split"] == "train"],
+                    target_column_name,
+                    forced_predictors,
+                )
             )
 
         else:
@@ -207,7 +236,11 @@ class ForwardFeatureSelection:
             )
 
     def _forward_selection(
-        self, train_data: pd.DataFrame, target_column_name: str, predictors: list, forced_predictors: list = None
+        self,
+        train_data: pd.DataFrame,
+        target_column_name: str,
+        predictors: list,
+        forced_predictors: list = None,
     ) -> list[Model]:
         """Perform the forward feature selection algorithm.
 
@@ -237,22 +270,34 @@ class ForwardFeatureSelection:
         fitted_models: list[Model] = []
         current_predictors: list[str] = []
 
-        max_steps = 1 + min(self.max_predictors, len(predictors) + len(forced_predictors))
+        max_steps = 1 + min(
+            self.max_predictors, len(predictors) + len(forced_predictors)
+        )
 
-        for step in tqdm(range(1, max_steps), desc="Sequentially adding best predictor..."):
+        for step in tqdm(
+            range(1, max_steps), desc="Sequentially adding best predictor..."
+        ):
             if step <= len(forced_predictors):
                 # first, we go through the forced predictors
-                candidate_predictors = [var for var in forced_predictors if var not in current_predictors]
+                candidate_predictors = [
+                    var for var in forced_predictors if var not in current_predictors
+                ]
             else:
                 candidate_predictors = [
-                    var for var in (predictors + forced_predictors) if var not in current_predictors
+                    var
+                    for var in (predictors + forced_predictors)
+                    if var not in current_predictors
                 ]
 
-            model = self._find_next_best_model(train_data, target_column_name, candidate_predictors, current_predictors)
+            model = self._find_next_best_model(
+                train_data, target_column_name, candidate_predictors, current_predictors
+            )
 
             if model is not None:
                 # Add new model predictors to the list of current predictors
-                current_predictors = list(set(current_predictors).union(set(model.predictors)))
+                current_predictors = list(
+                    set(current_predictors).union(set(model.predictors))
+                )
 
                 fitted_models.append(model)
             # else:
@@ -267,7 +312,11 @@ class ForwardFeatureSelection:
         return fitted_models
 
     def _find_next_best_model(
-        self, train_data: pd.DataFrame, target_column_name: str, candidate_predictors: list, current_predictors: list
+        self,
+        train_data: pd.DataFrame,
+        target_column_name: str,
+        candidate_predictors: list,
+        current_predictors: list,
     ) -> Model:
         """
         Find the next best model with candidate predictors.
@@ -312,16 +361,24 @@ class ForwardFeatureSelection:
                 "ForwardFeatureSelection argument."
             )
 
-        fit_data = train_data[train_data["split"] == "train"]  # data to fit the models with
-        sel_data = train_data[train_data["split"] == "selection"]  # data to compare the models with
+        fit_data = train_data[
+            train_data["split"] == "train"
+        ]  # data to fit the models with
+        sel_data = train_data[
+            train_data["split"] == "selection"
+        ]  # data to compare the models with
 
         for pred in candidate_predictors:
             # Train a model with an additional predictor
-            model = self._train_model(fit_data, target_column_name, (current_predictors + [pred]))
+            model = self._train_model(
+                fit_data, target_column_name, (current_predictors + [pred])
+            )
 
             # Evaluate the model
             performance = model.evaluate(
-                sel_data[current_predictors + [pred]], sel_data[target_column_name], split="selection"
+                sel_data[current_predictors + [pred]],
+                sel_data[target_column_name],
+                split="selection",
             )
 
             if self.pos_only and (not (model.get_coef() >= 0).all()):
@@ -329,16 +386,23 @@ class ForwardFeatureSelection:
 
             # Check if the model is better than the current best model
             # and if it is, replace the current best.
-            if self.MLModel == LogisticRegressionModel and performance > best_performance:  # AUC metric is used
+            if (
+                self.MLModel == LogisticRegressionModel
+                and performance > best_performance
+            ):  # AUC metric is used
                 best_performance = performance
                 best_model = model
-            elif self.MLModel == LinearRegressionModel and performance < best_performance:  # RMSE metric is used
+            elif (
+                self.MLModel == LinearRegressionModel and performance < best_performance
+            ):  # RMSE metric is used
                 best_performance = performance
                 best_model = model
 
         return cast(Model, best_model)
 
-    def _train_model(self, train_data: pd.DataFrame, target_column_name: str, predictors: list) -> Model:
+    def _train_model(
+        self, train_data: pd.DataFrame, target_column_name: str, predictors: list
+    ) -> Model:
         """Train the model with a given set of predictors.
 
         Parameters

@@ -10,7 +10,10 @@ from cobra import utils
 
 
 def generate_pig_tables(
-    basetable: pd.DataFrame, id_column_name: str, target_column_name: str, preprocessed_predictors: list
+    basetable: pd.DataFrame,
+    id_column_name: str,
+    target_column_name: str,
+    preprocessed_predictors: list,
 ) -> pd.DataFrame:
     """Compute PIG tables for all predictors in preprocessed_predictors.
 
@@ -44,7 +47,10 @@ def generate_pig_tables(
 
 
 def compute_pig_table(
-    basetable: pd.DataFrame, predictor_column_name: str, target_column_name: str, id_column_name: str
+    basetable: pd.DataFrame,
+    predictor_column_name: str,
+    target_column_name: str,
+    id_column_name: str,
 ) -> pd.DataFrame:
     """Compute the PIG table of a given predictor for a given target.
 
@@ -73,7 +79,13 @@ def compute_pig_table(
         basetable.groupby(predictor_column_name)
         .agg({target_column_name: "mean", id_column_name: "size"})
         .reset_index()
-        .rename(columns={predictor_column_name: "label", target_column_name: "avg_target", id_column_name: "pop_size"})
+        .rename(
+            columns={
+                predictor_column_name: "label",
+                target_column_name: "avg_target",
+                id_column_name: "pop_size",
+            }
+        )
     )
 
     # add the column name to a variable column
@@ -90,7 +102,11 @@ def compute_pig_table(
 
 
 def plot_incidence(
-    pig_tables: pd.DataFrame, variable: str, model_type: str, column_order: list = None, dim: tuple = (12, 8)
+    pig_tables: pd.DataFrame,
+    variable: str,
+    model_type: str,
+    column_order: list = None,
+    dim: tuple = (12, 8),
 ):
     """Plot a Predictor Insights Graph (PIG).
 
@@ -125,14 +141,19 @@ def plot_incidence(
     """
     if model_type not in ["classification", "regression"]:
         raise ValueError(
-            "An unexpected value was set for the model_type " "parameter. Expected 'classification' or " "'regression'."
+            "An unexpected value was set for the model_type "
+            "parameter. Expected 'classification' or "
+            "'regression'."
         )
 
     df_plot = pig_tables[pig_tables["variable"] == variable].copy()
 
     if column_order is not None:
         if not set(df_plot["label"]) == set(column_order):
-            raise ValueError("The column_order and pig_tables parameters do not contain " "the same set of variables.")
+            raise ValueError(
+                "The column_order and pig_tables parameters do not contain "
+                "the same set of variables."
+            )
 
         df_plot["label"] = df_plot["label"].astype("category")
         df_plot["label"].cat.reorder_categories(column_order, inplace=True)
@@ -156,7 +177,9 @@ def plot_incidence(
             marker=".",
             markersize=20,
             linewidth=3,
-            label="incidence rate per bin" if model_type == "classification" else "mean target value per bin",
+            label="incidence rate per bin"
+            if model_type == "classification"
+            else "mean target value per bin",
             zorder=10,
         )
 
@@ -166,7 +189,9 @@ def plot_incidence(
             color="#022252",
             linestyle="--",
             linewidth=4,
-            label="average incidence rate" if model_type == "classification" else "global mean target value",
+            label="average incidence rate"
+            if model_type == "classification"
+            else "global mean target value",
             zorder=10,
         )
 
@@ -174,7 +199,10 @@ def plot_incidence(
         ax.plot(np.nan, "#939598", linewidth=6, label="bin size")
 
         # Set labels & ticks
-        ax.set_ylabel("incidence" if model_type == "classification" else "mean target value", fontsize=16)
+        ax.set_ylabel(
+            "incidence" if model_type == "classification" else "mean target value",
+            fontsize=16,
+        )
         ax.set_xlabel(f"{variable} bins" "", fontsize=16)
         ax.xaxis.set_tick_params(labelsize=14)
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
@@ -196,9 +224,17 @@ def plot_incidence(
             # the bins and versus the global avg. target.
             # (Motivation for the AND above: if on one end there IS enough
             # difference, the effect that we discuss here does not occur.)
-            global_avg_target = max(df_plot["global_avg_target"])  # series of same number, for every bin.
-            if (np.abs((max(df_plot["avg_target"]) - global_avg_target)) / global_avg_target < 0.25) and (
-                np.abs((min(df_plot["avg_target"]) - global_avg_target)) / global_avg_target < 0.25
+            global_avg_target = max(
+                df_plot["global_avg_target"]
+            )  # series of same number, for every bin.
+            if (
+                np.abs((max(df_plot["avg_target"]) - global_avg_target))
+                / global_avg_target
+                < 0.25
+            ) and (
+                np.abs((min(df_plot["avg_target"]) - global_avg_target))
+                / global_avg_target
+                < 0.25
             ):
                 ax.set_ylim(global_avg_target * 0.75, global_avg_target * 1.25)
 
@@ -212,7 +248,13 @@ def plot_incidence(
         # -----------------
         ax2 = ax.twinx()
 
-        ax2.bar(df_plot["label"], df_plot["pop_size"], align="center", color="#939598", zorder=1)
+        ax2.bar(
+            df_plot["label"],
+            df_plot["pop_size"],
+            align="center",
+            color="#939598",
+            zorder=1,
+        )
 
         # Set labels & ticks
         ax2.set_xlabel(f"{variable} bins" "", fontsize=16)

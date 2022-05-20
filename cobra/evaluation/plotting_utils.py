@@ -12,7 +12,9 @@ import seaborn as sns
 DEFAULT_COLOURS = {"train": "#0099bf", "selection": "#ff9500", "validation": "#8064a2"}
 
 
-def plot_univariate_predictor_quality(df_metric: pd.DataFrame, dim: tuple = (12, 8), path: str = None):
+def plot_univariate_predictor_quality(
+    df_metric: pd.DataFrame, dim: tuple = (12, 8), path: str = None
+):
     """Plot univariate quality of the predictors.
 
     Parameters
@@ -33,7 +35,9 @@ def plot_univariate_predictor_quality(df_metric: pd.DataFrame, dim: tuple = (12,
         metric = "RMSE"
         ascending = True
 
-    df = df_metric[df_metric["preselection"]].sort_values(by=metric + " selection", ascending=ascending)
+    df = df_metric[df_metric["preselection"]].sort_values(
+        by=metric + " selection", ascending=ascending
+    )
 
     df = pd.melt(
         df,
@@ -62,7 +66,9 @@ def plot_univariate_predictor_quality(df_metric: pd.DataFrame, dim: tuple = (12,
         plt.show()
 
 
-def plot_correlation_matrix(df_corr: pd.DataFrame, dim: tuple = (12, 8), path: str = None):
+def plot_correlation_matrix(
+    df_corr: pd.DataFrame, dim: tuple = (12, 8), path: str = None
+):
     """Plot correlation matrix amongst the predictors.
 
     Parameters
@@ -158,7 +164,9 @@ def plot_performance_curves(
 
         # Set x- and y-ticks
         ax.set_xticks(np.arange(len(model_performance["last_added_predictor"])))
-        ax.set_xticklabels(model_performance["last_added_predictor"].tolist(), rotation=40, ha="right")
+        ax.set_xticklabels(
+            model_performance["last_added_predictor"].tolist(), rotation=40, ha="right"
+        )
 
         if model_type == "classification":
             ax.set_yticks(np.arange(0.5, max_metric + 0.02, 0.05))
@@ -181,7 +189,10 @@ def plot_performance_curves(
 
 
 def plot_variable_importance(
-    df_variable_importance: pd.DataFrame, title: str = None, dim: tuple = (12, 8), path: str = None
+    df_variable_importance: pd.DataFrame,
+    title: str = None,
+    dim: tuple = (12, 8),
+    path: str = None,
 ):
     """Plot variable importance of a given model.
 
@@ -198,7 +209,12 @@ def plot_variable_importance(
     """
     with plt.style.context("seaborn-ticks"):
         fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
-        ax = sns.barplot(x="importance", y="predictor", data=df_variable_importance, color="cornflowerblue")
+        ax = sns.barplot(
+            x="importance",
+            y="predictor",
+            data=df_variable_importance,
+            color="cornflowerblue",
+        )
         if title:
             ax.set_title(title)
         else:

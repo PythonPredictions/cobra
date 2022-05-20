@@ -19,7 +19,10 @@ test-unit:
 	@echo 'unit tests OK'
 
 black-check:
-	black --diff --line-length 120 cobra/
+	black --diff --line-length 80 cobra/
+
+black:
+	black cobra/
 
 typecheck:
 	mypy cobra --allow-redefinition --allow-untyped-globals --ignore-missing-imports

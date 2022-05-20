@@ -33,7 +33,9 @@ class LogisticRegressionModel:
 
     def __init__(self):
         """Initialize the LogisticRegressionModel class."""
-        self.logit = LogisticRegression(fit_intercept=True, C=1e9, solver="liblinear", random_state=42)
+        self.logit = LogisticRegression(
+            fit_intercept=True, C=1e9, solver="liblinear", random_state=42
+        )
         self._is_fitted = False
         # placeholder to keep track of a list of predictors
         self.predictors = []
@@ -152,7 +154,13 @@ class LogisticRegressionModel:
         # ensure we have the proper predictors and the proper order
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
-    def evaluate(self, X: pd.DataFrame, y: pd.Series, split: str = None, metric: Optional[Callable] = None) -> float:
+    def evaluate(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        split: str = None,
+        metric: Optional[Callable] = None,
+    ) -> float:
         """
         Evaluate the model on a given dataset (X, y).
 
@@ -185,7 +193,9 @@ class LogisticRegressionModel:
             y_pred = self.score_model(X)
 
             fpr, tpr, thresholds = roc_curve(y_true=y, y_score=y_pred)
-            cutoff = ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds)
+            cutoff = ClassificationEvaluator._compute_optimal_cutoff(
+                fpr, tpr, thresholds
+            )
             y_pred_b = np.array([0 if pred <= cutoff else 1 for pred in y_pred])
 
             performance = metric(y_true=y, y_pred=y_pred_b)
@@ -219,11 +229,15 @@ class LogisticRegressionModel:
         y_pred = self.score_model(data)
 
         importance_by_variable = {
-            utils.clean_predictor_name(predictor): stats.pearsonr(data[predictor], y_pred)[0]
+            utils.clean_predictor_name(predictor): stats.pearsonr(
+                data[predictor], y_pred
+            )[0]
             for predictor in self.predictors
         }
 
-        df = pd.DataFrame.from_dict(importance_by_variable, orient="index").reset_index()
+        df = pd.DataFrame.from_dict(
+            importance_by_variable, orient="index"
+        ).reset_index()
         df.columns = ["predictor", "importance"]
 
         return df.sort_values(by="importance", ascending=False).reset_index(drop=True)
@@ -285,7 +299,10 @@ class LinearRegressionModel:
 
         if self._is_fitted:
             serialized_model.update(
-                {"coef_": self.linear.coef_.tolist(), "intercept_": self.linear.intercept_.tolist()}
+                {
+                    "coef_": self.linear.coef_.tolist(),
+                    "intercept_": self.linear.intercept_.tolist(),
+                }
             )
 
         return serialized_model
@@ -374,7 +391,13 @@ class LinearRegressionModel:
         # ensure we have the proper predictors and the proper order
         return self.linear.predict(X[self.predictors])
 
-    def evaluate(self, X: pd.DataFrame, y: pd.Series, split: str = None, metric: Optional[Callable] = None) -> float:
+    def evaluate(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        split: str = None,
+        metric: Optional[Callable] = None,
+    ) -> float:
         """Evaluate the model on a given dataset (X, y).
 
         The optional split
@@ -434,11 +457,15 @@ class LinearRegressionModel:
         y_pred = self.score_model(data)
 
         importance_by_variable = {
-            utils.clean_predictor_name(predictor): stats.pearsonr(data[predictor], y_pred)[0]
+            utils.clean_predictor_name(predictor): stats.pearsonr(
+                data[predictor], y_pred
+            )[0]
             for predictor in self.predictors
         }
 
-        df = pd.DataFrame.from_dict(importance_by_variable, orient="index").reset_index()
+        df = pd.DataFrame.from_dict(
+            importance_by_variable, orient="index"
+        ).reset_index()
         df.columns = ["predictor", "importance"]
 
         return df.sort_values(by="importance", ascending=False).reset_index(drop=True)

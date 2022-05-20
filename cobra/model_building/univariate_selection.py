@@ -74,14 +74,22 @@ def compute_univariate_preselection(
             cleaned_predictor = utils.clean_predictor_name(predictor)
 
             auc_train = roc_auc_score(
-                y_true=target_enc_train_data[target_column], y_score=target_enc_train_data[predictor]
+                y_true=target_enc_train_data[target_column],
+                y_score=target_enc_train_data[predictor],
             )
 
             auc_selection = roc_auc_score(
-                y_true=target_enc_selection_data[target_column], y_score=target_enc_selection_data[predictor]
+                y_true=target_enc_selection_data[target_column],
+                y_score=target_enc_selection_data[predictor],
             )
 
-            result.append({"predictor": cleaned_predictor, "AUC train": auc_train, "AUC selection": auc_selection})
+            result.append(
+                {
+                    "predictor": cleaned_predictor,
+                    "AUC train": auc_train,
+                    "AUC selection": auc_selection,
+                }
+            )
 
         df_auc = pd.DataFrame(result)
 
@@ -95,23 +103,35 @@ def compute_univariate_preselection(
 
         df_auc["preselection"] = auc_thresh & auc_overtrain
 
-        df_out = df_auc.sort_values(by="AUC selection", ascending=False).reset_index(drop=True)
+        df_out = df_auc.sort_values(by="AUC selection", ascending=False).reset_index(
+            drop=True
+        )
 
     elif model_type == "regression":
         for predictor in predictors:
             cleaned_predictor = utils.clean_predictor_name(predictor)
 
             rmse_train = sqrt(
-                mean_squared_error(y_true=target_enc_train_data[target_column], y_pred=target_enc_train_data[predictor])
+                mean_squared_error(
+                    y_true=target_enc_train_data[target_column],
+                    y_pred=target_enc_train_data[predictor],
+                )
             )
 
             rmse_selection = sqrt(
                 mean_squared_error(
-                    y_true=target_enc_selection_data[target_column], y_pred=target_enc_selection_data[predictor]
+                    y_true=target_enc_selection_data[target_column],
+                    y_pred=target_enc_selection_data[predictor],
                 )
             )
 
-            result.append({"predictor": cleaned_predictor, "RMSE train": rmse_train, "RMSE selection": rmse_selection})
+            result.append(
+                {
+                    "predictor": cleaned_predictor,
+                    "RMSE train": rmse_train,
+                    "RMSE selection": rmse_selection,
+                }
+            )
 
         df_rmse = pd.DataFrame(result)
 
@@ -120,12 +140,16 @@ def compute_univariate_preselection(
 
         # Identify those variables for which the RMSE difference between train
         # and selection is within a user-defined ratio
-        preselect_overtrain = df_rmse["RMSE selection"] - df_rmse["RMSE train"]  # flip subtraction vs. AUC
+        preselect_overtrain = (
+            df_rmse["RMSE selection"] - df_rmse["RMSE train"]
+        )  # flip subtraction vs. AUC
         rmse_overtrain = preselect_overtrain < preselect_overtrain_threshold
 
         df_rmse["preselection"] = rmse_thresh & rmse_overtrain
 
-        df_out = df_rmse.sort_values(by="RMSE selection", ascending=True).reset_index(drop=True)  # lower is better
+        df_out = df_rmse.sort_values(by="RMSE selection", ascending=True).reset_index(
+            drop=True
+        )  # lower is better
 
     return df_out
 
@@ -147,7 +171,9 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
     """
     if "AUC selection" in df_metric.columns:
         predictor_list = (
-            df_metric[df_metric["preselection"]].sort_values(by="AUC selection", ascending=False).predictor.tolist()
+            df_metric[df_metric["preselection"]]
+            .sort_values(by="AUC selection", ascending=False)
+            .predictor.tolist()
         )
     elif "RMSE selection" in df_metric.columns:
         predictor_list = (
@@ -159,7 +185,9 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
     return [col + "_enc" for col in predictor_list]
 
 
-def compute_correlations(target_enc_train_data: pd.DataFrame, predictors: list) -> pd.DataFrame:
+def compute_correlations(
+    target_enc_train_data: pd.DataFrame, predictors: list
+) -> pd.DataFrame:
     """Compute the correlations amongst the predictors in the DataFrame.
 
     Parameters
@@ -177,7 +205,9 @@ def compute_correlations(target_enc_train_data: pd.DataFrame, predictors: list) 
     """
     correlations = target_enc_train_data[predictors].corr()
 
-    predictors_cleaned = [utils.clean_predictor_name(predictor) for predictor in predictors]
+    predictors_cleaned = [
+        utils.clean_predictor_name(predictor) for predictor in predictors
+    ]
 
     # Change index and columns with the cleaned version of the predictors
     # e.g. change "var1_enc" with "var1"

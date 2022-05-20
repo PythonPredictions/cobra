@@ -75,7 +75,9 @@ class TargetEncoder(BaseEstimator):
         elif imputation_strategy not in self.valid_imputation_strategies:
             raise ValueError(
                 "Valid options for 'imputation_strategy' are {}. "
-                "Got imputation_strategy={!r} instead.".format(self.valid_imputation_strategies, imputation_strategy)
+                "Got imputation_strategy={!r} instead.".format(
+                    self.valid_imputation_strategies, imputation_strategy
+                )
             )
 
         if weight == 0:
@@ -104,7 +106,9 @@ class TargetEncoder(BaseEstimator):
         """
         params = self.get_params()
 
-        params["_mapping"] = {key: value.to_dict() for key, value in self._mapping.items()}
+        params["_mapping"] = {
+            key: value.to_dict() for key, value in self._mapping.items()
+        }
 
         params["_global_mean"] = self._global_mean
 
@@ -122,7 +126,10 @@ class TargetEncoder(BaseEstimator):
         if "weight" in params and type(params["weight"]) == float:
             self.weight = params["weight"]
 
-        if "imputation_strategy" in params and params["imputation_strategy"] in self.valid_imputation_strategies:
+        if (
+            "imputation_strategy" in params
+            and params["imputation_strategy"] in self.valid_imputation_strategies
+        ):
             self.imputation_strategy = params["imputation_strategy"]
 
         if "_global_mean" in params and type(params["_global_mean"]) == float:
@@ -137,7 +144,9 @@ class TargetEncoder(BaseEstimator):
             s.index.name = key
             return s
 
-        self._mapping = {key: dict_to_series(key, value) for key, value in _mapping.items()}
+        self._mapping = {
+            key: dict_to_series(key, value) for key, value in _mapping.items()
+        }
 
         return self
 
@@ -160,7 +169,10 @@ class TargetEncoder(BaseEstimator):
 
         for column in tqdm(column_names, desc="Fitting target encoding..."):
             if column not in data.columns:
-                log.warning("DataFrame has no column '{}', so it will be " "skipped in fitting".format(column))
+                log.warning(
+                    "DataFrame has no column '{}', so it will be "
+                    "skipped in fitting".format(column)
+                )
                 continue
 
             self._mapping[column] = self._fit_column(data[column], y)
@@ -220,7 +232,8 @@ class TargetEncoder(BaseEstimator):
         """
         if (len(self._mapping) == 0) or (self._global_mean is None):
             msg = (
-                "This {} instance is not fitted yet. Call 'fit' with " "appropriate arguments before using this method."
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
             )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
@@ -229,7 +242,10 @@ class TargetEncoder(BaseEstimator):
                 log.warning("Unknown column '{}' will be skipped.".format(column))
                 continue
             elif column not in self._mapping:
-                log.warning("Column '{}' is not in fitted output " "and will be skipped.".format(column))
+                log.warning(
+                    "Column '{}' is not in fitted output "
+                    "and will be skipped.".format(column)
+                )
                 continue
             data = self._transform_column(data, column)
 
@@ -258,7 +274,9 @@ class TargetEncoder(BaseEstimator):
         # Convert dtype to float, because when the original dtype
         # is of type "category", the resulting dtype would otherwise also be of
         # type "category":
-        data[new_column] = data[column_name].map(self._mapping[column_name]).astype("float")
+        data[new_column] = (
+            data[column_name].map(self._mapping[column_name]).astype("float")
+        )
 
         # In case of categorical data, it could be that new categories will
         # emerge which were not present in the train set, so this will result
@@ -274,7 +292,9 @@ class TargetEncoder(BaseEstimator):
 
         return data
 
-    def fit_transform(self, data: pd.DataFrame, column_names: list, target_column: str) -> pd.DataFrame:
+    def fit_transform(
+        self, data: pd.DataFrame, column_names: list, target_column: str
+    ) -> pd.DataFrame:
         """Fit the encoder and transform the data.
 
         Parameters

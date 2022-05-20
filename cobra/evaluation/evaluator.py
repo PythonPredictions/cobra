@@ -61,7 +61,9 @@ class ClassificationEvaluator:
         (by default 10, so deciles).
     """
 
-    def __init__(self, probability_cutoff: float = None, lift_at: float = 0.05, n_bins: int = 10):
+    def __init__(
+        self, probability_cutoff: float = None, lift_at: float = 0.05, n_bins: int = 10
+    ):
         """Initialize the ClassificationEvaluator."""
         self.y_true: np.ndarray
         self.y_pred: np.ndarray
@@ -91,14 +93,21 @@ class ClassificationEvaluator:
 
         # if probability_cutoff is not set, take the optimal cut-off
         if not self.probability_cutoff:
-            self.probability_cutoff = ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds)
+            self.probability_cutoff = ClassificationEvaluator._compute_optimal_cutoff(
+                fpr, tpr, thresholds
+            )
 
         # Transform probabilities to binary array using cut-off
-        y_pred_b = np.array([0 if pred <= self.probability_cutoff else 1 for pred in y_pred])
+        y_pred_b = np.array(
+            [0 if pred <= self.probability_cutoff else 1 for pred in y_pred]
+        )
 
         # Compute the various evaluation metrics
         self.scalar_metrics = cast(
-            pd.Series, ClassificationEvaluator._compute_scalar_metrics(y_true, y_pred, y_pred_b, self.lift_at)
+            pd.Series,
+            ClassificationEvaluator._compute_scalar_metrics(
+                y_true, y_pred, y_pred_b, self.lift_at
+            ),
         )
 
         self.y_true = y_true
@@ -106,8 +115,12 @@ class ClassificationEvaluator:
 
         self.roc_curve = {"fpr": fpr, "tpr": tpr, "thresholds": thresholds}
         self.confusion_matrix = confusion_matrix(y_true, y_pred_b)
-        self.lift_curve = ClassificationEvaluator._compute_lift_per_bin(y_true, y_pred, self.n_bins)
-        self.cumulative_gains = ClassificationEvaluator._compute_cumulative_gains(y_true, y_pred)
+        self.lift_curve = ClassificationEvaluator._compute_lift_per_bin(
+            y_true, y_pred, self.n_bins
+        )
+        self.cumulative_gains = ClassificationEvaluator._compute_cumulative_gains(
+            y_true, y_pred
+        )
 
     @staticmethod
     def _compute_scalar_metrics(
@@ -153,7 +166,10 @@ class ClassificationEvaluator:
                 "F1": f1_score(y_true, y_pred_b, average=None)[1],
                 "matthews_corrcoef": matthews_corrcoef(y_true, y_pred_b),
                 f"lift at {lift_at}": np.round(
-                    ClassificationEvaluator._compute_lift(y_true=y_true, y_pred=y_pred, lift_at=lift_at), 2
+                    ClassificationEvaluator._compute_lift(
+                        y_true=y_true, y_pred=y_pred, lift_at=lift_at
+                    ),
+                    2,
                 ),
             }
         )
@@ -175,7 +191,8 @@ class ClassificationEvaluator:
         """
         if self.roc_curve is None:
             msg = (
-                "This {} instance is not fitted yet. Call 'fit' with " "appropriate arguments before using this method."
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
             )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
@@ -202,7 +219,9 @@ class ClassificationEvaluator:
 
         plt.show()
 
-    def plot_confusion_matrix(self, path: str = None, dim: tuple = (12, 8), labels: list = None):
+    def plot_confusion_matrix(
+        self, path: str = None, dim: tuple = (12, 8), labels: list = None
+    ):
         """Plot the confusion matrix.
 
         Parameters
@@ -222,7 +241,8 @@ class ClassificationEvaluator:
         labels = labels or DEFAULT_LABELS
         if self.confusion_matrix is None:
             msg = (
-                "This {} instance is not fitted yet. Call 'fit' with " "appropriate arguments before using this method."
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
             )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
@@ -259,7 +279,8 @@ class ClassificationEvaluator:
         """
         if self.lift_curve is None:
             msg = (
-                "This {} instance is not fitted yet. Call 'fit' with " "appropriate arguments before using this method."
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
             )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
@@ -319,7 +340,8 @@ class ClassificationEvaluator:
         """
         if self.lift_curve is None:
             msg = (
-                "This {} instance is not fitted yet. Call 'fit' with " "appropriate arguments before using this method."
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
             )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
@@ -334,7 +356,15 @@ class ClassificationEvaluator:
             ax.set_xticks(x_labels)
             ax.set_xticklabels(x_labels)
 
-            plt.axhline(y=1, color="darkorange", linestyle="--", xmin=0.05, xmax=0.95, linewidth=3, label="Baseline")
+            plt.axhline(
+                y=1,
+                color="darkorange",
+                linestyle="--",
+                xmin=0.05,
+                xmax=0.95,
+                linewidth=3,
+                label="Baseline",
+            )
 
             # Legend
             ax.legend(loc="upper right")
@@ -373,7 +403,14 @@ class ClassificationEvaluator:
                 linewidth=3,
                 label="cumulative gains",
             )
-            ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3, ls="--", color="darkorange", label="random selection")
+            ax.plot(
+                ax.get_xlim(),
+                ax.get_ylim(),
+                linewidth=3,
+                ls="--",
+                color="darkorange",
+                label="random selection",
+            )
 
             ax.set_title("Cumulative Gains curve", fontsize=20)
 
@@ -417,7 +454,9 @@ class ClassificationEvaluator:
         return ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds)
 
     @staticmethod
-    def _compute_optimal_cutoff(fpr: np.ndarray, tpr: np.ndarray, thresholds: np.ndarray) -> float:
+    def _compute_optimal_cutoff(
+        fpr: np.ndarray, tpr: np.ndarray, thresholds: np.ndarray
+    ) -> float:
         """Calculate the optimal probability cut-off point for a classification model.
 
         The optimal cut-off would be where TPR is high and FPR is low, hence
@@ -445,7 +484,9 @@ class ClassificationEvaluator:
         return thresholds[optimal_index][0]
 
     @staticmethod
-    def _compute_cumulative_gains(y_true: np.ndarray, y_pred: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _compute_cumulative_gains(
+        y_true: np.ndarray, y_pred: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Compute cumulative gains of the model.
 
         Code from (https://github.com/reiinakano/scikit-plot/blob/
@@ -503,7 +544,9 @@ class ClassificationEvaluator:
             Includes x-labels, lifts per decile, and target incidence.
         """
         lifts = [
-            ClassificationEvaluator._compute_lift(y_true=y_true, y_pred=y_pred, lift_at=perc_lift)
+            ClassificationEvaluator._compute_lift(
+                y_true=y_true, y_pred=y_pred, lift_at=perc_lift
+            )
             for perc_lift in np.linspace(1 / n_bins, 1, num=n_bins, endpoint=True)
         ]
 
@@ -512,7 +555,9 @@ class ClassificationEvaluator:
         return x_labels, lifts, cast(float, y_true.mean())
 
     @staticmethod
-    def _compute_lift(y_true: np.ndarray, y_pred: np.ndarray, lift_at: float = 0.05) -> float:
+    def _compute_lift(
+        y_true: np.ndarray, y_pred: np.ndarray, lift_at: float = 0.05
+    ) -> float:
         """Calculate lift on a specified level.
 
         Parameters
@@ -589,7 +634,9 @@ class RegressionEvaluator:
             Model scores.
         """
         # Compute the various evaluation metrics
-        self.scalar_metrics = RegressionEvaluator._compute_scalar_metrics(y_true, y_pred)
+        self.scalar_metrics = RegressionEvaluator._compute_scalar_metrics(
+            y_true, y_pred
+        )
 
         self.y_true = y_true
         self.y_pred = y_pred
@@ -651,7 +698,9 @@ class RegressionEvaluator:
 
         df["z_res"] = df["res"].apply(lambda x: (x - m) / s)
         df["rank"] = df.index + 1
-        df["percentile"] = df["rank"].apply(lambda x: x / (n + 1))  # divide by n+1 to avoid inf
+        df["percentile"] = df["rank"].apply(
+            lambda x: x / (n + 1)
+        )  # divide by n+1 to avoid inf
         df["q_theoretical"] = norm.ppf(df["percentile"])
 
         return pd.Series(
@@ -678,7 +727,8 @@ class RegressionEvaluator:
         """
         if self.y_true is None and self.y_pred is None:
             msg = (
-                "This {} instance is not fitted yet. Call 'fit' with " "appropriate arguments before using this method."
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
             )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
@@ -690,7 +740,9 @@ class RegressionEvaluator:
 
             x = np.arange(1, len(y_true) + 1)
 
-            ax.plot(x, y_true, ls="--", label="actuals", color="darkorange", linewidth=3)
+            ax.plot(
+                x, y_true, ls="--", label="actuals", color="darkorange", linewidth=3
+            )
             ax.plot(x, y_pred, label="predictions", color="cornflowerblue", linewidth=3)
 
             ax.set_xlabel("Index", fontsize=15)
@@ -728,14 +780,24 @@ class RegressionEvaluator:
             x = self.qq["quantiles"]
             y = self.qq["residuals"]
 
-            ax.plot(x, x, ls="--", label="perfect model", color="darkorange", linewidth=3)
+            ax.plot(
+                x, x, ls="--", label="perfect model", color="darkorange", linewidth=3
+            )
             ax.plot(x, y, label="current model", color="cornflowerblue", linewidth=3)
 
             ax.set_xlabel("Theoretical quantiles", fontsize=15)
-            ax.set_xticks(range(int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")]))) + 1, 1))
+            ax.set_xticks(
+                range(
+                    int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")]))) + 1, 1
+                )
+            )
 
             ax.set_ylabel("Standardized residuals", fontsize=15)
-            ax.set_yticks(range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")]))) + 1, 1))
+            ax.set_yticks(
+                range(
+                    int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")]))) + 1, 1
+                )
+            )
 
             ax.legend(loc="best")
             ax.set_title("Q-Q plot", fontsize=20)
