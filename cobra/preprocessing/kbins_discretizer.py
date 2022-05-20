@@ -2,7 +2,7 @@
 # standard lib imports
 from copy import deepcopy
 from this import d
-from typing import List
+from typing import Dict, List, Optional, Union
 import numbers
 import logging
 import math
@@ -65,18 +65,24 @@ class KBinsDiscretizer(BaseEstimator):
 
     valid_strategies = ("uniform", "quantile")
     valid_keys = [
-        "n_bins", "strategy", "closed", "auto_adapt_bins",
-        "starting_precision", "label_format",
-        "change_endpoint_format"
+        "n_bins",
+        "strategy",
+        "closed",
+        "auto_adapt_bins",
+        "starting_precision",
+        "label_format",
+        "change_endpoint_format",
     ]
 
     def __init__(
-        self, n_bins: int = 10, strategy: str = "quantile",
+        self,
+        n_bins: int = 10,
+        strategy: str = "quantile",
         closed: str = "right",
         auto_adapt_bins: bool = False,
         starting_precision: int = 0,
         label_format: str = "{} - {}",
-        change_endpoint_format: bool = False
+        change_endpoint_format: bool = False,
     ):
         """Initialize the KBinsDiscretizer."""
         # validate number of bins
@@ -108,18 +114,14 @@ class KBinsDiscretizer(BaseEstimator):
         """
         if not isinstance(n_bins, numbers.Integral):
             raise ValueError(
-                "{} received an invalid n_bins type. Received {}, expected int."
-                .format(
-                    KBinsDiscretizer.__name__,
-                    type(n_bins).__name__
+                "{} received an invalid n_bins type. Received {}, expected int.".format(
+                    KBinsDiscretizer.__name__, type(n_bins).__name__
                 )
             )
         if n_bins < 2:
             raise ValueError(
-                "{} received an invalid number of bins. Received {}, expected at least 2."
-                .format(
-                    KBinsDiscretizer.__name__,
-                    n_bins
+                "{} received an invalid number of bins. Received {}, expected at least 2.".format(
+                    KBinsDiscretizer.__name__, n_bins
                 )
             )
 
@@ -135,8 +137,7 @@ class KBinsDiscretizer(BaseEstimator):
         params = self.get_params()
 
         params["_bins_by_column"] = {
-            key: [list(tup) for tup in value] if value else None
-            for key, value in self._bins_by_column.items()
+            key: [list(tup) for tup in value] if value else None for key, value in self._bins_by_column.items()
         }
 
         return params
@@ -159,8 +160,7 @@ class KBinsDiscretizer(BaseEstimator):
 
         if type(_bins_by_column) != dict:
             raise ValueError(
-                "_bins_by_column is expected to be a dict but is of type {} instead"
-                .format(type(_bins_by_column))
+                "_bins_by_column is expected to be a dict but is of type {} instead".format(type(_bins_by_column))
             )
 
         # Clean out params dictionary to remove unknown keys (for safety!)
@@ -171,8 +171,7 @@ class KBinsDiscretizer(BaseEstimator):
         self.set_params(**params)
 
         self._bins_by_column = {
-            key: ([tuple(v) for v in value] if value else None)
-            for key, value in _bins_by_column.items()
+            key: ([tuple(v) for v in value] if value else None) for key, value in _bins_by_column.items()
         }
 
         return self
@@ -189,22 +188,14 @@ class KBinsDiscretizer(BaseEstimator):
         """
         if self.strategy not in self.valid_strategies:
             raise ValueError(
-                "{}: valid options for 'strategy' are {}. Got strategy={!r} instead."
-                .format(
-                    KBinsDiscretizer.__name__,
-                    self.valid_strategies, self.strategy
+                "{}: valid options for 'strategy' are {}. Got strategy={!r} instead.".format(
+                    KBinsDiscretizer.__name__, self.valid_strategies, self.strategy
                 )
             )
 
-        for column_name in tqdm(
-            column_names, desc="Computing discretization bins..."
-        ):
+        for column_name in tqdm(column_names, desc="Computing discretization bins..."):
             if column_name not in data.columns:
-                log.warning(
-                    "DataFrame has no column '{}', so it will be "
-                    "skipped in fitting"
-                    .format(column_name)
-                )
+                log.warning("DataFrame has no column '{}', so it will be " "skipped in fitting".format(column_name))
                 continue
 
             bins = self._fit_column(data, column_name)
@@ -212,11 +203,7 @@ class KBinsDiscretizer(BaseEstimator):
             # Add to bins_by_column for later use
             self._bins_by_column[column_name] = bins
 
-    def _fit_column(
-        self,
-        data: pd.DataFrame,
-        column_name: str
-    ) -> List[tuple]:
+    def _fit_column(self, data: pd.DataFrame, column_name: str) -> Optional[List[tuple]]:
         """Compute bins for a specific column in data.
 
         Parameters
@@ -234,14 +221,10 @@ class KBinsDiscretizer(BaseEstimator):
         col_min, col_max = data[column_name].min(), data[column_name].max()
 
         if col_min == col_max:
-            log.warning(
-                "Predictor '{}' is constant and will be ignored in computation"
-                .format(column_name)
-            )
+            log.warning("Predictor '{}' is constant and will be ignored in computation".format(column_name))
             return None
 
-        prop_inf = (np.sum(np.isinf(data[column_name]))
-                    / data[column_name].shape[0])
+        prop_inf = np.sum(np.isinf(data[column_name])) / data[column_name].shape[0]
 
         if prop_inf > 0:
             log.warning(
@@ -254,31 +237,19 @@ class KBinsDiscretizer(BaseEstimator):
         prop_nan = data[column_name].isna().sum() / data[column_name].shape[0]
 
         if prop_nan >= 0.99:
-            log.warning(
-                f"Column {column_name} is"
-                f" {prop_nan:.1%}% NaNs, "
-                f"consider dropping or transforming it."
-            )
+            log.warning(f"Column {column_name} is" f" {prop_nan:.1%}% NaNs, " f"consider dropping or transforming it.")
 
         n_bins = self.n_bins
         if self.auto_adapt_bins:
             size = len(data.index)
-            missing_pct = data[column_name].isnull().sum()/size
+            missing_pct = data[column_name].isnull().sum() / size
             n_bins = int(max(round((1 - missing_pct) * n_bins), 2))
 
-        bin_edges = self._compute_bin_edges(
-            data,
-            column_name,
-            n_bins,
-            col_min,
-            col_max
-        )
+        bin_edges = self._compute_bin_edges(data, column_name, n_bins, col_min, col_max)
 
         if len(bin_edges) < 3:
             log.warning(
-                "Only 1 bin was found for predictor '{}' so it will "
-                "be ignored in computation"
-                .format(column_name)
+                "Only 1 bin was found for predictor '{}' so it will " "be ignored in computation".format(column_name)
             )
             return None
 
@@ -286,17 +257,12 @@ class KBinsDiscretizer(BaseEstimator):
             log.warning(
                 "The number of actual bins for predictor '{}' is {} "
                 "which is smaller than the requested number of bins "
-                "{}"
-                .format(column_name, len(bin_edges) - 1, n_bins)
+                "{}".format(column_name, len(bin_edges) - 1, n_bins)
             )
 
         return self._compute_bins_from_edges(bin_edges)
 
-    def transform(
-        self,
-        data: pd.DataFrame,
-        column_names: list
-    ) -> pd.DataFrame:
+    def transform(self, data: pd.DataFrame, column_names: list) -> pd.DataFrame:
         """Discretize the data in the given list of columns.
 
         This is done by mapping each number to
@@ -315,16 +281,12 @@ class KBinsDiscretizer(BaseEstimator):
             data with additional discretized variables
         """
         if len(self._bins_by_column) == 0:
-            msg = (
-                "{} instance is not fitted yet. Call 'fit' with "
-                "appropriate arguments before using this method."
-            )
+            msg = "{} instance is not fitted yet. Call 'fit' with " "appropriate arguments before using this method."
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         for column_name in tqdm(column_names, desc="Discretizing columns..."):
             if column_name not in self._bins_by_column:
-                log.warning("Column '{}' is not in fitted output "
-                            "and will be skipped".format(column_name))
+                log.warning("Column '{}' is not in fitted output " "and will be skipped".format(column_name))
                 continue
 
             # can be None for a column with a constant value!
@@ -334,11 +296,7 @@ class KBinsDiscretizer(BaseEstimator):
 
         return data
 
-    def _transform_column(
-        self, data: pd.DataFrame,
-        column_name: str,
-        bins: List[tuple]
-    ) -> pd.DataFrame:
+    def _transform_column(self, data: pd.DataFrame, column_name: str, bins: List[tuple]) -> pd.DataFrame:
         """Create a new column with binned values of column_name.
 
         Parameters
@@ -360,18 +318,12 @@ class KBinsDiscretizer(BaseEstimator):
         column_name_bin = column_name + "_bin"
 
         # use pd.cut to compute bins
-        data.loc[:, column_name_bin] = pd.cut(
-            x=data[column_name],
-            bins=interval_idx
-        )
+        data.loc[:, column_name_bin] = pd.cut(x=data[column_name], bins=interval_idx)
 
         # Rename bins so that the output has a proper format
         bin_labels = self._create_bin_labels(bins)
 
-        data.loc[:, column_name_bin] = (
-            data[column_name_bin]
-            .cat.rename_categories(bin_labels)
-        )
+        data.loc[:, column_name_bin] = data[column_name_bin].cat.rename_categories(bin_labels)
 
         if data[column_name_bin].isnull().sum() > 0:
 
@@ -384,11 +336,7 @@ class KBinsDiscretizer(BaseEstimator):
 
         return data
 
-    def fit_transform(
-        self,
-        data: pd.DataFrame,
-        column_names: list
-    ) -> pd.DataFrame:
+    def fit_transform(self, data: pd.DataFrame, column_names: list) -> pd.DataFrame:
         """Fit to data, then transform it.
 
         Parameters
@@ -407,12 +355,7 @@ class KBinsDiscretizer(BaseEstimator):
         return self.transform(data, column_names)
 
     def _compute_bin_edges(
-        self,
-        data: pd.DataFrame,
-        column_name: str,
-        n_bins: int,
-        col_min: float,
-        col_max: float
+        self, data: pd.DataFrame, column_name: str, n_bins: int, col_min: float, col_max: float
     ) -> list:
         """Compute the desired bin edges.
 
@@ -434,6 +377,7 @@ class KBinsDiscretizer(BaseEstimator):
         list
             list of bin edges from which to compute the bins
         """
+        # fmt: off
         bin_edges = []
         if self.strategy == "quantile":
             bin_edges = list(
@@ -445,6 +389,7 @@ class KBinsDiscretizer(BaseEstimator):
             )
         elif self.strategy == "uniform":
             bin_edges = list(np.linspace(col_min, col_max, n_bins + 1))
+        # fmt: on
 
         # nans lead to unexpected behavior during sorting,
         # by replacing with inf we ensure these stay at the
@@ -456,9 +401,7 @@ class KBinsDiscretizer(BaseEstimator):
             bin_edges[-1] = np.inf
 
         if np.isnan(bin_edges).sum() > 0:
-            log.warning(
-                f"Column {column_name} has NaNs present in bin definitions"
-            )
+            log.warning(f"Column {column_name} has NaNs present in bin definitions")
 
         # Make absolutely sure bin edges are ordered,
         # in very rare situations this wasn't the case
@@ -532,10 +475,7 @@ class KBinsDiscretizer(BaseEstimator):
         return bins
 
     @staticmethod
-    def _create_index(
-        intervals: List[tuple],
-        closed: str = "right"
-    ) -> pd.IntervalIndex:
+    def _create_index(intervals: List[tuple], closed: str = "right") -> pd.IntervalIndex:
         """
         Create an pd.IntervalIndex based on a list of tuples.
 
@@ -558,6 +498,7 @@ class KBinsDiscretizer(BaseEstimator):
             Description
         """
         # check if closed is of the proper form
+        # fmt: off
         if closed not in ["left", "right"]:
             raise ValueError(
                 "{}: valid options for 'closed' are {}. "
@@ -567,6 +508,7 @@ class KBinsDiscretizer(BaseEstimator):
                     ["left", "right"], closed
                 )
             )
+        # fmt: on
 
         # deepcopy variable because we do not want to modify the content
         # of intervals (which is still used outside of this function)
@@ -593,6 +535,7 @@ class KBinsDiscretizer(BaseEstimator):
             list of (formatted) bin labels
         """
         bin_labels = []
+        # fmt: off
         for interval in bins:
             bin_labels.append(
                 self.label_format
@@ -601,6 +544,7 @@ class KBinsDiscretizer(BaseEstimator):
                     interval[1]
                 )
             )
+        # fmt: on
 
         # Format first and last bin as < x and > y resp.
         if self.change_endpoint_format:

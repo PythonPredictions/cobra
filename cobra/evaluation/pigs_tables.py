@@ -10,10 +10,7 @@ from cobra import utils
 
 
 def generate_pig_tables(
-    basetable: pd.DataFrame,
-    id_column_name: str,
-    target_column_name: str,
-    preprocessed_predictors: list
+    basetable: pd.DataFrame, id_column_name: str, target_column_name: str, preprocessed_predictors: list
 ) -> pd.DataFrame:
     """Compute PIG tables for all predictors in preprocessed_predictors.
 
@@ -38,12 +35,7 @@ def generate_pig_tables(
         DataFrame containing a PIG table for all predictors.
     """
     pigs = [
-        compute_pig_table(
-            basetable,
-            column_name,
-            target_column_name,
-            id_column_name
-        )
+        compute_pig_table(basetable, column_name, target_column_name, id_column_name)
         for column_name in sorted(preprocessed_predictors)
         if column_name not in [id_column_name, target_column_name]
     ]
@@ -52,10 +44,7 @@ def generate_pig_tables(
 
 
 def compute_pig_table(
-    basetable: pd.DataFrame,
-    predictor_column_name: str,
-    target_column_name: str,
-    id_column_name: str
+    basetable: pd.DataFrame, predictor_column_name: str, target_column_name: str, id_column_name: str
 ) -> pd.DataFrame:
     """Compute the PIG table of a given predictor for a given target.
 
@@ -81,15 +70,10 @@ def compute_pig_table(
     # (=mean of the target for the given bin) and compute the bin size
     # (e.g. COUNT(id_column_name)). After that, rename the columns
     res = (
-        basetable
-        .groupby(predictor_column_name)
+        basetable.groupby(predictor_column_name)
         .agg({target_column_name: "mean", id_column_name: "size"})
         .reset_index()
-        .rename(columns={
-            predictor_column_name: "label",
-            target_column_name: "avg_target",
-            id_column_name: "pop_size"
-        })
+        .rename(columns={predictor_column_name: "label", target_column_name: "avg_target", id_column_name: "pop_size"})
     )
 
     # add the column name to a variable column
@@ -97,21 +81,16 @@ def compute_pig_table(
     # replace population size by a percentage of total population
     res["variable"] = utils.clean_predictor_name(predictor_column_name)
     res["global_avg_target"] = global_avg_target
-    res["pop_size"] = res["pop_size"]/len(basetable.index)
+    res["pop_size"] = res["pop_size"] / len(basetable.index)
 
     # make sure to always return the data with the proper column order
-    column_order = ["variable", "label", "pop_size",
-                    "global_avg_target", "avg_target"]
+    column_order = ["variable", "label", "pop_size", "global_avg_target", "avg_target"]
 
     return res[column_order]
 
 
 def plot_incidence(
-    pig_tables: pd.DataFrame,
-    variable: str,
-    model_type: str,
-    column_order: list = None,
-    dim: tuple = (12, 8)
+    pig_tables: pd.DataFrame, variable: str, model_type: str, column_order: list = None, dim: tuple = (12, 8)
 ):
     """Plot a Predictor Insights Graph (PIG).
 
@@ -146,29 +125,22 @@ def plot_incidence(
     """
     if model_type not in ["classification", "regression"]:
         raise ValueError(
-            "An unexpected value was set for the model_type "
-            "parameter. Expected 'classification' or "
-            "'regression'."
+            "An unexpected value was set for the model_type " "parameter. Expected 'classification' or " "'regression'."
         )
 
-    df_plot = pig_tables[pig_tables['variable'] == variable].copy()
+    df_plot = pig_tables[pig_tables["variable"] == variable].copy()
 
     if column_order is not None:
-        if not set(df_plot['label']) == set(column_order):
-            raise ValueError(
-                'The column_order and pig_tables parameters do not contain '
-                'the same set of variables.')
+        if not set(df_plot["label"]) == set(column_order):
+            raise ValueError("The column_order and pig_tables parameters do not contain " "the same set of variables.")
 
-        df_plot['label'] = df_plot['label'].astype('category')
-        df_plot['label'].cat.reorder_categories(
-            column_order,
-            inplace=True
-        )
+        df_plot["label"] = df_plot["label"].astype("category")
+        df_plot["label"].cat.reorder_categories(column_order, inplace=True)
 
-        df_plot.sort_values(by=['label'], ascending=True, inplace=True)
+        df_plot.sort_values(by=["label"], ascending=True, inplace=True)
         df_plot.reset_index(inplace=True)
     else:
-        df_plot.sort_values(by=['avg_target'], ascending=False, inplace=True)
+        df_plot.sort_values(by=["avg_target"], ascending=False, inplace=True)
         df_plot.reset_index(inplace=True)
 
     with plt.style.context("seaborn-ticks"):
@@ -177,41 +149,42 @@ def plot_incidence(
         # --------------------------
         # Left axis - average target
         # --------------------------
-        ax.plot(df_plot['label'], df_plot['avg_target'],
-                color="#00ccff", marker=".",
-                markersize=20, linewidth=3,
-                label='incidence rate per bin' if model_type == "classification" else "mean target value per bin",
-                zorder=10)
+        ax.plot(
+            df_plot["label"],
+            df_plot["avg_target"],
+            color="#00ccff",
+            marker=".",
+            markersize=20,
+            linewidth=3,
+            label="incidence rate per bin" if model_type == "classification" else "mean target value per bin",
+            zorder=10,
+        )
 
-        ax.plot(df_plot['label'], df_plot['global_avg_target'],
-                color="#022252", linestyle='--', linewidth=4,
-                label='average incidence rate' if model_type == "classification" else "global mean target value",
-                zorder=10)
+        ax.plot(
+            df_plot["label"],
+            df_plot["global_avg_target"],
+            color="#022252",
+            linestyle="--",
+            linewidth=4,
+            label="average incidence rate" if model_type == "classification" else "global mean target value",
+            zorder=10,
+        )
 
         # Dummy line to have label on second axis from first
-        ax.plot(np.nan, "#939598", linewidth=6, label='bin size')
+        ax.plot(np.nan, "#939598", linewidth=6, label="bin size")
 
         # Set labels & ticks
-        ax.set_ylabel(
-            'incidence' if model_type == "classification" else "mean target value",
-            fontsize=16
-        )
-        ax.set_xlabel(f'{variable} bins' '', fontsize=16)
+        ax.set_ylabel("incidence" if model_type == "classification" else "mean target value", fontsize=16)
+        ax.set_xlabel(f"{variable} bins" "", fontsize=16)
         ax.xaxis.set_tick_params(labelsize=14)
-        plt.setp(
-            ax.get_xticklabels(),
-            rotation=45,
-            ha="right",
-            rotation_mode="anchor"
-        )
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
         ax.yaxis.set_tick_params(labelsize=14)
 
         if model_type == "classification":
             # Mean target values are between 0 and 1 (target incidence rate),
             # so format them as percentages
-            ax.set_yticks(np.arange(0, max(df_plot['avg_target'])+0.05, 0.05))
-            ax.yaxis.set_major_formatter(
-                FuncFormatter(lambda y, _: f'{y:.1%}'))
+            ax.set_yticks(np.arange(0, max(df_plot["avg_target"]) + 0.05, 0.05))
+            ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.1%}"))
         elif model_type == "regression":
             # If the difference between the highest avg. target of all bins
             # versus the global avg. target AND the difference between the
@@ -223,40 +196,38 @@ def plot_incidence(
             # the bins and versus the global avg. target.
             # (Motivation for the AND above: if on one end there IS enough
             # difference, the effect that we discuss here does not occur.)
-            global_avg_target = max(df_plot['global_avg_target'])  # series of same number, for every bin.
-            if ((np.abs((max(df_plot['avg_target']) - global_avg_target)) / global_avg_target < 0.25)
-                    and (np.abs((min(df_plot['avg_target']) - global_avg_target)) / global_avg_target < 0.25)):
-                ax.set_ylim(global_avg_target * 0.75,
-                            global_avg_target * 1.25)
+            global_avg_target = max(df_plot["global_avg_target"])  # series of same number, for every bin.
+            if (np.abs((max(df_plot["avg_target"]) - global_avg_target)) / global_avg_target < 0.25) and (
+                np.abs((min(df_plot["avg_target"]) - global_avg_target)) / global_avg_target < 0.25
+            ):
+                ax.set_ylim(global_avg_target * 0.75, global_avg_target * 1.25)
 
         # Remove ticks but keep the labels
-        ax.tick_params(axis='both', which='both', length=0)
-        ax.tick_params(axis='y', colors="#00ccff")
-        ax.yaxis.label.set_color('#00ccff')
+        ax.tick_params(axis="both", which="both", length=0)
+        ax.tick_params(axis="y", colors="#00ccff")
+        ax.yaxis.label.set_color("#00ccff")
 
         # -----------------
         # Right Axis - bins
         # -----------------
         ax2 = ax.twinx()
 
-        ax2.bar(df_plot['label'], df_plot['pop_size'],
-                align='center', color="#939598", zorder=1)
+        ax2.bar(df_plot["label"], df_plot["pop_size"], align="center", color="#939598", zorder=1)
 
         # Set labels & ticks
-        ax2.set_xlabel(f'{variable} bins' '', fontsize=16)
+        ax2.set_xlabel(f"{variable} bins" "", fontsize=16)
         ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
 
         ax2.yaxis.set_tick_params(labelsize=14)
-        ax2.yaxis.set_major_formatter(
-            FuncFormatter(lambda y, _: f'{y:.1%}'))
-        ax2.set_ylabel('population size', fontsize=16)
-        ax2.tick_params(axis='y', colors="#939598")
-        ax2.yaxis.label.set_color('#939598')
+        ax2.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.1%}"))
+        ax2.set_ylabel("population size", fontsize=16)
+        ax2.tick_params(axis="y", colors="#939598")
+        ax2.yaxis.label.set_color("#939598")
 
         # Despine & prettify
         sns.despine(ax=ax, right=True, left=True)
         sns.despine(ax=ax2, left=True, right=False)
-        ax2.spines['right'].set_color('white')
+        ax2.spines["right"].set_color("white")
 
         ax2.grid(False)
 
@@ -268,12 +239,12 @@ def plot_incidence(
         fig.suptitle(title, fontsize=22)
         ax.legend(
             frameon=False,
-            bbox_to_anchor=(0., 1.01, 1., .102),
+            bbox_to_anchor=(0.0, 1.01, 1.0, 0.102),
             loc=3,
             ncol=1,
             mode="expand",
-            borderaxespad=0.,
-            prop={"size": 14}
+            borderaxespad=0.0,
+            prop={"size": 14},
         )
 
         # Set order of layers

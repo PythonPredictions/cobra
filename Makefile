@@ -18,13 +18,8 @@ test-unit:
 	pytest tests
 	@echo 'unit tests OK'
 
-lint:
-	pylint cobra
-	@echo 'lint OK'
-
-lint-minimal:
-	pylint -E cobra
-	@echo 'lint minimal OK'
+black-check:
+	black --diff --line-length 120 cobra/
 
 typecheck:
 	mypy cobra --allow-redefinition --allow-untyped-globals --ignore-missing-imports
@@ -38,4 +33,4 @@ docstyle:
 	pydocstyle cobra
 	@echo 'docstyle OK'
 
-code-qa: typecheck codestyle docstyle lint-minimal
+code-qa: typecheck codestyle docstyle

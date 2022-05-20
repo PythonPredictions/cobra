@@ -33,8 +33,7 @@ class LogisticRegressionModel:
 
     def __init__(self):
         """Initialize the LogisticRegressionModel class."""
-        self.logit = LogisticRegression(fit_intercept=True, C=1e9,
-                                        solver='liblinear', random_state=42)
+        self.logit = LogisticRegression(fit_intercept=True, C=1e9, solver="liblinear", random_state=42)
         self._is_fitted = False
         # placeholder to keep track of a list of predictors
         self.predictors = []
@@ -52,16 +51,18 @@ class LogisticRegressionModel:
             "meta": "logistic-regression",
             "predictors": self.predictors,
             "_eval_metrics_by_split": self._eval_metrics_by_split,
-            "params": self.logit.get_params()
+            "params": self.logit.get_params(),
         }
 
         if self._is_fitted:
-            serialized_model.update({
-                "classes_": self.logit.classes_.tolist(),
-                "coef_": self.logit.coef_.tolist(),
-                "intercept_": self.logit.intercept_.tolist(),
-                "n_iter_": self.logit.n_iter_.tolist(),
-            })
+            serialized_model.update(
+                {
+                    "classes_": self.logit.classes_.tolist(),
+                    "coef_": self.logit.coef_.tolist(),
+                    "intercept_": self.logit.intercept_.tolist(),
+                    "n_iter_": self.logit.n_iter_.tolist(),
+                }
+            )
 
         return serialized_model
 
@@ -90,7 +91,7 @@ class LogisticRegressionModel:
         self.predictors = model_dict["predictors"]
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
-    def get_coef(self) -> np.array:
+    def get_coef(self) -> np.ndarray:
         """Return the model coefficients.
 
         Returns
@@ -151,11 +152,7 @@ class LogisticRegressionModel:
         # ensure we have the proper predictors and the proper order
         return self.logit.predict_proba(X[self.predictors])[:, 1]
 
-    def evaluate(
-        self, X: pd.DataFrame, y: pd.Series,
-        split: str = None,
-        metric: Optional[Callable] = None
-    ) -> float:
+    def evaluate(self, X: pd.DataFrame, y: pd.Series, split: str = None, metric: Optional[Callable] = None) -> float:
         """
         Evaluate the model on a given dataset (X, y).
 
@@ -188,7 +185,7 @@ class LogisticRegressionModel:
             y_pred = self.score_model(X)
 
             fpr, tpr, thresholds = roc_curve(y_true=y, y_score=y_pred)
-            cutoff = (ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds))
+            cutoff = ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr, thresholds)
             y_pred_b = np.array([0 if pred <= cutoff else 1 for pred in y_pred])
 
             performance = metric(y_true=y, y_pred=y_pred_b)
@@ -222,26 +219,18 @@ class LogisticRegressionModel:
         y_pred = self.score_model(data)
 
         importance_by_variable = {
-            utils.clean_predictor_name(predictor): stats.pearsonr(
-                data[predictor],
-                y_pred
-                )[0]
+            utils.clean_predictor_name(predictor): stats.pearsonr(data[predictor], y_pred)[0]
             for predictor in self.predictors
         }
 
-        df = pd.DataFrame.from_dict(importance_by_variable,
-                                    orient="index").reset_index()
+        df = pd.DataFrame.from_dict(importance_by_variable, orient="index").reset_index()
         df.columns = ["predictor", "importance"]
 
-        return (
-            df.sort_values(by="importance", ascending=False)
-            .reset_index(drop=True)
-        )
+        return df.sort_values(by="importance", ascending=False).reset_index(drop=True)
 
     def _is_valid_dict(self, model_dict: dict) -> bool:
         """Check if the model dictionary is valid."""
-        if ("meta" not in model_dict
-                or model_dict["meta"] != "logistic-regression"):
+        if "meta" not in model_dict or model_dict["meta"] != "logistic-regression":
             return False
 
         attr = ["classes_", "coef_", "intercept_", "n_iter_", "predictors"]
@@ -249,8 +238,7 @@ class LogisticRegressionModel:
             if not (key in model_dict or type(model_dict[key]) != list):
                 return False
 
-        if ("params" not in model_dict
-                or "_eval_metrics_by_split" not in model_dict):
+        if "params" not in model_dict or "_eval_metrics_by_split" not in model_dict:
             return False
 
         return True
@@ -292,14 +280,13 @@ class LinearRegressionModel:
             "meta": "linear-regression",
             "predictors": self.predictors,
             "_eval_metrics_by_split": self._eval_metrics_by_split,
-            "params": self.linear.get_params()
+            "params": self.linear.get_params(),
         }
 
         if self._is_fitted:
-            serialized_model.update({
-                "coef_": self.linear.coef_.tolist(),
-                "intercept_": self.linear.intercept_.tolist()
-            })
+            serialized_model.update(
+                {"coef_": self.linear.coef_.tolist(), "intercept_": self.linear.intercept_.tolist()}
+            )
 
         return serialized_model
 
@@ -326,7 +313,7 @@ class LinearRegressionModel:
         self.predictors = model_dict["predictors"]
         self._eval_metrics_by_split = model_dict["_eval_metrics_by_split"]
 
-    def get_coef(self) -> np.array:
+    def get_coef(self) -> np.ndarray:
         """Return the model coefficients.
 
         Returns
@@ -387,11 +374,7 @@ class LinearRegressionModel:
         # ensure we have the proper predictors and the proper order
         return self.linear.predict(X[self.predictors])
 
-    def evaluate(
-        self, X: pd.DataFrame, y: pd.Series,
-        split: str = None,
-        metric: Optional[Callable] = None
-    ) -> float:
+    def evaluate(self, X: pd.DataFrame, y: pd.Series, split: str = None, metric: Optional[Callable] = None) -> float:
         """Evaluate the model on a given dataset (X, y).
 
         The optional split
@@ -451,29 +434,19 @@ class LinearRegressionModel:
         y_pred = self.score_model(data)
 
         importance_by_variable = {
-            utils.clean_predictor_name(predictor): stats.pearsonr(
-                data[predictor],
-                y_pred
-                )[0]
+            utils.clean_predictor_name(predictor): stats.pearsonr(data[predictor], y_pred)[0]
             for predictor in self.predictors
         }
 
-        df = pd.DataFrame.from_dict(
-            importance_by_variable,
-            orient="index"
-        ).reset_index()
+        df = pd.DataFrame.from_dict(importance_by_variable, orient="index").reset_index()
         df.columns = ["predictor", "importance"]
 
-        return (
-            df.sort_values(by="importance", ascending=False)
-            .reset_index(drop=True)
-        )
+        return df.sort_values(by="importance", ascending=False).reset_index(drop=True)
 
     @staticmethod
     def _is_valid_dict(model_dict: dict) -> bool:
         """Check if the model dictionary is valid."""
-        if ("meta" not in model_dict
-                or model_dict["meta"] != "linear-regression"):
+        if "meta" not in model_dict or model_dict["meta"] != "linear-regression":
             return False
 
         attr = ["coef_", "intercept_", "predictors"]
@@ -481,8 +454,7 @@ class LinearRegressionModel:
             if not (key in model_dict or not isinstance(model_dict[key], list)):
                 return False
 
-        if ("params" not in model_dict
-                or "_eval_metrics_by_split" not in model_dict):
+        if "params" not in model_dict or "_eval_metrics_by_split" not in model_dict:
             return False
 
         return True
