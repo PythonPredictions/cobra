@@ -42,37 +42,17 @@ class ForwardFeatureSelection:
     metric : Callable (function), optional
         Function that evaluates the model's performance, by calculating a
         certain evaluation metric.
-        If the metric is not provided, the default metric AUC is used for
-        evaluating the model.
-        The metric functions from sklearn can be used, see
-        https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
-        You can also pass a custom function.
-        Examples for classification:
-        - ClassificationEvaluator._compute_lift(y_true=y_true,
-                                                y_score=y_pred,
-                                                lift_at=0.05)
-        - return_on_investment(y_true, y_pred,
-                              cost_of_letter=2.10,
-                              success_rate_of_letter=0.25,
-                              average_return_for_successful_letter=75.0)
-        Examples for regression:
-        - sklearn.metrics.r2_score(y_true, y_pred, *, sample_weight=None, multioutput='uniform_average')
-        - overall_estimated_commission_earned(y_true, y_pred,
-                                              avg_prob_buy_if_err_lower_than_20K=0.25,
-                                              avg_prob_buy_if_err_higher_than_20K=0.05,
-                                              pct_commission_on_buy=0.05)
-        Any metric function you provide here should be a function taking
-        y_true, y_pred and/or y_score arguments, of numpy array type,
-        and optionally also additional arguments, which you can pass
-        through the metric_args and metric_kwargs parameters.
-        If you are unsure which arguments of your metric function are
-        args/kwargs, then run inspect.getfullargspec(your_metric_function).
+        For more details about the possibilities here, refer to the
+        documentation of the metric parameter in the evaluate() function of
+        either models.LogisticRegressionModel or models.LinearRegressionModel,
+        depending on which model you are going to use in this forward feature
+        selection.
     metric_args : dict, optional
         Arguments (for example: lift_at=0.05) to be passed to the metric
         function when evaluating the model's performance.
         Example metric function in which this is required:
         ClassificationEvaluator._compute_lift(y_true=y_true,
-                                              y_score=y_pred,
+                                              y_score=y_score,
                                               lift_at=0.05)
     metric_kwargs : dict, optional
         Keyword arguments (for example: normalize=True) to be passed to the

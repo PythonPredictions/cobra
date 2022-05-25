@@ -531,14 +531,14 @@ class ClassificationEvaluator():
 
         # Make sure it is numpy array
         y_true_ = np.array(y_true)
-        y_pred_ = np.array(y_score)
+        y_score_ = np.array(y_score)
 
         # Make sure it has correct shape
         y_true_ = y_true_.reshape(len(y_true_), 1)
-        y_pred_ = y_pred_.reshape(len(y_pred_), 1)
+        y_score_ = y_score_.reshape(len(y_score_), 1)
 
         # Merge data together
-        y_data = np.hstack([y_true_, y_pred_])
+        y_data = np.hstack([y_true_, y_score_])
 
         # Calculate necessary variables
         nrows = len(y_data)

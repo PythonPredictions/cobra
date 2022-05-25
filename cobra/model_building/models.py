@@ -173,6 +173,8 @@ class LogisticRegressionModel:
             The metric functions from sklearn can be used, see
             https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
             You can also pass a custom function.
+            The variables that we provide and your function can possibly take in
+            are y_true, y_pred, y_score and y_prob.
             Examples:
             - ClassificationEvaluator._compute_lift(y_true=y_true,
                                                     y_score=y_pred,
@@ -214,35 +216,36 @@ class LogisticRegressionModel:
             performance = roc_auc_score(y_true=y, y_score=y_score)
 
         else:
-            # A custom evaluation metric was chosen. With the default
-            # metric AUC, the performance could be scored over all possible
-            # thresholds and based on y_score;
-            # now, with any evaluation metric possibly being used, y_pred may
-            # be required instead of y_score, which requires determining the
-            # optimal threshold first and then calculating y_pred.
-            fpr, tpr, thresholds = roc_curve(y_true=y, y_score=y_score)
-            cutoff = ClassificationEvaluator._compute_optimal_cutoff(fpr, tpr,
-                                                                     thresholds)
-            y_pred = np.array([0 if score <= cutoff
-                               else 1
-                               for score in y_score])
-
+            # A custom evaluation metric was chosen.
             # Compute the model performance with the chosen metric function,
             # pass all arguments this function could potentially need,
             # including optional keyword arguments that were passed when
             # initializing this model.
             args = {
                 "y_true": y,
-                "y_pred": y_pred,
                 "y_score": y_score,
-                "y_proba": y_score
+                "y_prob": y_score
             }
+            if "y_pred" in inspect.getfullargspec(metric).args:
+                # With the default metric AUC, the performance could be
+                # scored over all possible thresholds and based on y_score;
+                # now, with any evaluation metric possibly being used, y_pred
+                # may be required instead of y_score, which requires determining
+                # the optimal threshold first and then calculating y_pred.
+                fpr, tpr, thresholds = roc_curve(y_true=y, y_score=y_score)
+                cutoff = ClassificationEvaluator._compute_optimal_cutoff(fpr,
+                                                                         tpr,
+                                                                         thresholds)
+                args["y_pred"] = np.array([0 if score <= cutoff
+                                           else 1
+                                           for score in y_score])
+
             if metric_args is not None and isinstance(metric_args, dict):
                 args = {**args, **metric_args}
             args = {
                 arg: val
                 for arg, val in args.items()
-                # we can't provide too much arguments vs. the args of the
+                # we can't provide too many arguments vs. the args of the
                 # metric's signature:
                 if arg in inspect.getfullargspec(metric).args
             }
@@ -254,7 +257,7 @@ class LogisticRegressionModel:
             return performance
         else:
             if split not in self._eval_metrics_by_split:
-                self._eval_metrics_by_split[split] = performance # caching
+                self._eval_metrics_by_split[split] = performance  # caching
             return self._eval_metrics_by_split[split]
 
     def compute_variable_importance(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -455,11 +458,13 @@ class LinearRegressionModel:
         metric : Callable (function), optional
             Function that evaluates the model's performance, by calculating a
             certain evaluation metric.
-            If the metric is not provided, the default metric AUC is used for
+            If the metric is not provided, the default metric RMSE is used for
             evaluating the model.
             The metric functions from sklearn can be used, see
             https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.
             You can also pass a custom function.
+            The variables that we provide and your function can possibly take in
+            are y_true and y_pred.
             Examples:
             - sklearn.metrics.r2_score(y_true, y_pred, *, sample_weight=None, multioutput='uniform_average')
             - overall_estimated_commission_earned(y_true, y_pred,
@@ -500,15 +505,7 @@ class LinearRegressionModel:
             performance = sqrt(mean_squared_error(y_true=y, y_pred=y_pred))
 
         else:
-            # A custom evaluation metric was chosen. With the default
-            # metric RMSE, the performance could be scored over all possible
-            # based on y_score;
-            # now, with any evaluation metric possibly being used, y_pred may
-            # be required instead of y_score, so we'll first calculate y_pred.
-            # Compute the model performance with the chosen metric function,
-            # pass all arguments this function could potentially need,
-            # including optional keyword arguments that were passed when
-            # initializing this model.
+            # A custom evaluation metric was chosen.
             args = {
                 "y_true": y,
                 "y_pred": y_pred
@@ -518,7 +515,7 @@ class LinearRegressionModel:
             args = {
                 arg: val
                 for arg, val in args.items()
-                # we can't provide too much arguments vs. the args of the
+                # we can't provide too many arguments vs. the args of the
                 # metric's signature:
                 if arg in inspect.getfullargspec(metric).args
             }
