@@ -31,6 +31,12 @@ class ForwardFeatureSelection:
         selection.
     pos_only : bool
         Whether or not the model coefficients should all be positive (no sign flips).
+    model_kwargs: dict, optional
+        An optional dictionary of hyperparameters and their values to
+        override the default hyperparameters that Cobra uses when
+        constructing the model during forward selection.
+        For more info, see the documentation of kwargs in the documentation
+        of the model that is used (e.g. LinearRegressionModel).
     self._fitted_models : list
         List of fitted models.
     """
@@ -38,7 +44,8 @@ class ForwardFeatureSelection:
     def __init__(self,
                  model_type: str="classification",
                  max_predictors: int=50,
-                 pos_only: bool=True):
+                 pos_only: bool=True,
+                 model_kwargs: Optional[dict]=None):
 
         self.model_type = model_type
         if model_type == "classification":
@@ -48,6 +55,8 @@ class ForwardFeatureSelection:
 
         self.max_predictors = max_predictors
         self.pos_only = pos_only
+
+        self.model_kwargs = model_kwargs
 
         self._fitted_models = []
 
@@ -347,7 +356,10 @@ class ForwardFeatureSelection:
         self.MLModel
             Trained model.
         """
-        model = self.MLModel()
+        if self.model_kwargs is None:
+            model = self.MLModel()
+        else:
+            model = self.MLModel(**self.model_kwargs)
 
         model.fit(train_data[predictors], train_data[target_column_name])
 

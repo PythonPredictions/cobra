@@ -28,8 +28,9 @@ class LogisticRegressionModel:
     kwargs: dict, optional
         Pass a dictionary here (optional!), to override Cobra's default
         choice of hyperparameter values for the scikit-learn
-        LogisticRegression model that is used behind the scenes. Our defaults
-        are: fit_intercept=True, C=1e9, solver='liblinear', random_state=42.
+        LogisticRegression model that is used behind the scenes.
+        Cobra's defaults are: fit_intercept=True, C=1e9, solver='liblinear',
+        random_state=42.
         See scikit-learn's documentation of the possible hyperparameters and
         values that can be set:
         https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
@@ -40,12 +41,10 @@ class LogisticRegressionModel:
         # with custom arguments passed by the data scientist (if any),
         # supplemented with Cobra's default arguments, if a custom value was
         # not provided by the data scientist for overriding purposes:
-        default_kwargs = dict(fit_intercept=True, C=1e9, solver='liblinear',
+        model_kwargs = dict(fit_intercept=True, C=1e9, solver='liblinear',
                               random_state=42)
-        for kwarg, val in default_kwargs.items():
-            if kwarg not in kwargs:
-                kwargs[kwarg] = val
-        self.logit = LogisticRegression(**kwargs)
+        model_kwargs.update(kwargs)
+        self.logit = LogisticRegression(**model_kwargs)
 
         self._is_fitted = False
         self.predictors = []  # placeholder to keep track of a list of predictors
@@ -120,7 +119,12 @@ class LogisticRegressionModel:
         float
             Intercept of the model.
         """
-        return self.logit.intercept_[0]
+        if self.logit.fit_intercept:
+            return self.logit.intercept_[0]
+        else:
+            raise ValueError("An intercept cannot be returned: this "
+                             "LogisticRegressionModel was created with "
+                             "the hyperparameter fit_intercept set to False.")
 
     def get_coef_by_predictor(self) -> dict:
         """Returns a dictionary mapping predictor (key) to coefficient (value).
@@ -277,8 +281,9 @@ class LinearRegressionModel:
     kwargs: dict, optional
         Pass a dictionary here (optional!), to override Cobra's default
         choice of hyperparameter values for the scikit-learn
-        LinearRegression model that is used behind the scenes. Our default
-        setting is only fit_intercept=True.
+        LinearRegression model that is used behind the scenes.
+        Cobra's only default setting is fit_intercept=True, but there are
+        other hyperparmeters that can be set too.
         See scikit-learn's documentation of the possible hyperparameters and
         values that can be set:
         https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html
@@ -289,11 +294,9 @@ class LinearRegressionModel:
         # with custom arguments passed by the data scientist (if any),
         # supplemented with Cobra's default arguments, if a custom value was
         # not provided by the data scientist for overriding purposes:
-        default_kwargs = dict(fit_intercept=True)
-        for kwarg, val in default_kwargs.items():
-            if kwarg not in kwargs:
-                kwargs[kwarg] = val
-        self.linear = LinearRegression(**kwargs)
+        model_kwargs = dict(fit_intercept=True)
+        model_kwargs.update(kwargs)
+        self.linear = LinearRegression(**model_kwargs)
 
         self._is_fitted = False
         self.predictors = []  # placeholder to keep track of a list of predictors
