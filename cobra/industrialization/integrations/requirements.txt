@@ -1,0 +1,1 @@
+smart_open[gcs]==5.2.1
