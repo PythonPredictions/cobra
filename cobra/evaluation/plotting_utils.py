@@ -52,10 +52,12 @@ def plot_univariate_predictor_quality(
         fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
         ax = sns.barplot(x=metric, y="predictor", hue="split", data=df)
-        ax.set_title("Univariate Quality of Predictors")
+        ax.set_title("Univariate predictor quality", fontsize=20)
 
         # Set pretty axis
         sns.despine(ax=ax, right=True)
+        plt.ylabel("Predictor", fontsize=15)
+        plt.xlabel(metric, fontsize=15)
 
         # Remove white lines from the second axis
         ax.grid(False)
@@ -63,13 +65,15 @@ def plot_univariate_predictor_quality(
         if path is not None:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.gca().legend().set_title("")
+
         plt.show()
 
 
 def plot_correlation_matrix(
     df_corr: pd.DataFrame, dim: tuple = (12, 8), path: str = None
 ):
-    """Plot correlation matrix amongst the predictors.
+    """Plot correlation matrix of the predictors.
 
     Parameters
     ----------
@@ -80,9 +84,9 @@ def plot_correlation_matrix(
     path : str, optional
         Path to store the figure.
     """
-    fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
+    fig, ax = plt.subplots(figsize=dim)
     ax = sns.heatmap(df_corr, cmap="Blues")
-    ax.set_title("Correlation Matrix")
+    ax.set_title("Correlation matrix", fontsize=20)
 
     if path is not None:
         plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -199,7 +203,7 @@ def plot_variable_importance(
     Parameters
     ----------
     df_variable_importance : pd.DataFrame
-        DataFrame containing columns predictor and importance.
+        DataFrame containing columns "predictor" and "importance".
     title : str, optional
         Title of the plot.
     dim : tuple, optional
@@ -216,12 +220,14 @@ def plot_variable_importance(
             color="cornflowerblue",
         )
         if title:
-            ax.set_title(title)
+            ax.set_title(title, fontsize=20)
         else:
-            ax.set_title("Variable importance")
+            ax.set_title("Variable importance", fontsize=20)
 
-        # Set Axis - make them pretty
+        # Make pretty axis
         sns.despine(ax=ax, right=True)
+        plt.ylabel("Predictor", fontsize=15)
+        plt.xlabel("Importance", fontsize=15)
 
         # Remove white lines from the second axis
         ax.grid(False)

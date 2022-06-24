@@ -73,7 +73,7 @@ def compute_pig_table(
     global_avg_target = basetable[target_column_name].mean()
 
     # group by the binned variable, compute the incidence
-    # (=mean of the target for the given bin) and compute the bin size
+    # (= mean of the target for the given bin) and compute the bin size
     # (e.g. COUNT(id_column_name)). After that, rename the columns
     res = (
         basetable.groupby(predictor_column_name)
@@ -257,12 +257,12 @@ def plot_incidence(
         )
 
         # Set labels & ticks
-        ax2.set_xlabel(f"{variable} bins" "", fontsize=16)
+        ax2.set_xlabel("Bins", fontsize=15)
         ax2.xaxis.set_tick_params(rotation=45, labelsize=14)
 
         ax2.yaxis.set_tick_params(labelsize=14)
-        ax2.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:.1%}"))
-        ax2.set_ylabel("population size", fontsize=16)
+        ax2.yaxis.set_major_formatter(FuncFormatter(lambda y, _: "{:.1%}".format(y)))
+        ax2.set_ylabel("Population size", fontsize=15)
         ax2.tick_params(axis="y", colors="#939598")
         ax2.yaxis.label.set_color("#939598")
 
@@ -275,10 +275,11 @@ def plot_incidence(
 
         # Title & legend
         if model_type == "classification":
-            title = "Incidence plot - " + variable
+            title = "Incidence plot"
         else:
-            title = "Mean target plot - " + variable
-        fig.suptitle(title, fontsize=22)
+            title = "Mean target plot"
+        fig.suptitle(title, fontsize=20)
+        plt.title(variable, fontsize=17)
         ax.legend(
             frameon=False,
             bbox_to_anchor=(0.0, 1.01, 1.0, 0.102),

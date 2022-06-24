@@ -199,20 +199,30 @@ class ClassificationEvaluator:
         auc = float(self.scalar_metrics.loc["AUC"])
 
         with plt.style.context("seaborn-whitegrid"):
-            fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
+            fig, ax = plt.subplots(figsize=dim)
+
             ax.plot(
                 self.roc_curve["fpr"],
                 self.roc_curve["tpr"],
                 color="cornflowerblue",
                 linewidth=3,
-                label=f"ROC curve (area = {auc:.3})",
+                label="ROC curve (area = {s:.3})".format(s=auc),
             )
 
-            ax.plot([0, 1], [0, 1], color="darkorange", linewidth=3, linestyle="--")
-            ax.set_xlabel("False Positive Rate", fontsize=15)
-            ax.set_ylabel("True Positive Rate", fontsize=15)
+            ax.plot(
+                [0, 1],
+                [0, 1],
+                color="darkorange",
+                linewidth=3,
+                linestyle="--",
+                label="random selection",
+            )
+            ax.set_xlabel("False positive rate", fontsize=15)
+            ax.set_ylabel("True positive rate", fontsize=15)
             ax.legend(loc="lower right")
             ax.set_title("ROC curve", fontsize=20)
+
+            ax.set_ylim([0, 1])
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -256,6 +266,8 @@ class ClassificationEvaluator:
             yticklabels=labels,
         )
         ax.set_title("Confusion matrix", fontsize=20)
+        plt.ylabel("True labels", fontsize=15)
+        plt.xlabel("Predicted labels", fontsize=15)
 
         if path:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
@@ -291,8 +303,8 @@ class ClassificationEvaluator:
             fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             plt.bar(x_labels[::-1], lifts, align="center", color="cornflowerblue")
-            plt.ylabel("response (%)", fontsize=16)
-            plt.xlabel("decile", fontsize=16)
+            plt.ylabel("Response (%)", fontsize=15)
+            plt.xlabel("Decile", fontsize=15)
             ax.set_xticks(x_labels)
             ax.set_xticklabels(x_labels)
 
@@ -303,7 +315,7 @@ class ClassificationEvaluator:
                 xmin=0.05,
                 xmax=0.95,
                 linewidth=3,
-                label="Incidence",
+                label="incidence",
             )
 
             # Legend
@@ -351,8 +363,8 @@ class ClassificationEvaluator:
             fig, ax = plt.subplots(figsize=dim)  # pylint: disable=unused-variable
 
             plt.bar(x_labels[::-1], lifts, align="center", color="cornflowerblue")
-            plt.ylabel("lift", fontsize=16)
-            plt.xlabel("decile", fontsize=16)
+            plt.ylabel("Lift", fontsize=15)
+            plt.xlabel("Decile", fontsize=15)
             ax.set_xticks(x_labels)
             ax.set_xticklabels(x_labels)
 
@@ -363,7 +375,7 @@ class ClassificationEvaluator:
                 xmin=0.05,
                 xmax=0.95,
                 linewidth=3,
-                label="Baseline",
+                label="baseline",
             )
 
             # Legend
@@ -416,7 +428,9 @@ class ClassificationEvaluator:
 
             # Format axes
             ax.set_xlim([0, 100])
-            ax.set_ylim([0, 105])
+            ax.set_ylim([0, 100])
+            plt.ylabel("Gain", fontsize=15)
+            plt.xlabel("Percentage", fontsize=15)
 
             # Format ticks
             ticks_loc_y = ax.get_yticks().tolist()

@@ -1,5 +1,4 @@
-# Runs CI when pushing to master branch
-# runs pylint and pytest
+## Runs CI when pushing to master branch
 
 name: CI_master_action
 
