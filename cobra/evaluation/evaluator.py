@@ -787,16 +787,12 @@ class RegressionEvaluator:
 
             ax.set_xlabel("Theoretical quantiles", fontsize=15)
             ax.set_xticks(
-                range(
-                    int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")]))) + 1, 1
-                )
+                range(int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")]))) + 1)
             )
 
             ax.set_ylabel("Standardized residuals", fontsize=15)
             ax.set_yticks(
-                range(
-                    int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")]))) + 1, 1
-                )
+                range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")]))) + 1)
             )
 
             ax.legend(loc="best")

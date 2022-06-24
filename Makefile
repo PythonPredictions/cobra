@@ -19,7 +19,7 @@ test-unit:
 	@echo 'unit tests OK'
 
 black-check:
-	black --diff --line-length 80 cobra/
+	black --diff cobra/
 
 black:
 	black cobra/
