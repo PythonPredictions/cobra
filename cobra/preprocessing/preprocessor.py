@@ -293,6 +293,9 @@ class PreProcessor(BaseEstimator):
 
         start = time.time()
 
+        # Ensure to operate on separate copy of data
+        data = data.copy()
+
         if not self._is_fitted:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
