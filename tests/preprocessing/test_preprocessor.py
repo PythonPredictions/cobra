@@ -170,10 +170,11 @@ class TestPreProcessor:
         preprocessor._target_encoder = MagicMock()
         preprocessor._target_encoder.transform = self.mock_transform
 
-        _ = preprocessor.fit_transform(
+        result = preprocessor.fit_transform(
             train_data,
             continuous_vars=["foo"],
             discrete_vars=["bar"],
             target_column_name=["baz"]
             )
         assert "new_column" not in train_data.columns
+        assert "new_column" in result.columns
