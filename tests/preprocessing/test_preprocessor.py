@@ -1,9 +1,11 @@
 
 from contextlib import contextmanager
 from typing import Any
+from unittest.mock import MagicMock
 import pytest
 import numpy as np
 import pandas as pd
+from pytest_mock import MockerFixture
 
 from cobra.preprocessing.preprocessor import PreProcessor
 
@@ -146,3 +148,33 @@ class TestPreProcessor:
                                                      discrete_vars)
 
             assert actual == expected
+
+    @staticmethod
+    def mock_transform(df: pd.DataFrame, args):
+        """Mock the transform method."""
+        df["new_column"] = "Hello World"
+        return df
+
+    def test_mutable_train_data_fit_transform(self, mocker: MockerFixture):
+        """Test if the train_data input is not changed when performing fit_transform."""
+        train_data = pd.DataFrame([[1, "2", 3], [10, "20", 30], [100, "200", 300]], columns=["foo", "bar", "baz"])
+        preprocessor = PreProcessor.from_params(
+            model_type="classification",
+            n_bins=10,
+            weight= 0.8
+        )
+        preprocessor._categorical_data_processor = MagicMock()
+        preprocessor._categorical_data_processor.transform = self.mock_transform
+        preprocessor._discretizer = MagicMock()
+        preprocessor._discretizer.transform = self.mock_transform
+        preprocessor._target_encoder = MagicMock()
+        preprocessor._target_encoder.transform = self.mock_transform
+
+        result = preprocessor.fit_transform(
+            train_data,
+            continuous_vars=["foo"],
+            discrete_vars=["bar"],
+            target_column_name=["baz"]
+            )
+        assert "new_column" not in train_data.columns
+        assert "new_column" in result.columns
