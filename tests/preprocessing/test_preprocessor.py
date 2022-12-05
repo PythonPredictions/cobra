@@ -254,11 +254,56 @@ class TestPreProcessor:
                     }
                 ),
             ),
+            # example 4 categorical
+            (
+                pd.DataFrame(
+                    {
+                        "a": [1, 8, np.nan],
+                        "b": [np.nan, np.nan, np.nan],
+                        "d": [np.nan, np.nan, 5],
+                        "e": [1, 960, np.nan],
+                        "category_1": ["A", "A", "B"],
+                        "category_2": [np.nan, "A", "B"],
+                        "category_3": [np.nan, np.nan, np.nan],
+                    },
+                ).astype(
+                    {
+                        "a": np.float64(),
+                        "b": np.float64(),
+                        "d": np.float64(),
+                        "e": np.float64(),
+                        "category_1": pd.CategoricalDtype(),
+                        "category_2": pd.CategoricalDtype(),
+                        "category_3": pd.CategoricalDtype(),
+                    }
+                ),
+                pd.DataFrame(
+                    {
+                        "a": [1, 8, np.nan],
+                        "d": [np.nan, np.nan, 5],
+                        "e": [1, 960, np.nan],
+                        "category_1": ["A", "A", "B"],
+                        "category_2": [np.nan, "A", "B"],
+                    }
+                ).astype(
+                    {
+                        "a": np.float64(),
+                        "d": np.float64(),
+                        "e": np.float64(),
+                        "category_1": pd.CategoricalDtype(),
+                        "category_2": pd.CategoricalDtype(),
+                    }
+                ),
+            ),
         ],
     )
     def test_drops_columns_containing_only_nan(self, input, expected):
 
+        print(input)
         output = PreProcessor._check_nan_columns_and_drop_columns_containing_only_nan(
             input
         )
+
+        print(output)
+        print(expected)
         assert output.equals(expected)
