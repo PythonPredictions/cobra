@@ -61,7 +61,7 @@ class PreProcessor(BaseEstimator):
         self._is_fitted = is_fitted
 
         self.model_type = categorical_data_processor.model_type
-
+    
     @classmethod
     def from_params(cls,
                     model_type: str="classification",
@@ -233,6 +233,10 @@ class PreProcessor(BaseEstimator):
 
         # Ensure to operate on separate copy of data
         train_data = train_data.copy()
+
+
+        # drop NAN columns if they exist
+        train_data = PreProcessor._check_nan_columns_and_drop_columns_containing_only_nan(train_data)
 
         # Fit discretizer, categorical preprocessor & target encoder
         # Note that in order to fit target_encoder, we first have to transform
@@ -486,3 +490,38 @@ class PreProcessor(BaseEstimator):
             raise ValueError("Variable var_list is None or empty list.")
 
         return var_list
+
+    def _check_nan_columns_and_drop_columns_containing_only_nan(data: pd.DataFrame) -> pd.DataFrame:
+        """Checkes how much missing values are in the dataframe and drops columns that contain only missing values. 
+        It also logs an error message displaying the percentage of missing values in the diffenent columns 
+        (columns are only diosplaied if they contain a missing values)
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Data that should be checked for columns that contain only missing values
+
+        Returns
+        -------
+        pd.DataFrame
+            Data without columns conatining only missing values
+        """
+
+        # Check how much NaN values are in each variable 
+        # and output a warning if a variable has more than 0% of missing values 
+        
+        perc_na = data.isna().mean() * 100
+
+        if not perc_na[perc_na > 0].empty:
+            logging.warning("\nPercentage of missing values per variable:\n" +  perc_na[perc_na > 0].round(2).to_string(float_format=lambda x: str(x)+"%"))
+
+        
+        # drop variables that have only missing values
+        to_drop = [perc_na.index[i] for i, percentage in enumerate(perc_na) if percentage == 100]
+
+
+        if to_drop:
+            data = data.drop(to_drop, axis=1)
+            logging.warning(f"Following variables contain only missing values and were droped: {to_drop}")
+        
+        return data

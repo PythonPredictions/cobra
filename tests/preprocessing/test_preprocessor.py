@@ -178,3 +178,64 @@ class TestPreProcessor:
             )
         assert "new_column" not in train_data.columns
         assert "new_column" in result.columns
+    
+
+
+    @pytest.mark.parametrize(("input, expected"), 
+    [
+        # example 1
+        (pd.DataFrame({
+            "a":[1,8,np.nan],
+            "b":[np.nan,8,np.nan],
+            "c":[np.nan,np.nan,np.nan],
+            "d":[np.nan,np.nan,5],
+            "e":[1,960,np.nan],
+            "f":[np.nan,np.nan,np.nan]
+            }),
+        pd.DataFrame({
+            'a': [1.0, 8.0, np.nan],
+            'b': [np.nan, 8.0, np.nan],
+            'd': [np.nan, np.nan, 5.0],
+            'e': [1.0, 960.0, np.nan]
+            })),
+        
+        #example 2
+        (pd.DataFrame({
+            "a":[1,8,np.nan],
+            "b":[np.nan,8,np.nan],
+            "c":[np.nan,np.nan,np.nan],
+            "d":[np.nan,np.nan,5],
+            "e":[1,960,np.nan],
+            }),
+        pd.DataFrame({
+            'a': [1.0, 8.0, np.nan],
+            'b': [np.nan, 8.0, np.nan],
+            'd': [np.nan, np.nan, 5.0],
+            'e': [1.0, 960.0, np.nan]
+            })),
+        
+        #example 3
+        (pd.DataFrame({
+            "a":[1,8,np.nan],
+            "b":[np.nan,8,np.nan],
+            "d":[np.nan,np.nan,5],
+            "e":[1,960,np.nan],
+            }),
+        pd.DataFrame({
+            'a': [1.0, 8.0, np.nan],
+            'b': [np.nan, 8.0, np.nan],
+            'd': [np.nan, np.nan, 5.0],
+            'e': [1.0, 960.0, np.nan]
+            }))
+    ])
+    def test_drops_columns_containing_only_nan(self, input, expected):
+        
+        output = PreProcessor._check_nan_columns_and_drop_columns_containing_only_nan(input)
+
+        assert output.equals(expected)
+
+
+        
+
+
+
