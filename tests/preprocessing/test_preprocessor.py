@@ -185,7 +185,8 @@ class TestPreProcessor:
     [
         # example 1
         (pd.DataFrame({
-            "a":[1,8,np.nan],
+            "a":[1, 8 , np.nan],
+
             "b":[np.nan,8,np.nan],
             "c":[np.nan,np.nan,np.nan],
             "d":[np.nan,np.nan,5],

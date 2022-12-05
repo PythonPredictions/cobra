@@ -492,9 +492,9 @@ class PreProcessor(BaseEstimator):
         return var_list
 
     def _check_nan_columns_and_drop_columns_containing_only_nan(data: pd.DataFrame) -> pd.DataFrame:
-        """Checkes how much missing values are in the dataframe and drops columns that contain only missing values. 
-        It also logs an error message displaying the percentage of missing values in the diffenent columns 
-        (columns are only diosplaied if they contain a missing values)
+        """Checks how much missing values are in the dataframe and drops columns that contain only missing values. 
+        It also logs an error message displaying the percentage of missing values in the different columns 
+        (columns are only displayed if they contain a missing values)
 
         Parameters
         ----------
@@ -504,7 +504,7 @@ class PreProcessor(BaseEstimator):
         Returns
         -------
         pd.DataFrame
-            Data without columns conatining only missing values
+            Data without columns containing only missing values
         """
 
         # Check how much NaN values are in each variable 
@@ -522,6 +522,6 @@ class PreProcessor(BaseEstimator):
 
         if to_drop:
             data = data.drop(to_drop, axis=1)
-            logging.warning(f"Following variables contain only missing values and were droped: {to_drop}")
+            logging.warning(f"Following variables contain only missing values and were dropped: {to_drop}")
         
         return data
