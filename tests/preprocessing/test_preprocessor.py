@@ -1,4 +1,3 @@
-
 from contextlib import contextmanager
 from typing import Any
 from unittest.mock import MagicMock
@@ -9,38 +8,38 @@ from pytest_mock import MockerFixture
 
 from cobra.preprocessing.preprocessor import PreProcessor
 
+
 @contextmanager
 def does_not_raise():
     yield
 
 
 class TestPreProcessor:
-
-    @pytest.mark.parametrize("train_prop, selection_prop, validation_prop, "
-                             "expected_sizes",
-                             [(0.6, 0.2, 0.2, {"train": 6,
-                                               "selection": 2,
-                                               "validation": 2}),
-                              (0.7, 0.3, 0.0, {"train": 7,
-                                               "selection": 3}),
-                              # Error "The sum of train_prop, selection_prop and
-                              # validation_prop must be 1.0." should not be
-                              # raised:
-                              (0.7, 0.2, 0.1, {"train": 7,
-                                               "selection": 2,
-                                               "validation": 1})])
-    def test_train_selection_validation_split(self, train_prop: float,
-                                              selection_prop: float,
-                                              validation_prop: float,
-                                              expected_sizes: dict):
+    @pytest.mark.parametrize(
+        "train_prop, selection_prop, validation_prop, " "expected_sizes",
+        [
+            (0.6, 0.2, 0.2, {"train": 6, "selection": 2, "validation": 2}),
+            (0.7, 0.3, 0.0, {"train": 7, "selection": 3}),
+            # Error "The sum of train_prop, selection_prop and
+            # validation_prop must be 1.0." should not be
+            # raised:
+            (0.7, 0.2, 0.1, {"train": 7, "selection": 2, "validation": 1}),
+        ],
+    )
+    def test_train_selection_validation_split(
+        self,
+        train_prop: float,
+        selection_prop: float,
+        validation_prop: float,
+        expected_sizes: dict,
+    ):
         X = np.arange(100).reshape(10, 10)
         data = pd.DataFrame(X, columns=[f"c{i+1}" for i in range(10)])
         data.loc[:, "target"] = np.array([0] * 7 + [1] * 3)
 
-        actual = PreProcessor.train_selection_validation_split(data,
-                                                               train_prop,
-                                                               selection_prop,
-                                                               validation_prop)
+        actual = PreProcessor.train_selection_validation_split(
+            data, train_prop, selection_prop, validation_prop
+        )
 
         # check for the output schema
         assert list(actual.columns) == list(data.columns)
@@ -55,14 +54,15 @@ class TestPreProcessor:
 
     def test_train_selection_validation_split_error_wrong_prop(self):
 
-        error_msg = ("The sum of train_prop, selection_prop and "
-                     "validation_prop must be 1.0.")
+        error_msg = (
+            "The sum of train_prop, selection_prop and " "validation_prop must be 1.0."
+        )
         train_prop = 0.7
         selection_prop = 0.3
 
-        self._test_train_selection_validation_split_error(train_prop,
-                                                          selection_prop,
-                                                          error_msg)
+        self._test_train_selection_validation_split_error(
+            train_prop, selection_prop, error_msg
+        )
 
     def test_train_selection_validation_split_error_zero_selection_prop(self):
 
@@ -70,29 +70,34 @@ class TestPreProcessor:
         train_prop = 0.9
         selection_prop = 0.0
 
-        self._test_train_selection_validation_split_error(train_prop,
-                                                          selection_prop,
-                                                          error_msg)
+        self._test_train_selection_validation_split_error(
+            train_prop, selection_prop, error_msg
+        )
 
-    def _test_train_selection_validation_split_error(self,
-                                                     train_prop: float,
-                                                     selection_prop: float,
-                                                     error_msg: str):
+    def _test_train_selection_validation_split_error(
+        self, train_prop: float, selection_prop: float, error_msg: str
+    ):
         df = pd.DataFrame()
         with pytest.raises(ValueError, match=error_msg):
-            (PreProcessor
-             .train_selection_validation_split(df,
-                                               train_prop=train_prop,
-                                               selection_prop=selection_prop,
-                                               validation_prop=0.1))
+            (
+                PreProcessor.train_selection_validation_split(
+                    df,
+                    train_prop=train_prop,
+                    selection_prop=selection_prop,
+                    validation_prop=0.1,
+                )
+            )
 
-    @pytest.mark.parametrize("injection_location, expected",
-                             [(None, True),
-                              ("categorical_data_processor", False),
-                              ("discretizer", False),
-                              ("target_encoder", False)])
-    def test_is_valid_pipeline(self, injection_location: str,
-                               expected: bool):
+    @pytest.mark.parametrize(
+        "injection_location, expected",
+        [
+            (None, True),
+            ("categorical_data_processor", False),
+            ("discretizer", False),
+            ("target_encoder", False),
+        ],
+    )
+    def test_is_valid_pipeline(self, injection_location: str, expected: bool):
 
         # is_valid_pipeline only checks for relevant keys atm
         pipeline_dict = {
@@ -118,7 +123,7 @@ class TestPreProcessor:
             "target_encoder": {
                 "weight": None,
                 "imputation_strategy": None,
-            }
+            },
         }
 
         if injection_location:
@@ -128,24 +133,30 @@ class TestPreProcessor:
 
         assert actual == expected
 
-    @pytest.mark.parametrize(("continuous_vars, discrete_vars, expectation, "
-                              "expected"),
-                             [([], [], pytest.raises(ValueError), None),
-                              (["c1", "c2"], ["d1", "d2"], does_not_raise(),
-                               ["d1_processed", "d2_processed",
-                                "c1_bin", "c2_bin"]),
-                              (["c1", "c2"], [], does_not_raise(),
-                               ["c1_bin", "c2_bin"]),
-                              ([], ["d1", "d2"], does_not_raise(),
-                               ["d1_processed", "d2_processed"])])
-    def test_get_variable_list(self, continuous_vars: list,
-                               discrete_vars: list,
-                               expectation: Any,
-                               expected: list):
+    @pytest.mark.parametrize(
+        ("continuous_vars, discrete_vars, expectation, " "expected"),
+        [
+            ([], [], pytest.raises(ValueError), None),
+            (
+                ["c1", "c2"],
+                ["d1", "d2"],
+                does_not_raise(),
+                ["d1_processed", "d2_processed", "c1_bin", "c2_bin"],
+            ),
+            (["c1", "c2"], [], does_not_raise(), ["c1_bin", "c2_bin"]),
+            ([], ["d1", "d2"], does_not_raise(), ["d1_processed", "d2_processed"]),
+        ],
+    )
+    def test_get_variable_list(
+        self,
+        continuous_vars: list,
+        discrete_vars: list,
+        expectation: Any,
+        expected: list,
+    ):
 
         with expectation:
-            actual = PreProcessor._get_variable_list(continuous_vars,
-                                                     discrete_vars)
+            actual = PreProcessor._get_variable_list(continuous_vars, discrete_vars)
 
             assert actual == expected
 
@@ -157,11 +168,12 @@ class TestPreProcessor:
 
     def test_mutable_train_data_fit_transform(self, mocker: MockerFixture):
         """Test if the train_data input is not changed when performing fit_transform."""
-        train_data = pd.DataFrame([[1, "2", 3], [10, "20", 30], [100, "200", 300]], columns=["foo", "bar", "baz"])
+        train_data = pd.DataFrame(
+            [[1, "2", 3], [10, "20", 30], [100, "200", 300]],
+            columns=["foo", "bar", "baz"],
+        )
         preprocessor = PreProcessor.from_params(
-            model_type="classification",
-            n_bins=10,
-            weight= 0.8
+            model_type="classification", n_bins=10, weight=0.8
         )
         preprocessor._categorical_data_processor = MagicMock()
         preprocessor._categorical_data_processor.transform = self.mock_transform
@@ -174,69 +186,79 @@ class TestPreProcessor:
             train_data,
             continuous_vars=["foo"],
             discrete_vars=["bar"],
-            target_column_name=["baz"]
-            )
+            target_column_name=["baz"],
+        )
         assert "new_column" not in train_data.columns
         assert "new_column" in result.columns
-    
 
-
-    @pytest.mark.parametrize(("input, expected"), 
-    [
-        # example 1
-        (pd.DataFrame({
-            "a":[1, 8 , np.nan],
-
-            "b":[np.nan,8,np.nan],
-            "c":[np.nan,np.nan,np.nan],
-            "d":[np.nan,np.nan,5],
-            "e":[1,960,np.nan],
-            "f":[np.nan,np.nan,np.nan]
-            }),
-        pd.DataFrame({
-            'a': [1.0, 8.0, np.nan],
-            'b': [np.nan, 8.0, np.nan],
-            'd': [np.nan, np.nan, 5.0],
-            'e': [1.0, 960.0, np.nan]
-            })),
-        
-        #example 2
-        (pd.DataFrame({
-            "a":[1,8,np.nan],
-            "b":[np.nan,8,np.nan],
-            "c":[np.nan,np.nan,np.nan],
-            "d":[np.nan,np.nan,5],
-            "e":[1,960,np.nan],
-            }),
-        pd.DataFrame({
-            'a': [1.0, 8.0, np.nan],
-            'b': [np.nan, 8.0, np.nan],
-            'd': [np.nan, np.nan, 5.0],
-            'e': [1.0, 960.0, np.nan]
-            })),
-        
-        #example 3
-        (pd.DataFrame({
-            "a":[1,8,np.nan],
-            "b":[np.nan,8,np.nan],
-            "d":[np.nan,np.nan,5],
-            "e":[1,960,np.nan],
-            }),
-        pd.DataFrame({
-            'a': [1.0, 8.0, np.nan],
-            'b': [np.nan, 8.0, np.nan],
-            'd': [np.nan, np.nan, 5.0],
-            'e': [1.0, 960.0, np.nan]
-            }))
-    ])
+    @pytest.mark.parametrize(
+        ("input, expected"),
+        [
+            # example 1
+            (
+                pd.DataFrame(
+                    {
+                        "a": [1, 8, np.nan],
+                        "b": [np.nan, 8, np.nan],
+                        "c": [np.nan, np.nan, np.nan],
+                        "d": [np.nan, np.nan, 5],
+                        "e": [1, 960, np.nan],
+                        "f": [np.nan, np.nan, np.nan],
+                    }
+                ),
+                pd.DataFrame(
+                    {
+                        "a": [1.0, 8.0, np.nan],
+                        "b": [np.nan, 8.0, np.nan],
+                        "d": [np.nan, np.nan, 5.0],
+                        "e": [1.0, 960.0, np.nan],
+                    }
+                ),
+            ),
+            # example 2
+            (
+                pd.DataFrame(
+                    {
+                        "a": [1, 8, np.nan],
+                        "b": [np.nan, 8, np.nan],
+                        "c": [np.nan, np.nan, np.nan],
+                        "d": [np.nan, np.nan, 5],
+                        "e": [1, 960, np.nan],
+                    }
+                ),
+                pd.DataFrame(
+                    {
+                        "a": [1.0, 8.0, np.nan],
+                        "b": [np.nan, 8.0, np.nan],
+                        "d": [np.nan, np.nan, 5.0],
+                        "e": [1.0, 960.0, np.nan],
+                    }
+                ),
+            ),
+            # example 3
+            (
+                pd.DataFrame(
+                    {
+                        "a": [1, 8, np.nan],
+                        "b": [np.nan, 8, np.nan],
+                        "d": [np.nan, np.nan, 5],
+                        "e": [1, 960, np.nan],
+                    }
+                ),
+                pd.DataFrame(
+                    {
+                        "a": [1.0, 8.0, np.nan],
+                        "b": [np.nan, 8.0, np.nan],
+                        "d": [np.nan, np.nan, 5.0],
+                        "e": [1.0, 960.0, np.nan],
+                    }
+                ),
+            ),
+        ],
+    )
     def test_drops_columns_containing_only_nan(self, input, expected):
-        
-        output = PreProcessor._check_nan_columns_and_drop_columns_containing_only_nan(input)
 
+        output = PreProcessor._check_nan_columns_and_drop_columns_containing_only_nan(
+            input
+        )
         assert output.equals(expected)
-
-
-        
-
-
-
