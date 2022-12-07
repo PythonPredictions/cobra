@@ -3,10 +3,12 @@ import pytest
 import pandas as pd
 from cobra.evaluation.pigs_tables import generate_pig_tables
 
+from typing import Optional
+
 class TestPigTablesGeneration:
 
     @pytest.mark.parametrize("id_col_name", [None, "col_id"]) # test None as this is the default value in generate pig tabels 
-    def test_col_id(self, id_col_name):
+    def test_col_id(self, id_col_name: Optional[str]):
         
         # input
         data = pd.DataFrame({
@@ -37,3 +39,4 @@ class TestPigTablesGeneration:
         })
 
         pd.testing.assert_frame_equal(out, expected)
+        
