@@ -247,7 +247,9 @@ class PreProcessor(BaseEstimator):
         tuple
             tuple containing 2 lists of column names. (continuous_vars, discrete_vars)
         """        
-
+        if id_col_name == None:
+            log.warning("id_col_name is equal to None. If there is no id column ignore this warning")
+        
         # find continuous_vars and discrete_vars in the dateframe
         col_dtypes = df.dtypes
         discrete_vars = [col for col in col_dtypes[col_dtypes==object].index.tolist() if col not in [id_col_name, target_column_name]]
@@ -286,15 +288,15 @@ class PreProcessor(BaseEstimator):
         train_data : pd.DataFrame
             Data to be preprocessed.
         continuous_vars : list | None
-            List of continuous variables.
+            List of continuous variables, can be None.
         discrete_vars : list | None
-            List of discrete variables.
+            List of discrete variables, can be None.
         target_column_name : str
             Column name of the target.
         id_col_name : str, optional
             _description_, by default None
         """
-        if not (continuous_vars and discrete_vars) and id_col_name:
+        if not (continuous_vars and discrete_vars):
             continuous_vars, discrete_vars = self.get_continous_and_discreate_columns(
                 df=train_data,
                 id_col_name=id_col_name,
@@ -427,9 +429,9 @@ class PreProcessor(BaseEstimator):
         train_data : pd.DataFrame
             Data to be preprocessed
         continuous_vars : list
-            List of continuous variables.
+            List of continuous variables, can be None.
         discrete_vars : list
-            List of discrete variables.
+            List of discrete variables, can be None.
         target_column_name : str
             Column name of the target.
         id_col_name : str, optional
