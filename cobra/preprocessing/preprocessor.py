@@ -223,6 +223,52 @@ class PreProcessor(BaseEstimator):
             target_encoder,
             is_fitted=pipeline["_is_fitted"],
         )
+    
+    def get_continous_and_discreate_columns(
+        self, 
+        df : pd.DataFrame, 
+        id_col_name : str, 
+        target_column_name :str
+        ) -> tuple:
+        """Filters out the continious and discreate varaibles out of a dataframe and returns a tuple containing lists of column names 
+        It assumes that numerical comumns with less than or equal to 10 different values are categorical
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame that you want to divide in discreate and continous variables
+        id_col_name : str
+            column name of the id column, can be None
+        target_column_name : str
+            column name of the target column
+
+        Returns
+        -------
+        tuple
+            tuple containing 2 lists of column names. (continuous_vars, discrete_vars)
+        """        
+
+        # find continuous_vars and discrete_vars in the dateframe
+        col_dtypes = df.dtypes
+        discrete_vars = [col for col in col_dtypes[col_dtypes==object].index.tolist() if col not in [id_col_name, target_column_name]]
+        
+
+        for col in df.columns:
+            if col not in discrete_vars and col not in [id_col_name, target_column_name]: # omit discrete because a string, and target
+                val_counts = df[col].nunique()
+                if val_counts > 1 and val_counts <= 10: # the column contains less than 10 different values
+                    discrete_vars.append(col)
+
+        continuous_vars = list(set(df.columns)
+                            - set(discrete_vars) 
+                            - set([id_col_name, target_column_name]))
+        log.warning(
+            f"""Cobra automaticaly assumes that following variables are 
+            discrete: {discrete_vars}
+            continuous: {continuous_vars}
+            If you want to change this behaviour you can specify the discrete/continuous variables yourself with the continuous_vars and discrete_vars keywords. \nIt assumes that numerical comumns with less than or equal to 10 different values are categorical"""
+            )
+        return continuous_vars, discrete_vars
 
     def fit(
         self,
@@ -230,21 +276,32 @@ class PreProcessor(BaseEstimator):
         continuous_vars: list,
         discrete_vars: list,
         target_column_name: str,
+        id_col_name: str = None
     ):
         """Fit the data to the preprocessing pipeline.
+        If you put continious_vars and target_vars equal to `None` and give the id_col_name Cobra will guess which varaibles are continious and which are not 
 
         Parameters
         ----------
         train_data : pd.DataFrame
             Data to be preprocessed.
-        continuous_vars : list
+        continuous_vars : list | None
             List of continuous variables.
-        discrete_vars : list
+        discrete_vars : list | None
             List of discrete variables.
         target_column_name : str
             Column name of the target.
+        id_col_name : str, optional
+            _description_, by default None
         """
+        if not (continuous_vars and discrete_vars) and id_col_name:
+            continuous_vars, discrete_vars = self.get_continous_and_discreate_columns(
+                df=train_data,
+                id_col_name=id_col_name,
+                target_column_name=target_column_name
 
+            )
+        
         # get list of all variables
         preprocessed_variable_names = PreProcessor._get_variable_list(
             continuous_vars, discrete_vars
@@ -359,8 +416,11 @@ class PreProcessor(BaseEstimator):
         continuous_vars: list,
         discrete_vars: list,
         target_column_name: str,
+        id_col_name: str = None
     ) -> pd.DataFrame:
+
         """Fit preprocessing pipeline and transform the data.
+        If you put continious_vars and target_vars equal to `None` and give the id_col_name Cobra will guess which varaibles are continious and which are not          
 
         Parameters
         ----------
@@ -372,14 +432,22 @@ class PreProcessor(BaseEstimator):
             List of discrete variables.
         target_column_name : str
             Column name of the target.
+        id_col_name : str, optional
+            _description_, by default None
 
         Returns
         -------
         pd.DataFrame
             Transformed (preprocessed) data.
         """
+        if not (continuous_vars and discrete_vars) and id_col_name:
+            continuous_vars, discrete_vars = self.get_continous_and_discreate_columns(
+                df=train_data,
+                id_col_name=id_col_name,
+                target_column_name=target_column_name
 
-        self.fit(train_data, continuous_vars, discrete_vars, target_column_name)
+            )
+        self.fit(train_data, continuous_vars, discrete_vars, target_column_name, id_col_name)
 
         return self.transform(train_data, continuous_vars, discrete_vars)
 
