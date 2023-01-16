@@ -225,7 +225,6 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "normalize": "deprecated",
                 "positive": False
             }
         }
@@ -244,7 +243,6 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "normalize": "deprecated",
                 "positive": False
             },
             "coef_": [[0.5, 0.75]],

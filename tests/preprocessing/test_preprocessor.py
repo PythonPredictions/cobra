@@ -160,6 +160,95 @@ class TestPreProcessor:
 
             assert actual == expected
 
+    @pytest.mark.parametrize(
+    ("input, expected"),
+    [
+        # example 1
+        (
+            pd.DataFrame({
+                "ID": list(range(20)),
+                "A": [1,2,3,4,5,6,7,8,9,9,8,9,8,9,6,5,6,6,9,8],
+                "B": ["Cat"] *5 + ["Dog"]*10 + ["Fish"]*5,
+                "C": [1,2,3,4,9,10,11,12,13,5,6,7,8,15,19,18,14,16,13,17],
+                "Target": [1]*2 + [0]*5 + [1]*3 + [0]*5 + [1]*5
+                }
+            ),
+            pd.DataFrame({
+                'ID': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+                'A': [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 8, 9, 8, 9, 6, 5, 6, 6, 9, 8],
+                'B': ['Cat','Cat','Cat','Cat','Cat','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Fish','Fish','Fish','Fish','Fish'],
+                'C': [1, 2, 3, 4, 9, 10, 11, 12, 13, 5, 6, 7, 8, 15, 19, 18, 14, 16, 13, 17],
+                'Target': [1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+                'C_bin': ['1.0 - 3.0','1.0 - 3.0','1.0 - 3.0','3.0 - 5.0','7.0 - 9.0','9.0 - 10.0','10.0 - 12.0','10.0 - 12.0','12.0 - 13.0','3.0 - 5.0','5.0 - 7.0','5.0 - 7.0','7.0 - 9.0','13.0 - 15.0','17.0 - 19.0','17.0 - 19.0','13.0 - 15.0','15.0 - 17.0','12.0 - 13.0','15.0 - 17.0'],
+                'B_processed': ['Cat','Cat','Cat','Cat','Cat','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Fish','Fish','Fish','Fish','Fish'],
+                'A_processed': [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 8, 9, 8, 9, 6, 5, 6, 6, 9, 8],
+                'B_enc': [0.4,0.4,0.4,0.4,0.4,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,1.0,1.0,1.0,1.0,1.0],
+                'A_enc': [1.0,1.0,0.0,0.0,0.5,0.5,0.0,0.5,0.6,0.6,0.5,0.6,0.5,0.6,0.5,0.5,0.5,0.5,0.6,0.5],
+                'C_enc': [0.6666666666666666,0.6666666666666666,0.6666666666666666,0.5,0.0,0.0,0.5,0.5,1.0,0.5,0.0,0.0,0.0,0.5,0.5,0.5,0.5,1.0,1.0,1.0]
+                }
+            ),
+        )
+    ]
+    )
+    def test_fit_transform_without_id_col_name(self, input, expected):
+        
+        preprocessor = PreProcessor.from_params(model_type="classification")
+        
+        continuous_vars, discrete_vars = preprocessor.get_continous_and_discreate_columns(input, "ID","Target")
+
+        calculated = preprocessor.fit_transform(
+            input,
+            continuous_vars=continuous_vars,
+            discrete_vars=discrete_vars,
+            target_column_name="Target"
+            )
+        pd.testing.assert_frame_equal(calculated, expected, check_dtype=False, check_categorical=False)
+
+    @pytest.mark.parametrize(
+    ("input, expected"),
+    [
+        # example 1
+        (
+            pd.DataFrame({
+                "ID": list(range(20)),
+                "A": [1,2,3,4,5,6,7,8,9,9,8,9,8,9,6,5,6,6,9,8],
+                "B": ["Cat"] *5 + ["Dog"]*10 + ["Fish"]*5,
+                "C": [1,2,3,4,9,10,11,12,13,5,6,7,8,15,19,18,14,16,13,17],
+                "Target": [1]*2 + [0]*5 + [1]*3 + [0]*5 + [1]*5
+                }
+            ),
+            pd.DataFrame({
+                'ID': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+                'A': [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 8, 9, 8, 9, 6, 5, 6, 6, 9, 8],
+                'B': ['Cat','Cat','Cat','Cat','Cat','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Fish','Fish','Fish','Fish','Fish'],
+                'C': [1, 2, 3, 4, 9, 10, 11, 12, 13, 5, 6, 7, 8, 15, 19, 18, 14, 16, 13, 17],
+                'Target': [1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+                'C_bin': ['1.0 - 3.0','1.0 - 3.0','1.0 - 3.0','3.0 - 5.0','7.0 - 9.0','9.0 - 10.0','10.0 - 12.0','10.0 - 12.0','12.0 - 13.0','3.0 - 5.0','5.0 - 7.0','5.0 - 7.0','7.0 - 9.0','13.0 - 15.0','17.0 - 19.0','17.0 - 19.0','13.0 - 15.0','15.0 - 17.0','12.0 - 13.0','15.0 - 17.0'],
+                'B_processed': ['Cat','Cat','Cat','Cat','Cat','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Dog','Fish','Fish','Fish','Fish','Fish'],
+                'A_processed': [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 8, 9, 8, 9, 6, 5, 6, 6, 9, 8],
+                'B_enc': [0.4,0.4,0.4,0.4,0.4,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,1.0,1.0,1.0,1.0,1.0],
+                'A_enc': [1.0,1.0,0.0,0.0,0.5,0.5,0.0,0.5,0.6,0.6,0.5,0.6,0.5,0.6,0.5,0.5,0.5,0.5,0.6,0.5],
+                'C_enc': [0.6666666666666666,0.6666666666666666,0.6666666666666666,0.5,0.0,0.0,0.5,0.5,1.0,0.5,0.0,0.0,0.0,0.5,0.5,0.5,0.5,1.0,1.0,1.0]
+                }
+            ),
+        )
+    ]
+    )
+    def test_fit_transform_with_id_col_name(self, input, expected):
+        
+        preprocessor = PreProcessor.from_params(model_type="classification")
+        
+        # continuous_vars, discrete_vars = preprocessor.get_continous_and_discreate_columns(input, "ID","Target")
+
+        calculated = preprocessor.fit_transform(
+            input,
+            continuous_vars=None,
+            discrete_vars=None,
+            target_column_name="Target",
+            id_col_name="ID"
+            )
+        pd.testing.assert_frame_equal(calculated, expected, check_dtype=False, check_categorical=False)
+
     @staticmethod
     def mock_transform(df: pd.DataFrame, args):
         """Mock the transform method."""
