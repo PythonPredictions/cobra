@@ -194,7 +194,7 @@ class TestPreProcessor:
         
         preprocessor = PreProcessor.from_params(model_type="classification")
         
-        continuous_vars, discrete_vars = preprocessor.get_continous_and_discreate_columns(input, "ID","Target")
+        continuous_vars, discrete_vars = preprocessor.get_continuous_and_discrete_columns(input, "ID","Target")
 
         calculated = preprocessor.fit_transform(
             input,
