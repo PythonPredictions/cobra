@@ -1,23 +1,24 @@
-
 import numpy as np
 import pandas as pd
 
 from cobra.model_building.models import LogisticRegressionModel, LinearRegressionModel
 
+
 def mock_data():
-    return pd.DataFrame({"var1_enc": [0.42] * 10,
-                         "var2_enc": [0.94] * 10,
-                         "var3_enc": [0.87] * 10})
+    return pd.DataFrame(
+        {"var1_enc": [0.42] * 10, "var2_enc": [0.94] * 10, "var3_enc": [0.87] * 10}
+    )
 
 
 def mock_score_model_classification(self, data):
     return np.array([0.5, 0.8, 0.2, 0.9, 0.1, 0.7, 0.3, 0.6, 0.4, 0.5])
 
+
 def mock_score_model_regression(self, data):
-    return np.array([0.7, 0.2, 0.2, 0.9, 0.7, 0.3, 0.1, 0.4, 0.8, 0.5])*15
+    return np.array([0.7, 0.2, 0.2, 0.9, 0.7, 0.3, 0.1, 0.4, 0.8, 0.5]) * 15
+
 
 class TestLogisticRegressionModel:
-
     def test_evaluate(self, mocker):
 
         X = mock_data()
@@ -26,13 +27,14 @@ class TestLogisticRegressionModel:
         def mock_roc_auc_score(y_true, y_score):
             return 0.79
 
-        (mocker
-         .patch("cobra.model_building.LogisticRegressionModel.score_model",
-                mock_score_model_classification))
+        (
+            mocker.patch(
+                "cobra.model_building.LogisticRegressionModel.score_model",
+                mock_score_model_classification,
+            )
+        )
 
-        (mocker
-         .patch("cobra.model_building.models.roc_auc_score",
-                mock_roc_auc_score))
+        (mocker.patch("cobra.model_building.models.roc_auc_score", mock_roc_auc_score))
 
         model = LogisticRegressionModel()
         actual = model.evaluate(X, y)
@@ -52,17 +54,17 @@ class TestLogisticRegressionModel:
         assert actual == expected
 
     def test_compute_variable_importance(self, mocker):
-
         def mock_pearsonr(ypred, ytrue):
             return [ypred.unique()[0]]
 
-        (mocker
-         .patch("cobra.model_building.LogisticRegressionModel.score_model",
-                mock_score_model_classification))
+        (
+            mocker.patch(
+                "cobra.model_building.LogisticRegressionModel.score_model",
+                mock_score_model_classification,
+            )
+        )
 
-        (mocker
-         .patch("cobra.model_building.models.stats.pearsonr",
-                mock_pearsonr))
+        (mocker.patch("cobra.model_building.models.stats.pearsonr", mock_pearsonr))
 
         model = LogisticRegressionModel()
         model.predictors = ["var1_enc", "var2_enc", "var3_enc"]
@@ -71,11 +73,17 @@ class TestLogisticRegressionModel:
 
         actual = model.compute_variable_importance(data)
 
-        expected = pd.DataFrame([
-            {"predictor": "var1", "importance": data["var1_enc"].unique()[0]},
-            {"predictor": "var2", "importance": data["var2_enc"].unique()[0]},
-            {"predictor": "var3", "importance": data["var3_enc"].unique()[0]}
-        ]).sort_values(by="importance", ascending=False).reset_index(drop=True)
+        expected = (
+            pd.DataFrame(
+                [
+                    {"predictor": "var1", "importance": data["var1_enc"].unique()[0]},
+                    {"predictor": "var2", "importance": data["var2_enc"].unique()[0]},
+                    {"predictor": "var3", "importance": data["var3_enc"].unique()[0]},
+                ]
+            )
+            .sort_values(by="importance", ascending=False)
+            .reset_index(drop=True)
+        )
 
         pd.testing.assert_frame_equal(actual, expected)
 
@@ -103,8 +111,8 @@ class TestLogisticRegressionModel:
                 "solver": "liblinear",
                 "tol": 0.0001,
                 "verbose": 0,
-                "warm_start": False
-            }
+                "warm_start": False,
+            },
         }
 
         assert actual == expected
@@ -132,12 +140,12 @@ class TestLogisticRegressionModel:
                 "solver": "liblinear",
                 "tol": 0.0001,
                 "verbose": 0,
-                "warm_start": False
+                "warm_start": False,
             },
             "classes_": [0, 1],
             "coef_": [[0.5, 0.75]],
             "intercept_": [-3],
-            "n_iter_": [10]
+            "n_iter_": [10],
         }
 
         model.deserialize(model_dict)
@@ -149,23 +157,29 @@ class TestLogisticRegressionModel:
         assert logit.intercept_.all() == (np.array(model_dict["intercept_"]).all())
         assert logit.coef_.all() == np.array(model_dict["coef_"]).all()
 
-class TestLinearRegressionModel:
 
+class TestLinearRegressionModel:
     def test_evaluate(self, mocker):
 
         X = mock_data()
-        y = pd.Series(np.array([0.6, 0.1, 0.2, 0.9, 0.8, 0.3, 0.2, 0.4, 0.9, 0.5])*12)
+        y = pd.Series(np.array([0.6, 0.1, 0.2, 0.9, 0.8, 0.3, 0.2, 0.4, 0.9, 0.5]) * 12)
 
         def mock_mean_squared_error(y_true, y_pred):
             return 1.23
 
-        (mocker
-         .patch("cobra.model_building.LinearRegressionModel.score_model",
-                mock_score_model_regression))
+        (
+            mocker.patch(
+                "cobra.model_building.LinearRegressionModel.score_model",
+                mock_score_model_regression,
+            )
+        )
 
-        (mocker
-         .patch("cobra.model_building.models.mean_squared_error",
-                mock_mean_squared_error))
+        (
+            mocker.patch(
+                "cobra.model_building.models.mean_squared_error",
+                mock_mean_squared_error,
+            )
+        )
 
         model = LinearRegressionModel()
         actual = model.evaluate(X, y)
@@ -185,17 +199,17 @@ class TestLinearRegressionModel:
         assert actual == expected
 
     def test_compute_variable_importance(self, mocker):
-
         def mock_pearsonr(ypred, ytrue):
             return [ypred.unique()[0]]
 
-        (mocker
-         .patch("cobra.model_building.LinearRegressionModel.score_model",
-                mock_score_model_regression))
+        (
+            mocker.patch(
+                "cobra.model_building.LinearRegressionModel.score_model",
+                mock_score_model_regression,
+            )
+        )
 
-        (mocker
-         .patch("cobra.model_building.models.stats.pearsonr",
-                mock_pearsonr))
+        (mocker.patch("cobra.model_building.models.stats.pearsonr", mock_pearsonr))
 
         model = LinearRegressionModel()
         model.predictors = ["var1_enc", "var2_enc", "var3_enc"]
@@ -204,11 +218,17 @@ class TestLinearRegressionModel:
 
         actual = model.compute_variable_importance(data)
 
-        expected = pd.DataFrame([
-            {"predictor": "var1", "importance": data["var1_enc"].unique()[0]},
-            {"predictor": "var2", "importance": data["var2_enc"].unique()[0]},
-            {"predictor": "var3", "importance": data["var3_enc"].unique()[0]}
-        ]).sort_values(by="importance", ascending=False).reset_index(drop=True)
+        expected = (
+            pd.DataFrame(
+                [
+                    {"predictor": "var1", "importance": data["var1_enc"].unique()[0]},
+                    {"predictor": "var2", "importance": data["var2_enc"].unique()[0]},
+                    {"predictor": "var3", "importance": data["var3_enc"].unique()[0]},
+                ]
+            )
+            .sort_values(by="importance", ascending=False)
+            .reset_index(drop=True)
+        )
 
         pd.testing.assert_frame_equal(actual, expected)
 
@@ -225,8 +245,8 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "positive": False
-            }
+                "positive": False,
+            },
         }
 
         assert actual == expected
@@ -243,10 +263,10 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "positive": False
+                "positive": False,
             },
             "coef_": [[0.5, 0.75]],
-            "intercept_": [-3]
+            "intercept_": [-3],
         }
 
         model.deserialize(model_dict)
@@ -255,4 +275,3 @@ class TestLinearRegressionModel:
         assert linear.get_params() == model_dict["params"]
         assert linear.intercept_.all() == (np.array(model_dict["intercept_"]).all())
         assert linear.coef_.all() == np.array(model_dict["coef_"]).all()
-
