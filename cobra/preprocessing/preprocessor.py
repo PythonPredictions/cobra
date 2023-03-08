@@ -223,7 +223,7 @@ class PreProcessor(BaseEstimator):
             target_encoder,
             is_fitted=pipeline["_is_fitted"],
         )
-
+        
     def get_continuous_and_discrete_columns(
         self, df: pd.DataFrame, id_col_name: str, target_column_name: str
     ) -> tuple:
