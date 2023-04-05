@@ -260,8 +260,7 @@ class TestTargetEncoder:
                                         'neutral'],
                            'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
 
-        df_appended = df.append({"variable": "new", "target": 1},
-                                ignore_index=True)
+        df_appended = pd.concat([df, pd.DataFrame({"variable": "new", "target": 1}, index=[len(df)])], ignore_index=True)
 
         # inputs of TargetEncoder will be of dtype category
         df["variable"] = df["variable"].astype("category")
@@ -285,8 +284,7 @@ class TestTargetEncoder:
                                         'neutral', 'positive'],
                            'target': [5, 4, -5, 0, -4, 5, -5, 0, 1, 0, 4]})
 
-        df_appended = df.append({"variable": "new", "target": 10},
-                                ignore_index=True)
+        df_appended = pd.concat([df, pd.DataFrame({"variable": "new", "target": 10}, index=[len(df)])], ignore_index=True)
 
         # inputs of TargetEncoder will be of dtype category
         df["variable"] = df["variable"].astype("category")
