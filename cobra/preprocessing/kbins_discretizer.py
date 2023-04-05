@@ -327,7 +327,7 @@ class KBinsDiscretizer(BaseEstimator):
         if data[column_name_bin].isnull().sum() > 0:
 
             # Add an additional bin for missing values
-            data[column_name_bin]=data[column_name_bin].cat.add_categories(["Missing"])
+            data[column_name_bin].cat.add_categories(["Missing"], inplace=True)
 
             # Replace NULL with "Missing"
             # Otherwise these will be ignored in groupby
