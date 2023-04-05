@@ -315,13 +315,13 @@ class KBinsDiscretizer(BaseEstimator):
         column_name_bin = column_name + "_bin"
 
         # use pd.cut to compute bins
-        data.loc[:, column_name_bin] = pd.cut(x=data[column_name],
+        data[column_name_bin] = pd.cut(x=data[column_name],
                                               bins=interval_idx)
 
         # Rename bins so that the output has a proper format
         bin_labels = self._create_bin_labels(bins)
 
-        data.loc[:, column_name_bin] = (data[column_name_bin]
+        data[column_name_bin] = (data[column_name_bin]
                                         .cat.rename_categories(bin_labels))
 
         if data[column_name_bin].isnull().sum() > 0:
