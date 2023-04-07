@@ -1,5 +1,4 @@
-# Publishes code to pip when we publish a new release
-# runs pylint and pytest
+## Publishes code to pip when we publish a new release
 
 name: publish_to_pip
 

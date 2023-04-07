@@ -1,5 +1,4 @@
-# Runs CI when pushing to develop branch
-# runs pylint and pytest
+## Runs CI when pushing to develop branch
 
 name: CI_develop_action
 
@@ -26,7 +25,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
-        python -m pip install pylint pytest pytest-mock pytest-cov
+        python -m pip install -r requirements.dev.txt
 
     - name: Test with pytest
       run: |
