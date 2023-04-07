@@ -18,24 +18,5 @@ test-unit:
 	pytest tests
 	@echo 'unit tests OK'
 
-lint:
-	pylint cobra
-	@echo 'lint OK'
-
-lint-minimal:
-	pylint E cobra
-	@echo 'lint minimal OK'
-
-typecheck:
-	mypy cobra
-	@echo 'typecheck OK'
-
-codestyle:
-	pycodestyle cobra
-	@echo 'codestyle OK'
-
-docstyle:
-	pydocstyle cobra
-	@echo 'docstyle OK'
-
-code-qa: typecheck codestyle docstyle lint-minimal
+black-check:
+	black --diff cobra

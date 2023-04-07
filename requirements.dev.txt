@@ -1,7 +1,7 @@
+black
 mypy>=0.942
 pycodestyle>=2.8.0
 pydocstyle>=6.1.1
-pylint>=2.13.7
 pytest>=7.1.1
 pytest-mock>=3.7.0
 pytest-cov

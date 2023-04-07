@@ -1,4 +1,3 @@
-
 import logging
 
 import pandas as pd
@@ -7,6 +6,7 @@ from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
 log = logging.getLogger(__name__)
+
 
 class TargetEncoder(BaseEstimator):
     """Target encoding for categorical features, inspired by
@@ -62,22 +62,25 @@ class TargetEncoder(BaseEstimator):
 
     valid_imputation_strategies = ("mean", "min", "max")
 
-    def __init__(self, weight: float=0.0,
-                 imputation_strategy: str="mean"):
+    def __init__(self, weight: float = 0.0, imputation_strategy: str = "mean"):
 
         if weight < 0:
             raise ValueError("The value of weight cannot be smaller than zero.")
         elif imputation_strategy not in self.valid_imputation_strategies:
-            raise ValueError("Valid options for 'imputation_strategy' are {}."
-                             " Got imputation_strategy={!r} instead."
-                             .format(self.valid_imputation_strategies,
-                                     imputation_strategy))
+            raise ValueError(
+                "Valid options for 'imputation_strategy' are {}."
+                " Got imputation_strategy={!r} instead.".format(
+                    self.valid_imputation_strategies, imputation_strategy
+                )
+            )
 
         if weight == 0:
-            log.warning("The target encoder's additive smoothing weight is "
-                        "set to 0. This disables smoothing and may make the "
-                        "encoding prone to overfitting. Increase the weight "
-                        "if needed.")
+            log.warning(
+                "The target encoder's additive smoothing weight is "
+                "set to 0. This disables smoothing and may make the "
+                "encoding prone to overfitting. Increase the weight "
+                "if needed."
+            )
 
         self.weight = weight
         self.imputation_strategy = imputation_strategy
@@ -98,8 +101,7 @@ class TargetEncoder(BaseEstimator):
         params = self.get_params()
 
         params["_mapping"] = {
-            key: value.to_dict()
-            for key, value in self._mapping.items()
+            key: value.to_dict() for key, value in self._mapping.items()
         }
 
         params["_global_mean"] = self._global_mean
@@ -119,8 +121,10 @@ class TargetEncoder(BaseEstimator):
         if "weight" in params and type(params["weight"]) == float:
             self.weight = params["weight"]
 
-        if ("imputation_strategy" in params and
-                params["imputation_strategy"] in self.valid_imputation_strategies):
+        if (
+            "imputation_strategy" in params
+            and params["imputation_strategy"] in self.valid_imputation_strategies
+        ):
             self.imputation_strategy = params["imputation_strategy"]
 
         if "_global_mean" in params and type(params["_global_mean"]) == float:
@@ -136,14 +140,12 @@ class TargetEncoder(BaseEstimator):
             return s
 
         self._mapping = {
-            key: dict_to_series(key, value)
-            for key, value in _mapping.items()
+            key: dict_to_series(key, value) for key, value in _mapping.items()
         }
 
         return self
 
-    def fit(self, data: pd.DataFrame, column_names: list,
-            target_column: str):
+    def fit(self, data: pd.DataFrame, column_names: list, target_column: str):
         """Fit the TargetEncoder to the data.
 
         Parameters
@@ -162,8 +164,10 @@ class TargetEncoder(BaseEstimator):
 
         for column in tqdm(column_names, desc="Fitting target encoding..."):
             if column not in data.columns:
-                log.warning("DataFrame has no column '{}', so it will be "
-                            "skipped in fitting" .format(column))
+                log.warning(
+                    "DataFrame has no column '{}', so it will be "
+                    "skipped in fitting".format(column)
+                )
                 continue
 
             self._mapping[column] = self._fit_column(data[column], y)
@@ -191,15 +195,13 @@ class TargetEncoder(BaseEstimator):
         stats = y.groupby(X).agg(["mean", "count"])
 
         # Note: if self.weight = 0, we have the ordinary incidence replacement
-        numerator = (stats["count"] * stats["mean"]
-                     + self.weight * self._global_mean)
+        numerator = stats["count"] * stats["mean"] + self.weight * self._global_mean
 
         denominator = stats["count"] + self.weight
 
         return numerator / denominator
 
-    def transform(self, data: pd.DataFrame,
-                  column_names: list) -> pd.DataFrame:
+    def transform(self, data: pd.DataFrame, column_names: list) -> pd.DataFrame:
         """Replace (e.g. encode) values of each categorical column with a
         new value (reflecting the corresponding average target value,
         optionally smoothed by a regularization weight),
@@ -224,25 +226,27 @@ class TargetEncoder(BaseEstimator):
             method.
         """
         if (len(self._mapping) == 0) or (self._global_mean is None):
-            msg = ("This {} instance is not fitted yet. Call 'fit' with "
-                   "appropriate arguments before using this method.")
+            msg = (
+                "This {} instance is not fitted yet. Call 'fit' with "
+                "appropriate arguments before using this method."
+            )
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         for column in tqdm(column_names, desc="Applying target encoding..."):
             if column not in data.columns:
-                log.warning("Unknown column '{}' will be skipped."
-                            .format(column))
+                log.warning("Unknown column '{}' will be skipped.".format(column))
                 continue
             elif column not in self._mapping:
-                log.warning("Column '{}' is not in fitted output "
-                            "and will be skipped.".format(column))
+                log.warning(
+                    "Column '{}' is not in fitted output "
+                    "and will be skipped.".format(column)
+                )
                 continue
             data = self._transform_column(data, column)
 
         return data
 
-    def _transform_column(self, data: pd.DataFrame,
-                          column_name: str) -> pd.DataFrame:
+    def _transform_column(self, data: pd.DataFrame, column_name: str) -> pd.DataFrame:
         """Replace (e.g. encode) values of a categorical column with a
         new value (reflecting the corresponding average target value,
         optionally smoothed by a regularization weight),
@@ -265,8 +269,9 @@ class TargetEncoder(BaseEstimator):
         # Convert dtype to float, because when the original dtype
         # is of type "category", the resulting dtype would otherwise also be of
         # type "category":
-        data[new_column] = (data[column_name].map(self._mapping[column_name])
-                            .astype("float"))
+        data[new_column] = (
+            data[column_name].map(self._mapping[column_name]).astype("float")
+        )
 
         # In case of categorical data, it could be that new categories will
         # emerge which were not present in the train set, so this will result
@@ -274,20 +279,17 @@ class TargetEncoder(BaseEstimator):
         # configured imputation strategy:
         if data[new_column].isnull().sum() > 0:
             if self.imputation_strategy == "mean":
-                data[new_column].fillna(self._global_mean,
-                                        inplace=True)
+                data[new_column].fillna(self._global_mean, inplace=True)
             elif self.imputation_strategy == "min":
-                data[new_column].fillna(data[new_column].min(),
-                                        inplace=True)
+                data[new_column].fillna(data[new_column].min(), inplace=True)
             elif self.imputation_strategy == "max":
-                data[new_column].fillna(data[new_column].max(),
-                                        inplace=True)
+                data[new_column].fillna(data[new_column].max(), inplace=True)
 
         return data
 
-    def fit_transform(self, data: pd.DataFrame,
-                      column_names: list,
-                      target_column: str) -> pd.DataFrame:
+    def fit_transform(
+        self, data: pd.DataFrame, column_names: list, target_column: str
+    ) -> pd.DataFrame:
         """Fit the encoder and transform the data.
 
         Parameters

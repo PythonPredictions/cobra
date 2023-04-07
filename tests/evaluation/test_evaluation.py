@@ -1,4 +1,3 @@
-
 import pytest
 import pandas as pd
 import numpy as np
@@ -6,15 +5,19 @@ import numpy as np
 from cobra.evaluation import plot_incidence
 from cobra.evaluation import ClassificationEvaluator, RegressionEvaluator
 
+
 def mock_data():
-    d = {'variable': ['education', 'education', 'education', 'education'],
-         'label': ['1st-4th', '5th-6th', '7th-8th', '9th'],
-         'pop_size': [0.002, 0.004, 0.009, 0.019],
-         'avg_incidence': [0.23, 0.23, 0.23, 0.23],
-         'incidence': [0.047, 0.0434, 0.054, 0.069]}
+    d = {
+        "variable": ["education", "education", "education", "education"],
+        "label": ["1st-4th", "5th-6th", "7th-8th", "9th"],
+        "pop_size": [0.002, 0.004, 0.009, 0.019],
+        "avg_incidence": [0.23, 0.23, 0.23, 0.23],
+        "incidence": [0.047, 0.0434, 0.054, 0.069],
+    }
     return pd.DataFrame(d)
 
-def mock_preds(n, seed = 505):
+
+def mock_preds(n, seed=505):
     np.random.seed(seed)
 
     y_true = np.random.uniform(size=n)
@@ -22,22 +25,22 @@ def mock_preds(n, seed = 505):
 
     return y_true, y_pred
 
-class TestEvaluation:
 
+class TestEvaluation:
     def test_plot_incidence_with_unsupported_model_type(self):
         with pytest.raises(ValueError):
-            plot_incidence(pig_tables=None,
-                           variable="",
-                           model_type="anomaly_detection")
+            plot_incidence(pig_tables=None, variable="", model_type="anomaly_detection")
 
     def test_plot_incidence_with_different_column_orders(self):
         data = mock_data()
         with pytest.raises(ValueError):
-            plot_incidence(pig_tables=data,
-                           variable='education',
-                           model_type="classification",
-                           # different bins than in the data variable:
-                           column_order=['1st-4th', '5th-6th', '7th-8th'])
+            plot_incidence(
+                pig_tables=data,
+                variable="education",
+                model_type="classification",
+                # different bins than in the data variable:
+                column_order=["1st-4th", "5th-6th", "7th-8th"],
+            )
 
     # Stubs for later (requires exposing df_plot and testing matplotlib's
     # plot object fix and ax internals):
@@ -93,7 +96,9 @@ class TestEvaluation:
         n_bins_out = []
         for n_bins in n_bins_test:
             e = ClassificationEvaluator(n_bins=n_bins)
-            out = ClassificationEvaluator._compute_lift_per_bin(y_true, y_pred, e.n_bins)
+            out = ClassificationEvaluator._compute_lift_per_bin(
+                y_true, y_pred, e.n_bins
+            )
             lifts = out[1]
             n_bins_out.append(len(lifts))
 
@@ -108,8 +113,15 @@ class TestEvaluation:
 
         assert (evaluator.y_true == y_true).all()
         assert (evaluator.y_pred == y_pred).all()
-        for metric in ["accuracy", "AUC", "precision", "recall",
-                       "F1", "matthews_corrcoef", "lift at {}".format(evaluator.lift_at)]:
+        for metric in [
+            "accuracy",
+            "AUC",
+            "precision",
+            "recall",
+            "F1",
+            "matthews_corrcoef",
+            "lift at {}".format(evaluator.lift_at),
+        ]:
             assert evaluator.scalar_metrics[metric] is not None
         assert evaluator.roc_curve is not None
         assert evaluator.confusion_matrix is not None
@@ -118,7 +130,10 @@ class TestEvaluation:
 
     def test_fit_regression(self):
         y_true, y_pred = mock_preds(50, seed=789)
-        y_true, y_pred = y_true*10, y_pred*10  # rescale so it looks more regression-like
+        y_true, y_pred = (
+            y_true * 10,
+            y_pred * 10,
+        )  # rescale so it looks more regression-like
         evaluator = RegressionEvaluator()
         evaluator.fit(y_true, y_pred)
 
