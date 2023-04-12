@@ -1,3 +1,4 @@
+flake8 >= 6.0.0
 invoke >= 2.0.0
 mypy>=0.942
 pycodestyle>=2.8.0
