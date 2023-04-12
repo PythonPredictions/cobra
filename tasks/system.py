@@ -3,6 +3,9 @@
 import platform
 from enum import Enum
 
+COV_SCREEN_NAME = "coverage"
+DOC_SCREEN_NAME = "sphinx-docs"
+
 
 class OperatingSystem(Enum):
     """Initializes the operating system."""
@@ -28,10 +31,8 @@ def get_current_system():
 system = get_current_system()
 
 if system in [OperatingSystem.LINUX, OperatingSystem.MAC]:
-    COV_SCREEN_NAME = "coverage"
     COV_DOC_BUILD_DIR = "_build/htmlcov"
     DOCS_BUILD_DIR = "docs"
-    DOC_SCREEN_NAME = "sphinx-docs"
 elif system == OperatingSystem.WINDOWS:
     COV_DOC_BUILD_DIR = r"_build\htmlcov"
     DOCS_BUILD_DIR = r"_build\docs"
