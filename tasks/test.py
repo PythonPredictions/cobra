@@ -17,7 +17,7 @@ if SYSTEM in [OperatingSystem.LINUX, OperatingSystem.MAC]:
 
 
 @task(help={"verbose": "Run tests verbose."})
-def run(c_r, verbose=True):
+def run(c_r, verbose=False):
     """Run test suite."""
     # print('I am run(c) and I was called!')
     # print('I am c!\n', c_r, '\n', type(c), '\n', c_r.__dict__)  # <-- c_r?
