@@ -1,0 +1,8 @@
+ado:
+  organization: ""
+  project: ""
+  repository:
+    name: "cobra"
+project_name: "cobra"
+project_slug: "cobra"
+start_port: 9000
