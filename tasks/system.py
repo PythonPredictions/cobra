@@ -38,3 +38,7 @@ elif system == OperatingSystem.WINDOWS:
     DOCS_BUILD_DIR = r"_build\docs"
 else:
     raise ValueError(f'System {system} is not supported')
+
+PTY = True
+if get_current_system() == OperatingSystem.WINDOWS:
+    PTY = False

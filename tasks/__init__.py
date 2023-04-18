@@ -2,6 +2,7 @@
 
 from invoke import Collection
 
+from . import notebook
 from . import quality
 # from . import docs
 from . import test
@@ -23,5 +24,4 @@ ns.add_collection(test)
 # ns.add_collection(export)
 
 
-# from . import notebook
-# ns.add_collection(notebook, name="nb")
+ns.add_collection(notebook, name="nb")

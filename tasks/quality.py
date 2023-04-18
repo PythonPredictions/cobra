@@ -8,40 +8,40 @@ The quality checks are:
 """
 
 from invoke import task
-from .colors import colorize
+from .colors import colorize, Color
 
-from .system import OperatingSystem, get_current_system
-
-PTY = True
-if get_current_system() == OperatingSystem.WINDOWS:
-    PTY = False
+from .system import PTY
 
 
 # @task
 # def black(c_r):
 #     """Run code formatter: black."""
-#     print(colorize("-> Running black..."))
+#     tmp_str = colorize("\nRunning black...\n", color=Color.HEADER, bold=True)
+#     print(f"{tmp_str}")
 #     c_r.run(f"black {c_r.project_slug}", pty=PTY)
 
 
 @task
 def flake(c_r):
     """Run style guide enforcement: flake8."""
-    print(colorize("-> Running flake8..."))
+    tmp_str = colorize("\nRunning flake8...\n", color=Color.HEADER, bold=True)
+    print(f"{tmp_str}")
     c_r.run(f"flake8 {c_r.project_slug}", warn=True, pty=PTY)
 
 
 @task
 def pylint(c_r):
     """Run code analysis: pylint."""
-    print(colorize("-> Running pylint..."))
+    tmp_str = colorize("\nRunning pylint...\n", color=Color.HEADER, bold=True)
+    print(f"{tmp_str}")
     c_r.run(f"pylint {c_r.project_slug}", warn=True, pty=PTY)
 
 
 @task
 def mypy(c_r):
     """Run static type checking: mypy."""
-    print(colorize("-> Running mypy..."))
+    tmp_str = colorize("Running mypy...\n", color=Color.HEADER, bold=True)
+    print(f"{tmp_str}")
     c_r.run(f"mypy {c_r.project_slug}", warn=True, pty=PTY)
 
 
