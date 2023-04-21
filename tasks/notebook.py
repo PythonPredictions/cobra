@@ -65,17 +65,18 @@ def start(c_r):
                 c_r.run(_command)
                 print(f">>> {colorize(_command, color=Color.OKBLUE)}\n")
         elif SYSTEM == OperatingSystem.WINDOWS:
-            _command = (
-                "wt -d ./jupyter-notebooks jupyter notebook "
-                f"--port={c_r.start_port} --no-browser"
-            )
-            print(
-                colorize(
-                    "Notebook server is not attached to this terminal process."
-                    " Close windows terminal instance instead.",
-                    color=Color.WARNING,
+            with c_r.cd("./jupyter-notebooks"):
+                _command = (
+                    "wt -d . jupyter notebook "
+                    f"--port={c_r.start_port}"
                 )
-            )
+                print(
+                    colorize(
+                        "Notebook server is not attached to this terminal process."
+                        " Close windows terminal instance instead.",
+                        color=Color.WARNING,
+                    )
+                )
 
             print(f"{tmp_str}")
             c_r.run(_command)
