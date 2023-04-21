@@ -7,3 +7,4 @@ pylint>=2.13.7
 pytest>=7.1.1
 pytest-mock>=3.7.0
 pytest-cov
+git-changelog
