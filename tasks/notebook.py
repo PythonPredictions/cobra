@@ -54,7 +54,7 @@ def start(c_r):
         color=Color.HEADER,
         bold=True
     )
-    with c_r.cd("./jupyter-notebooks"):  
+    with c_r.cd("./jupyter-notebooks"):
         if SYSTEM in [OperatingSystem.LINUX, OperatingSystem.MAC]:
             with c_r.prefix("export JUPYTER_CONFIG_DIR=../.jupyter"):
                 _command = (
@@ -66,9 +66,17 @@ def start(c_r):
                 print(f">>> {colorize(_command, color=Color.OKBLUE)}\n")
         elif SYSTEM == OperatingSystem.WINDOWS:
             _command = (
-                f"wt -d . jupyter notebook --port={c_r.start_port} "
-                "--no-browser"
+                "wt -d ./jupyter-notebooks jupyter notebook "
+                f"--port={c_r.start_port} --no-browser"
             )
+            print(
+                colorize(
+                    "Notebook server is not attached to this terminal process."
+                    " Close windows terminal instance instead.",
+                    color=Color.WARNING,
+                )
+            )
+
             print(f"{tmp_str}")
             c_r.run(_command)
             print(f">>> {colorize(_command, color=Color.OKBLUE)}\n")

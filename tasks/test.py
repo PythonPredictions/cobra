@@ -90,8 +90,8 @@ def stop(c_r):
     elif SYSTEM == OperatingSystem.WINDOWS:
         print(
             colorize(
-                "Coverage server is not attached to this process. "
-                "Close windows terminal instance instead",
+                "Coverage server is not attached to this terminal process. "
+                "Close windows terminal instance instead.",
                 color=Color.WARNING,
             )
         )
