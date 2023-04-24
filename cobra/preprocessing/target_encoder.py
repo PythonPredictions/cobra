@@ -60,7 +60,7 @@ class TargetEncoder(BaseEstimator):
         current categorical value is used).
     """
 
-    valid_imputation_strategies = ("mean", "min", "max")
+    valid_imputation_strategies = ("mean", "min", "max", "median")
 
     def __init__(self, weight: float=0.0,
                  imputation_strategy: str="mean"):
@@ -281,6 +281,9 @@ class TargetEncoder(BaseEstimator):
                                         inplace=True)
             elif self.imputation_strategy == "max":
                 data[new_column].fillna(data[new_column].max(),
+                                        inplace=True)
+            elif self.imputation_strategy == "median":
+                data[new_column].fillna(data[new_column].median(),
                                         inplace=True)
 
         return data
