@@ -13,7 +13,7 @@ class TestTargetEncoder:
 
     def test_target_encoder_constructor_imputation_value_error(self):
         with pytest.raises(ValueError):
-            TargetEncoder(imputation_strategy="median")
+            TargetEncoder(imputation_strategy="something")
 
     # Tests for attributes_attributes_to_dict and set_attributes_from_dict
     def test_target_encoder_attributes_to_dict(self):
@@ -52,12 +52,11 @@ class TestTargetEncoder:
         if attribute == "weight":
             actual = encoder.weight
             expected = 1.0
-
             assert expected == actual
+            
         elif attribute == "mapping":
             actual = encoder._mapping
             expected = {}
-
             assert expected == actual
 
     def test_target_encoder_set_attributes_from_dict(self):
@@ -303,6 +302,59 @@ class TestTargetEncoder:
         actual = encoder.transform(data=df_appended, column_names=["variable"])
 
         pd.testing.assert_frame_equal(actual, expected)
+
+
+    def test_target_encoder_transform_new_category_linear_regression_median(self):
+        df = pd.DataFrame({'variable': ['positive', 'positive', 'negative',
+                                        'neutral', 'negative', 'positive',
+                                        'negative', 'neutral', 'neutral',
+                                        'neutral', 'positive'],
+                           'target': [5, 4, -5, 0, -4, 5, -5, 0, 1, 0, 4]})
+
+        df_appended = df.append({"variable": "new", "target": 10},
+                                ignore_index=True)
+
+        # inputs of TargetEncoder will be of dtype category
+        df["variable"] = df["variable"].astype("category")
+        df_appended["variable"] = df_appended["variable"].astype("category")
+
+        expected = df_appended.copy()
+        expected["variable_enc"] = [4.500000, 4.500000, -4.666667, 0.250000,
+                                    -4.666667, 4.500000, -4.666667, 0.250000,
+                                    0.250000, 0.250000, 4.500000,
+                                    0.250000] # median imputation for new value
+
+        encoder = TargetEncoder(imputation_strategy="median")
+        encoder.fit(data=df, column_names=["variable"], target_column="target")
+        actual = encoder.transform(data=df_appended, column_names=["variable"])
+
+        pd.testing.assert_frame_equal(actual, expected)
+
+    def test_target_encoder_transform_new_category_binary_classification_median(self):
+        df = pd.DataFrame({'variable': ['positive', 'positive', 'negative',
+                                        'neutral', 'negative', 'positive',
+                                        'negative', 'neutral', 'neutral',
+                                        'neutral'],
+                           'target': [1, 1, 0, 0, 1, 0, 0, 0, 1, 1]})
+
+        df_appended = df.append({"variable": "new", "target": 1},
+                                ignore_index=True)
+
+        # inputs of TargetEncoder will be of dtype category
+        df["variable"] = df["variable"].astype("category")
+        df_appended["variable"] = df_appended["variable"].astype("category")
+
+        expected = df_appended.copy()
+        expected["variable_enc"] = [0.666667, 0.666667, 0.333333, 0.50000,
+                                    0.333333, 0.666667, 0.333333, 0.50000,
+                                    0.50000, 0.50000, 0.50000]
+
+        encoder = TargetEncoder(imputation_strategy="median")
+        encoder.fit(data=df, column_names=["variable"], target_column="target")
+        actual = encoder.transform(data=df_appended, column_names=["variable"])
+
+        pd.testing.assert_frame_equal(actual, expected)
+
 
     # Tests for _clean_column_name:
     def test_target_encoder_clean_column_name_binned_column(self):
