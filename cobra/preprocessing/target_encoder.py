@@ -18,7 +18,7 @@ class TargetEncoder(BaseEstimator):
 
     Note that, when applying this target encoding, values of the categorical
     feature that have not been seen during fit will be imputed according to the
-    configured imputation strategy (replacement with the mean, minimum or
+    configured imputation strategy (replacement with the mean, median, minimum or
     maximum value of the categorical variable).
 
     The main problem with Target encoding is overfitting; the fact that we are
@@ -223,13 +223,15 @@ class TargetEncoder(BaseEstimator):
             Exception when TargetEncoder was not fitted before calling this
             method.
         """
+        _data = data.copy()
+
         if (len(self._mapping) == 0) or (self._global_mean is None):
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
                    "appropriate arguments before using this method.")
             raise NotFittedError(msg.format(self.__class__.__name__))
 
         for column in tqdm(column_names, desc="Applying target encoding..."):
-            if column not in data.columns:
+            if column not in _data.columns:
                 log.warning("Unknown column '{}' will be skipped."
                             .format(column))
                 continue
@@ -237,9 +239,9 @@ class TargetEncoder(BaseEstimator):
                 log.warning("Column '{}' is not in fitted output "
                             "and will be skipped.".format(column))
                 continue
-            data = self._transform_column(data, column)
+            _data = self._transform_column(_data, column)
 
-        return data
+        return _data
 
     def _transform_column(self, data: pd.DataFrame,
                           column_name: str) -> pd.DataFrame:
@@ -260,33 +262,34 @@ class TargetEncoder(BaseEstimator):
         pd.DataFrame
             Resulting transformed data.
         """
+        _data = data.copy()
         new_column = TargetEncoder._clean_column_name(column_name)
 
         # Convert dtype to float, because when the original dtype
         # is of type "category", the resulting dtype would otherwise also be of
         # type "category":
-        data[new_column] = (data[column_name].map(self._mapping[column_name])
+        _data[new_column] = (_data[column_name].map(self._mapping[column_name])
                             .astype("float"))
 
         # In case of categorical data, it could be that new categories will
         # emerge which were not present in the train set, so this will result
         # in missing values, which should be replaced according to the
         # configured imputation strategy:
-        if data[new_column].isnull().sum() > 0:
+        if _data[new_column].isnull().sum() > 0:
             if self.imputation_strategy == "mean":
-                data[new_column].fillna(self._global_mean,
+                _data[new_column].fillna(self._global_mean,
                                         inplace=True)
             elif self.imputation_strategy == "min":
-                data[new_column].fillna(data[new_column].min(),
+                _data[new_column].fillna(_data[new_column].min(),
                                         inplace=True)
             elif self.imputation_strategy == "max":
-                data[new_column].fillna(data[new_column].max(),
+                _data[new_column].fillna(_data[new_column].max(),
                                         inplace=True)
             elif self.imputation_strategy == "median":
-                data[new_column].fillna(data[new_column].median(),
+                _data[new_column].fillna(_data[new_column].median(),
                                         inplace=True)
 
-        return data
+        return _data
 
     def fit_transform(self, data: pd.DataFrame,
                       column_names: list,
