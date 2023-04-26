@@ -264,12 +264,12 @@ class TestPreProcessor:
         preprocessor = PreProcessor.from_params(
             model_type="classification", n_bins=10, weight=0.8
         )
-        preprocessor._categorical_data_processor = MagicMock()
-        preprocessor._categorical_data_processor.transform = self.mock_transform
-        preprocessor._discretizer = MagicMock()
-        preprocessor._discretizer.transform = self.mock_transform
-        preprocessor._target_encoder = MagicMock()
-        preprocessor._target_encoder.transform = self.mock_transform
+        preprocessor.categorical_data_processor = MagicMock()
+        preprocessor.categorical_data_processor.transform = self.mock_transform
+        preprocessor.discretizer = MagicMock()
+        preprocessor.discretizer.transform = self.mock_transform
+        preprocessor.target_encoder = MagicMock()
+        preprocessor.target_encoder.transform = self.mock_transform
 
         result = preprocessor.fit_transform(
             train_data,
