@@ -143,8 +143,8 @@ class PreProcessor(BaseEstimator):
             Valid imputation strategies = mean, median, min or max
             In case there is a particular column which contains new categories,
             the encoding will lead to NULL values which should be imputed.
-            The imputation replaces the so found null values with the encoded value 
-            according to the metric taken over all the encoded values for this variable.
+            For more information about how the imputation works go see the documentation of the 
+            :class:`cobra.preprocessing.TargetEncoder` 
 
         Returns
         -------
