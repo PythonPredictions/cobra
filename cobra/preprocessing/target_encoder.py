@@ -48,8 +48,13 @@ class TargetEncoder(BaseEstimator):
         In case there is a particular column which contains new categories,
         the encoding will lead to NULL values which should be imputed.
         Valid strategies then are to replace the NULL values with the global
-        mean or median of the train set or the min (resp. max) incidence of the
-        categories of that particular variable.
+        mean,  median or the min (resp. max) incidence of the variable.
+        
+        Ex: By taking the mean strategy the mean of the known encoded variables 
+        is computed and the missing encoded values would be imputed with this value. 
+        
+        
+        
     weight : float
         Smoothing parameter (non-negative). The higher the value of the
         parameter, the bigger the contribution of the overall mean of targets
