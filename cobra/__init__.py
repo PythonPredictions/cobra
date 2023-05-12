@@ -11,9 +11,6 @@ https://github.com/PythonPredictions/cobra/tree/master/tutorials
 
 The documentation:
 https://pythonpredictions.github.io/cobra.io/
-
-Presentation about the inner workings of Cobra:
-https://github.com/PythonPredictions/cobra/blob/develop/Cobra.pdf
 """
 
 from .version import __version__
