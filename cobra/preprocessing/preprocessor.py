@@ -56,11 +56,11 @@ class PreProcessor(BaseEstimator):
         is_fitted: bool = False,
     ):
 
-        self._categorical_data_processor = categorical_data_processor
-        self._discretizer = discretizer
-        self._target_encoder = target_encoder
+        self.categorical_data_processor = categorical_data_processor
+        self.discretizer = discretizer
+        self.target_encoder = target_encoder
 
-        self._is_fitted = is_fitted
+        self.is_fitted = is_fitted
 
         self.model_type = categorical_data_processor.model_type
 
@@ -336,15 +336,15 @@ class PreProcessor(BaseEstimator):
         # the data using the fitted discretizer & categorical_data_processor
         if continuous_vars:
             begin = time.time()
-            self._discretizer.fit(train_data, continuous_vars)
+            self.discretizer.fit(train_data, continuous_vars)
             log.info(
                 "Fitting KBinsDiscretizer took {} seconds".format(time.time() - begin)
             )
 
-            train_data = self._discretizer.transform(train_data, continuous_vars)
+            train_data = self.discretizer.transform(train_data, continuous_vars)
         if discrete_vars:
             begin = time.time()
-            self._categorical_data_processor.fit(
+            self.categorical_data_processor.fit(
                 train_data, discrete_vars, target_column_name
             )
             log.info(
@@ -353,17 +353,17 @@ class PreProcessor(BaseEstimator):
                 )
             )
 
-            train_data = self._categorical_data_processor.transform(
+            train_data = self.categorical_data_processor.transform(
                 train_data, discrete_vars
             )
 
         begin = time.time()
-        self._target_encoder.fit(
+        self.target_encoder.fit(
             train_data, preprocessed_variable_names, target_column_name
         )
         log.info("Fitting TargetEncoder took {} seconds".format(time.time() - begin))
 
-        self._is_fitted = True  # set fitted boolean to True
+        self.is_fitted = True  # set fitted boolean to True
 
         log.info("Fitting pipeline took {} seconds".format(time.time() - start))
 
@@ -397,7 +397,7 @@ class PreProcessor(BaseEstimator):
         # Ensure to operate on separate copy of data
         data = data.copy()
 
-        if not self._is_fitted:
+        if not self.is_fitted:
             msg = (
                 "This {} instance is not fitted yet. Call 'fit' with "
                 "appropriate arguments before using this method."
@@ -410,12 +410,12 @@ class PreProcessor(BaseEstimator):
         )
 
         if continuous_vars:
-            data = self._discretizer.transform(data, continuous_vars)
+            data = self.discretizer.transform(data, continuous_vars)
 
         if discrete_vars:
-            data = self._categorical_data_processor.transform(data, discrete_vars)
+            data = self.categorical_data_processor.transform(data, discrete_vars)
 
-        data = self._target_encoder.transform(data, preprocessed_variable_names)
+        data = self.target_encoder.transform(data, preprocessed_variable_names)
 
         log.info("Transforming data took {} seconds".format(time.time() - start))
 
@@ -539,10 +539,10 @@ class PreProcessor(BaseEstimator):
 
         pipeline[
             "categorical_data_processor"
-        ] = self._categorical_data_processor.attributes_to_dict()
+        ] = self.categorical_data_processor.attributes_to_dict()
 
-        pipeline["discretizer"] = self._discretizer.attributes_to_dict()
-        pipeline["target_encoder"] = self._target_encoder.attributes_to_dict()
+        pipeline["discretizer"] = self.discretizer.attributes_to_dict()
+        pipeline["target_encoder"] = self.target_encoder.attributes_to_dict()
 
         pipeline["_is_fitted"] = True
 
