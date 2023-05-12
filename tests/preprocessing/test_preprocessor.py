@@ -35,7 +35,7 @@ class TestPreProcessor:
     ):
         X = np.arange(100).reshape(10, 10)
         data = pd.DataFrame(X, columns=[f"c{i+1}" for i in range(10)])
-        data.loc[:, "target"] = np.array([0] * 7 + [1] * 3)
+        data["target"] = np.array([0] * 7 + [1] * 3)
 
         actual = PreProcessor.train_selection_validation_split(
             data, train_prop, selection_prop, validation_prop
