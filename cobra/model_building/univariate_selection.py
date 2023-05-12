@@ -65,66 +65,69 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     result = []
 
     if model_type == "classification":
-        for predictor in predictors:
+        scoring_method = roc_auc_score
+        kwargs = {}
+        scoring_method_str = "AUC"
+    else:
+        scoring_method = mean_squared_error
+        kwargs = {"squared": False}
+        scoring_method_str = "RMSE"
 
-            cleaned_predictor = utils.clean_predictor_name(predictor)
+    for predictor in predictors:
+        cleaned_predictor = utils.clean_predictor_name(predictor)
 
-            auc_train = roc_auc_score(
-                y_true=target_enc_train_data[target_column],
-                y_score=target_enc_train_data[predictor])
+        score_train = scoring_method(
+            target_enc_train_data[target_column],
+            target_enc_train_data[predictor],
+            **kwargs
+        )
 
-            auc_selection = roc_auc_score(
-                y_true=target_enc_selection_data[target_column],
-                y_score=target_enc_selection_data[predictor])
+        score_selection = scoring_method(
+            target_enc_selection_data[target_column],
+            target_enc_selection_data[predictor],
+            **kwargs
+        )
 
-            result.append({"predictor": cleaned_predictor,
-                           "AUC train": auc_train,
-                           "AUC selection": auc_selection})
+        result.append(
+            {
+                "predictor": cleaned_predictor,
+                f"{scoring_method_str} train": score_train,
+                f"{scoring_method_str} selection": score_selection
+            }
+        )
 
-        df_auc = pd.DataFrame(result)
+    df_score = pd.DataFrame(result)
 
+    # TODO: This should be `if scoring method is error based` instead of classification vs regression
+    if model_type == "classification":
         # Filter based on min. AUC
-        auc_thresh = df_auc.loc[:, "AUC selection"] > preselect_auc_threshold
+        score_thresh = df_score.loc[:, f"{scoring_method_str} selection"] > preselect_auc_threshold
 
         # Identify those variables for which the AUC difference between train
         # and selection is within a user-defined ratio
-        auc_overtrain = ((df_auc["AUC train"] - df_auc["AUC selection"])
-                         < preselect_overtrain_threshold)
+        score_overtrain = (
+            (df_score[f"{scoring_method_str} train"] - df_score[f"{scoring_method_str} selection"])
+            < preselect_overtrain_threshold
+        )
 
-        df_auc["preselection"] = auc_thresh & auc_overtrain
+        df_score["preselection"] = score_thresh & score_overtrain
 
-        df_out = df_auc.sort_values(by="AUC selection", ascending=False).reset_index(drop=True)
-
-    elif model_type == "regression":
-        for predictor in predictors:
-            cleaned_predictor = utils.clean_predictor_name(predictor)
-
-            rmse_train = sqrt(mean_squared_error(
-                y_true=target_enc_train_data[target_column],
-                y_pred=target_enc_train_data[predictor]))
-
-            rmse_selection = sqrt(mean_squared_error(
-                y_true=target_enc_selection_data[target_column],
-                y_pred=target_enc_selection_data[predictor]))
-
-            result.append({"predictor": cleaned_predictor,
-                           "RMSE train": rmse_train,
-                           "RMSE selection": rmse_selection})
-
-        df_rmse = pd.DataFrame(result)
-
+        df_out = df_score.sort_values(by=f"{scoring_method_str} selection", ascending=False).reset_index(drop=True)
+    else:
+        # What if they fill in something else than `regression`?
         # Filter based on max. RMSE
-        rmse_thresh = df_rmse.loc[:, "RMSE selection"] < preselect_rmse_threshold
+        score_thresh = df_score.loc[:, f"{scoring_method_str} selection"] < preselect_rmse_threshold
 
         # Identify those variables for which the RMSE difference between train
         # and selection is within a user-defined ratio
-        rmse_overtrain = ((df_rmse["RMSE selection"] - df_rmse["RMSE train"])  # flip subtraction vs. AUC
-                          < preselect_overtrain_threshold)
+        score_overtrain = (
+            (df_score[f"{scoring_method_str} selection"] - df_score[f"{scoring_method_str} train"])  # flip subtraction vs. AUC
+            < preselect_overtrain_threshold
+        )
 
-        df_rmse["preselection"] = rmse_thresh & rmse_overtrain
+        df_score["preselection"] = score_thresh & score_overtrain
 
-        df_out = df_rmse.sort_values(by="RMSE selection", ascending=True).reset_index(drop=True)  # lower is better
-
+        df_out = df_score.sort_values(by=f"{scoring_method_str} selection", ascending=True).reset_index(drop=True)  # lower is better
     return df_out
 
 def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
