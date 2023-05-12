@@ -1,9 +1,9 @@
 
 import pandas as pd
 from sklearn.metrics import roc_auc_score, mean_squared_error
-from numpy import sqrt
 
 import cobra.utils as utils
+
 
 def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
                                     target_enc_selection_data: pd.DataFrame,
@@ -99,6 +99,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     df_score = pd.DataFrame(result)
 
     # TODO: This should be `if scoring method is error based` instead of classification vs regression
+    # This opens the door to customised scoring methods
     if model_type == "classification":
         # Filter based on min. AUC
         score_thresh = df_score.loc[:, f"{scoring_method_str} selection"] > preselect_auc_threshold
@@ -130,6 +131,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
         df_out = df_score.sort_values(by=f"{scoring_method_str} selection", ascending=True).reset_index(drop=True)  # lower is better
     return df_out
 
+
 def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
     """Wrapper function to extract a list of predictors from df_metric.
 
@@ -156,6 +158,7 @@ def get_preselected_predictors(df_metric: pd.DataFrame) -> list:
                           .predictor.tolist())
 
     return [col + "_enc" for col in predictor_list]
+
 
 def compute_correlations(target_enc_train_data: pd.DataFrame,
                          predictors: list) -> pd.DataFrame:
