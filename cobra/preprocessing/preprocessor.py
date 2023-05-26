@@ -140,11 +140,11 @@ class PreProcessor(BaseEstimator):
             parameter, the bigger the contribution of the overall mean.
             When set to zero, there is no smoothing (e.g. the pure target incidence is used).
         imputation_strategy : str, optional
+            Valid imputation strategies = mean, median, min or max
             In case there is a particular column which contains new categories,
             the encoding will lead to NULL values which should be imputed.
-            Valid strategies are to replace with the global mean of the train
-            set or the min (resp. max) incidence of the categories of that
-            particular variable.
+            For more information about how the imputation works go see the documentation of the 
+            :class:`cobra.preprocessing.TargetEncoder` 
 
         Returns
         -------
