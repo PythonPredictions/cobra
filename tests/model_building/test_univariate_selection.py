@@ -54,3 +54,85 @@ class TestUnivariateSelection:
 
         preselected_predictors = univariate_selection.get_preselected_predictors(df_rmse)
         assert preselected_predictors == ["var2_enc", "var3_enc"]
+
+    def test_filter_preselection_error_based(self):
+        """Test filtering preselection data for an error-based metric."""
+        test_input = pd.DataFrame(
+            [
+                [0.1, 0.1],
+                [0.2, 0.2],
+                [0.3, 0.6],
+                [0.4, 0.4],
+                [0.5, 0.5],
+                [0.6, 0.6],
+                [0.7, 0.7],
+                [0.8, 0.8],
+                [0.9, 0.9],
+                [1.0, 1.0],
+            ],
+            columns=["RMSE train", "RMSE selection"]
+        )
+        result = univariate_selection.filter_preselection_error_based(
+            test_input,
+            preselect_threshold=0.65,
+            preselect_overtrain=0.2,
+            scoring_method="RMSE"
+        )
+
+        target = pd.DataFrame(
+            [
+                [0.1, 0.1, True],
+                [0.2, 0.2, True],
+                [0.4, 0.4, True],
+                [0.5, 0.5, True],
+                [0.3, 0.6, False],
+                [0.6, 0.6, True],
+                [0.7, 0.7, False],
+                [0.8, 0.8, False],
+                [0.9, 0.9, False],
+                [1.0, 1.0, False],
+            ],
+            columns=["RMSE train", "RMSE selection", "preselection"]
+        )
+        assert target.equals(result)
+
+    def test_filter_preselection_score_based(self):
+        """Test filtering preselection data for a score-based metric."""
+        test_input = pd.DataFrame(
+            [
+                [0.1, 0.1],
+                [0.2, 0.2],
+                [0.3, 0.6],
+                [0.4, 0.4],
+                [0.5, 0.5],
+                [0.6, 0.6],
+                [0.7, 0.7],
+                [0.8, 0.8],
+                [0.9, 0.9],
+                [1.0, 0.7],
+            ],
+            columns=["AUC train", "AUC selection"]
+        )
+        result = univariate_selection.filter_preselection_score_based(
+            test_input,
+            preselect_threshold=0.65,
+            preselect_overtrain=0.2,
+            scoring_method="AUC"
+        )
+
+        target = pd.DataFrame(
+            [
+                [0.9, 0.9, True],
+                [0.8, 0.8, True],
+                [0.7, 0.7, True],
+                [1.0, 0.7, False],
+                [0.3, 0.6, False],
+                [0.6, 0.6, False],
+                [0.5, 0.5, False],
+                [0.4, 0.4, False],
+                [0.2, 0.2, False],
+                [0.1, 0.1, False],
+            ],
+            columns=["AUC train", "AUC selection", "preselection"]
+        )
+        assert target.equals(result)

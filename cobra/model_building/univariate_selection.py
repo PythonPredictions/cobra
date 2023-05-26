@@ -5,15 +5,16 @@ from sklearn.metrics import roc_auc_score, mean_squared_error
 import cobra.utils as utils
 
 
-def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
-                                    target_enc_selection_data: pd.DataFrame,
-                                    predictors: list,
-                                    target_column: str,
-                                    model_type: str = "classification",
-                                    preselect_auc_threshold: float = 0.053,
-                                    preselect_rmse_threshold: float = 5,
-                                    preselect_overtrain_threshold: float = 0.05
-                                    ) -> pd.DataFrame:
+def compute_univariate_preselection(
+    target_enc_train_data: pd.DataFrame,
+    target_enc_selection_data: pd.DataFrame,
+    predictors: list,
+    target_column: str,
+    model_type: str = "classification",
+    preselect_auc_threshold: float = 0.053,
+    preselect_rmse_threshold: float = 5,
+    preselect_overtrain_threshold: float = 0.05
+) -> pd.DataFrame:
     """Perform a preselection of predictors based on an AUC (in case of
     classification) or a RMSE (in case of regression) threshold of
     a univariate model on a train and selection dataset and return a DataFrame
@@ -64,6 +65,7 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
     """
     result = []
 
+    # TODO: Change this to `if is_error_metric` or similar
     if model_type == "classification":
         scoring_method = roc_auc_score
         kwargs = {}
@@ -98,37 +100,43 @@ def compute_univariate_preselection(target_enc_train_data: pd.DataFrame,
 
     df_score = pd.DataFrame(result)
 
-    # TODO: This should be `if scoring method is error based` instead of classification vs regression
+    # TODO: This should be `if error_metric` instead of classification vs regression
     # This opens the door to customised scoring methods
     if model_type == "classification":
-        # Filter based on min. AUC
-        score_thresh = df_score.loc[:, f"{scoring_method_str} selection"] > preselect_auc_threshold
-
-        # Identify those variables for which the AUC difference between train
-        # and selection is within a user-defined ratio
-        score_overtrain = (
-            (df_score[f"{scoring_method_str} train"] - df_score[f"{scoring_method_str} selection"])
-            < preselect_overtrain_threshold
-        )
-
-        df_score["preselection"] = score_thresh & score_overtrain
-
-        df_out = df_score.sort_values(by=f"{scoring_method_str} selection", ascending=False).reset_index(drop=True)
+        df_out = filter_preselection_score_based(df_score, preselect_auc_threshold, preselect_overtrain_threshold, scoring_method_str)
     else:
         # What if they fill in something else than `regression`?
-        # Filter based on max. RMSE
-        score_thresh = df_score.loc[:, f"{scoring_method_str} selection"] < preselect_rmse_threshold
+        df_out = filter_preselection_error_based(df_score, preselect_rmse_threshold, preselect_overtrain_threshold, scoring_method_str)
+    return df_out
 
-        # Identify those variables for which the RMSE difference between train
-        # and selection is within a user-defined ratio
-        score_overtrain = (
-            (df_score[f"{scoring_method_str} selection"] - df_score[f"{scoring_method_str} train"])  # flip subtraction vs. AUC
-            < preselect_overtrain_threshold
-        )
 
-        df_score["preselection"] = score_thresh & score_overtrain
+def filter_preselection_error_based(df: pd.DataFrame, preselect_threshold: float, preselect_overtrain: float, scoring_method: str) -> pd.DataFrame:
+    """Filter the dataframe based on the given thresholds for error-based metrics."""
+    score_thresh = df.loc[:, f"{scoring_method} selection"] < preselect_threshold
 
-        df_out = df_score.sort_values(by=f"{scoring_method_str} selection", ascending=True).reset_index(drop=True)  # lower is better
+    # Identify those variables for which the error metric difference between train
+    # and selection is within a user-defined ratio
+    score_overtrain = (
+        (df[f"{scoring_method} selection"] - df[f"{scoring_method} train"])
+        < preselect_overtrain
+    )
+    df["preselection"] = score_thresh & score_overtrain
+    df_out = df.sort_values(by=f"{scoring_method} selection", ascending=True).reset_index(drop=True)
+    return df_out
+
+
+def filter_preselection_score_based(df: pd.DataFrame, preselect_threshold: float, preselect_overtrain: float, scoring_method: str) -> pd.DataFrame:
+    """Filter the dataframe based on the given thresholds for scoring-based metrics."""
+    score_thresh = df.loc[:, f"{scoring_method} selection"] > preselect_threshold
+
+    # Identify those variables for which the score difference between train
+    # and selection is within a user-defined ratio
+    score_overtrain = (
+        (df[f"{scoring_method} train"] - df[f"{scoring_method} selection"])
+        < preselect_overtrain
+    )
+    df["preselection"] = score_thresh & score_overtrain
+    df_out = df.sort_values(by=f"{scoring_method} selection", ascending=False).reset_index(drop=True)
     return df_out
 
 
