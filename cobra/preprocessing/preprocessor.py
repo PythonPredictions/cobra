@@ -367,10 +367,6 @@ class PreProcessor(BaseEstimator):
 
         log.info("Fitting pipeline took {} seconds".format(time.time() - start))
 
-    def test_function(self):
-        return print('heleeeloooo')
-
-
     def transform(
         self, data: pd.DataFrame, continuous_vars: list, discrete_vars: list
     ) -> pd.DataFrame:
@@ -424,7 +420,6 @@ class PreProcessor(BaseEstimator):
         log.info("Transforming data took {} seconds".format(time.time() - start))
 
         return data
-
 
     def fit_transform(
         self,
