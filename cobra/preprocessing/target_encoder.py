@@ -5,6 +5,7 @@ import pandas as pd
 from tqdm.auto import tqdm
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
+import numpy as np
 
 log = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ class TargetEncoder(BaseEstimator):
                 params["imputation_strategy"] in self.valid_imputation_strategies):
             self.imputation_strategy = params["imputation_strategy"]
 
-        if "_global_mean" in params and type(params["_global_mean"]) == float:
+        if "_global_mean" in params and isinstance(params["_global_mean"], (np.floating, float)):
             self._global_mean = params["_global_mean"]
 
         _mapping = {}
