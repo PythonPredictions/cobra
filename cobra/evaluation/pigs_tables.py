@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from matplotlib.ticker import FuncFormatter
-
 import cobra.utils as utils
+import logging 
+logging.basicConfig(level=logging.DEBUG)
+
 
 def generate_pig_tables(basetable: pd.DataFrame,
                         target_column_name: str,
@@ -76,18 +78,15 @@ def compute_pig_table(basetable: pd.DataFrame,
     # group by the binned variable, compute the incidence
     # (= mean of the target for the given bin) and compute the bin size
     # (e.g. COUNT(id_column_name)). After that, rename the columns
-
     res = (basetable.groupby(predictor_column_name)
            .agg(
                 avg_target = (target_column_name, "mean"),
-                pop_size = (target_column_name, "size")
-           )
+                pop_size = (target_column_name, "size"),
+                std_dev_target = (target_column_name, "std"),
+                )
            .reset_index()
-           .rename(
-                columns={predictor_column_name: "label"}
+           .rename(columns={predictor_column_name: "label"})
            )
-    )
-
 
     # add the column name to a variable column
     # add the average incidence
@@ -95,10 +94,9 @@ def compute_pig_table(basetable: pd.DataFrame,
     res["variable"] = utils.clean_predictor_name(predictor_column_name)
     res["global_avg_target"] = global_avg_target
     res["pop_size"] = res["pop_size"]/len(basetable.index)
-
     # make sure to always return the data with the proper column order
     column_order = ["variable", "label", "pop_size",
-                    "global_avg_target", "avg_target"]
+                    "global_avg_target", "avg_target", "std_dev_target"]
 
     return res[column_order]
 
@@ -107,7 +105,8 @@ def plot_incidence(pig_tables: pd.DataFrame,
                    variable: str,
                    model_type: str,
                    column_order: list=None,
-                   dim: tuple=(12, 8)):
+                   dim: tuple=(12, 8),
+                   show_error = False):
     """Plots a Predictor Insights Graph (PIG), a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
     variable. When the target is a binary classification target,
@@ -160,17 +159,25 @@ def plot_incidence(pig_tables: pd.DataFrame,
         # --------------------------
         # Left axis - average target
         # --------------------------
-        ax.plot(df_plot['label'], df_plot['avg_target'],
-                color="#00ccff", marker=".",
-                markersize=20, linewidth=3,
-                label='incidence rate per bin' if model_type == "classification" else "mean target value per bin",
-                zorder=10)
+        
+
+        ax.errorbar(df_plot['label'], df_plot['avg_target'], yerr=df_plot["std_dev_target"]/2,
+                    color="#00ccff", marker=".",
+                    markersize=15, linewidth=3,
+                    elinewidth=2,
+                    capsize=5,
+                    barsabove=True,
+                    label='incidence rate per bin' if model_type == "classification" else "mean target value per bin",
+                    zorder=10)
+
+
 
         ax.plot(df_plot['label'], df_plot['global_avg_target'],
                 color="#022252", linestyle='--', linewidth=4,
                 label='average incidence rate' if model_type == "classification" else "global mean target value",
                 zorder=10)
 
+        
         # Dummy line to have label on second axis from first
         ax.plot(np.nan, "#939598", linewidth=6, label='bin size')
 
