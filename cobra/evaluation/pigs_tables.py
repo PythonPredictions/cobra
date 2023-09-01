@@ -6,7 +6,7 @@ from matplotlib.ticker import FuncFormatter
 import cobra.utils as utils
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 def generate_pig_tables(
@@ -118,7 +118,7 @@ def plot_incidence(
     model_type: str,
     column_order: list = None,
     dim: tuple = (12, 8),
-    show_error=False,
+    show_error: bool = False,
 ):
     """Plots a Predictor Insights Graph (PIG), a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
@@ -142,6 +142,9 @@ def plot_incidence(
         on the PIG.
     dim: tuple, default=(12, 8)
         Optional tuple to configure the width and length of the plot.
+    show_error: bool, default=False
+        Indicate if the standard deviation per bin should be showed. This can
+        be useful in regression.
     """
     if model_type not in ["classification", "regression"]:
         raise ValueError(
@@ -174,11 +177,11 @@ def plot_incidence(
         # --------------------------
         # Left axis - average target
         # --------------------------
-
+        error = df_plot["std_dev_target"] / 2 if show_error else None
         ax.errorbar(
             df_plot["label"],
             df_plot["avg_target"],
-            yerr=df_plot["std_dev_target"] / 2,
+            yerr=error,
             color="#00ccff",
             marker=".",
             markersize=15,
