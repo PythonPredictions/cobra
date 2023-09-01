@@ -4,7 +4,7 @@ import pandas as pd
 from cobra.evaluation.pigs_tables import generate_pig_tables
 
 from typing import Optional
-
+import numpy as np
 
 class TestPigTablesGeneration:
     @pytest.mark.parametrize(
@@ -50,6 +50,7 @@ class TestPigTablesGeneration:
                 "pop_size": [0.2, 0.4, 0.2, 0.2, 0.6, 0.4, 0.4, 0.6],
                 "global_avg_target": [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4],
                 "avg_target": [0.0, 0.5, 1.0, 0.0, 0.6666666666666666, 0.0, 1.0, 0.0],
+                "std_dev_target": [np.nan, 0.7071067811865476, np.nan, np.nan, 0.5773502691896258, 0.0, 0.0, 0.0],
             }
         )
 
