@@ -1,6 +1,8 @@
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import logging
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -177,26 +179,27 @@ class ClassificationEvaluator():
 
         auc = float(self.scalar_metrics.loc["AUC"])
 
-        with plt.style.context("seaborn-whitegrid"):
 
-            fig, ax = plt.subplots(figsize=dim)
+        sns.set_theme(style="whitegrid")
 
-            ax.plot(self.roc_curve["fpr"],
-                    self.roc_curve["tpr"],
-                    color="cornflowerblue", linewidth=3,
-                    label="ROC curve (area = {s:.3})".format(s=auc))
+        fig, ax = plt.subplots(figsize=dim)
 
-            ax.plot([0, 1], [0, 1], color="darkorange", linewidth=3,
-                    linestyle="--", label="random selection")
-            ax.set_xlabel("False positive rate", fontsize=15)
-            ax.set_ylabel("True positive rate", fontsize=15)
-            ax.legend(loc="lower right")
-            ax.set_title("ROC curve", fontsize=20)
+        ax.plot(self.roc_curve["fpr"],
+                self.roc_curve["tpr"],
+                color="cornflowerblue", linewidth=3,
+                label="ROC curve (area = {s:.3})".format(s=auc))
 
-            ax.set_ylim([0, 1])
+        ax.plot([0, 1], [0, 1], color="darkorange", linewidth=3,
+                linestyle="--", label="random selection")
+        ax.set_xlabel("False positive rate", fontsize=15)
+        ax.set_ylabel("True positive rate", fontsize=15)
+        ax.legend(loc="lower right")
+        ax.set_title("ROC curve", fontsize=20)
 
-            if path:
-                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        ax.set_ylim([0, 1])
+
+        if path:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
 
@@ -255,35 +258,37 @@ class ClassificationEvaluator():
 
         lifts = np.array(lifts)*inc_rate*100
 
-        with plt.style.context("seaborn-ticks"):
-            fig, ax = plt.subplots(figsize=dim)
 
-            plt.bar(x_labels[::-1], lifts, align="center",
-                    color="cornflowerblue")
-            plt.ylabel("Response (%)", fontsize=15)
-            plt.xlabel("Decile", fontsize=15)
-            ax.set_xticks(x_labels)
-            ax.set_xticklabels(x_labels)
+        sns.set_theme(style="ticks")
+    
+        fig, ax = plt.subplots(figsize=dim)
 
-            plt.axhline(y=inc_rate*100, color="darkorange", linestyle="--",
-                        xmin=0.05, xmax=0.95, linewidth=3, label="incidence")
+        plt.bar(x_labels[::-1], lifts, align="center",
+                color="cornflowerblue")
+        plt.ylabel("Response (%)", fontsize=15)
+        plt.xlabel("Decile", fontsize=15)
+        ax.set_xticks(x_labels)
+        ax.set_xticklabels(x_labels)
 
-            # Legend
-            ax.legend(loc="upper right")
+        plt.axhline(y=inc_rate*100, color="darkorange", linestyle="--",
+                    xmin=0.05, xmax=0.95, linewidth=3, label="incidence")
 
-            # Set Axis - make them pretty
-            sns.despine(ax=ax, right=True, left=True)
+        # Legend
+        ax.legend(loc="upper right")
 
-            # Remove white lines from the second axis
-            ax.grid(False)
+        # Set Axis - make them pretty
+        sns.despine(ax=ax, right=True, left=True)
 
-            # Description
-            ax.set_title("Cumulative Response curve", fontsize=20)
+        # Remove white lines from the second axis
+        ax.grid(False)
 
-            if path is not None:
-                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        # Description
+        ax.set_title("Cumulative Response curve", fontsize=20)
 
-            plt.show()
+        if path is not None:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+        plt.show()
 
     def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)):
         """Plot lift per decile.
@@ -304,35 +309,37 @@ class ClassificationEvaluator():
 
         x_labels, lifts, _ = self.lift_curve
 
-        with plt.style.context("seaborn-ticks"):
-            fig, ax = plt.subplots(figsize=dim)
 
-            plt.bar(x_labels[::-1], lifts, align="center",
-                    color="cornflowerblue")
-            plt.ylabel("Lift", fontsize=15)
-            plt.xlabel("Decile", fontsize=15)
-            ax.set_xticks(x_labels)
-            ax.set_xticklabels(x_labels)
+        sns.set_theme(style="ticks")
+            
+        fig, ax = plt.subplots(figsize=dim)
 
-            plt.axhline(y=1, color="darkorange", linestyle="--",
-                        xmin=0.05, xmax=0.95, linewidth=3, label="baseline")
+        plt.bar(x_labels[::-1], lifts, align="center",
+                color="cornflowerblue")
+        plt.ylabel("Lift", fontsize=15)
+        plt.xlabel("Decile", fontsize=15)
+        ax.set_xticks(x_labels)
+        ax.set_xticklabels(x_labels)
 
-            # Legend
-            ax.legend(loc="upper right")
+        plt.axhline(y=1, color="darkorange", linestyle="--",
+                    xmin=0.05, xmax=0.95, linewidth=3, label="baseline")
 
-            # Set Axis - make them pretty
-            sns.despine(ax=ax, right=True, left=True)
+        # Legend
+        ax.legend(loc="upper right")
 
-            # Remove white lines from the second axis
-            ax.grid(False)
+        # Set Axis - make them pretty
+        sns.despine(ax=ax, right=True, left=True)
 
-            # Description
-            ax.set_title("Cumulative Lift curve", fontsize=20)
+        # Remove white lines from the second axis
+        ax.grid(False)
 
-            if path is not None:
-                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        # Description
+        ax.set_title("Cumulative Lift curve", fontsize=20)
 
-            plt.show()
+        if path is not None:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+        plt.show()
 
     def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)):
         """Plot cumulative gains per decile.
@@ -345,38 +352,39 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         """
 
-        with plt.style.context("seaborn-whitegrid"):
-            fig, ax = plt.subplots(figsize=dim)
+        sns.set_theme(style="whitegrid")
+            
+        fig, ax = plt.subplots(figsize=dim)
 
-            ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
-                    color="cornflowerblue", linewidth=3,
-                    label="cumulative gains")
-            ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3,
-                    ls="--", color="darkorange", label="random selection")
+        ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
+                color="cornflowerblue", linewidth=3,
+                label="cumulative gains")
+        ax.plot(ax.get_xlim(), ax.get_ylim(), linewidth=3,
+                ls="--", color="darkorange", label="random selection")
 
-            ax.set_title("Cumulative Gains curve", fontsize=20)
+        ax.set_title("Cumulative Gains curve", fontsize=20)
 
-            # Format axes
-            ax.set_xlim([0, 100])
-            ax.set_ylim([0, 100])
-            plt.ylabel("Gain", fontsize=15)
-            plt.xlabel("Percentage", fontsize=15)
+        # Format axes
+        ax.set_xlim([0, 100])
+        ax.set_ylim([0, 100])
+        plt.ylabel("Gain", fontsize=15)
+        plt.xlabel("Percentage", fontsize=15)
 
-            # Format ticks
-            ticks_loc_y = ax.get_yticks().tolist()
-            ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc_y))
-            ax.set_yticklabels(["{:3.0f}%".format(x) for x in ticks_loc_y])
+        # Format ticks
+        ticks_loc_y = ax.get_yticks().tolist()
+        ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc_y))
+        ax.set_yticklabels(["{:3.0f}%".format(x) for x in ticks_loc_y])
 
-            ticks_loc_x = ax.get_xticks().tolist()
-            ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc_x))
-            ax.set_xticklabels(["{:3.0f}%".format(x) for x in ticks_loc_x])
+        ticks_loc_x = ax.get_xticks().tolist()
+        ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc_x))
+        ax.set_xticklabels(["{:3.0f}%".format(x) for x in ticks_loc_x])
 
-            # Legend
-            ax.legend(loc="lower right")
+        # Legend
+        ax.legend(loc="lower right")
 
-            if path is not None:
-                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-            plt.show()
+        if path is not None:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        plt.show()
 
     @staticmethod
     def _find_optimal_cutoff(y_true: np.ndarray,
@@ -675,22 +683,23 @@ class RegressionEvaluator():
         y_true = self.y_true
         y_pred = self.y_pred
 
-        with plt.style.context("seaborn-whitegrid"):
+        sns.set_theme(style="whitegrid")
+        
 
-            fig, ax = plt.subplots(figsize=dim)
+        fig, ax = plt.subplots(figsize=dim)
 
-            x = np.arange(1, len(y_true)+1)
+        x = np.arange(1, len(y_true)+1)
 
-            ax.plot(x, y_true, ls="--", label="actuals", color="darkorange", linewidth=3)
-            ax.plot(x, y_pred, label="predictions", color="cornflowerblue", linewidth=3)
+        ax.plot(x, y_true, ls="--", label="actuals", color="darkorange", linewidth=3)
+        ax.plot(x, y_pred, label="predictions", color="cornflowerblue", linewidth=3)
 
-            ax.set_xlabel("Index", fontsize=15)
-            ax.set_ylabel("Value", fontsize=15)
-            ax.legend(loc="best")
-            ax.set_title("Predictions vs. Actuals", fontsize=20)
+        ax.set_xlabel("Index", fontsize=15)
+        ax.set_ylabel("Value", fontsize=15)
+        ax.legend(loc="best")
+        ax.set_title("Predictions vs. Actuals", fontsize=20)
 
-            if path:
-                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        if path:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
 
@@ -711,26 +720,26 @@ class RegressionEvaluator():
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        with plt.style.context("seaborn-whitegrid"):
+        sns.set_theme(style="whitegrid")
 
-            fig, ax = plt.subplots(figsize=dim)
+        fig, ax = plt.subplots(figsize=dim)
 
-            x = self.qq["quantiles"]
-            y = self.qq["residuals"]
+        x = self.qq["quantiles"]
+        y = self.qq["residuals"]
 
-            ax.plot(x, x, ls="--", label="perfect model", color="darkorange", linewidth=3)
-            ax.plot(x, y, label="current model", color="cornflowerblue", linewidth=3)
+        ax.plot(x, x, ls="--", label="perfect model", color="darkorange", linewidth=3)
+        ax.plot(x, y, label="current model", color="cornflowerblue", linewidth=3)
 
-            ax.set_xlabel("Theoretical quantiles", fontsize=15)
-            ax.set_xticks(range(int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")])))+1, 1))
+        ax.set_xlabel("Theoretical quantiles", fontsize=15)
+        ax.set_xticks(range(int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")])))+1, 1))
 
-            ax.set_ylabel("Standardized residuals", fontsize=15)
-            ax.set_yticks(range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")])))+1, 1))
+        ax.set_ylabel("Standardized residuals", fontsize=15)
+        ax.set_yticks(range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")])))+1, 1))
 
-            ax.legend(loc="best")
-            ax.set_title("Q-Q plot", fontsize=20)
+        ax.legend(loc="best")
+        ax.set_title("Q-Q plot", fontsize=20)
 
-            if path:
-                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        if path:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()

@@ -39,26 +39,26 @@ def plot_univariate_predictor_quality(df_metric: pd.DataFrame,
                  value_name=metric)
 
     # plot data
-    with plt.style.context("seaborn-ticks"):
-        fig, ax = plt.subplots(figsize=dim)
+    sns.set_style("ticks")
+    fig, ax = plt.subplots(figsize=dim)
 
-        ax = sns.barplot(x=metric, y="predictor", hue="split", data=df)
-        ax.set_title("Univariate predictor quality", fontsize=20)
+    ax = sns.barplot(x=metric, y="predictor", hue="split", data=df)
+    ax.set_title("Univariate predictor quality", fontsize=20)
 
-        # Set pretty axis
-        sns.despine(ax=ax, right=True)
-        plt.ylabel("Predictor", fontsize=15)
-        plt.xlabel(metric, fontsize=15)
+    # Set pretty axis
+    sns.despine(ax=ax, right=True)
+    plt.ylabel("Predictor", fontsize=15)
+    plt.xlabel(metric, fontsize=15)
 
-        # Remove white lines from the second axis
-        ax.grid(False)
+    # Remove white lines from the second axis
+    ax.grid(False)
 
-        if path is not None:
-            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+    if path is not None:
+        plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.gca().legend().set_title("")
+    plt.gca().legend().set_title("")
 
-        plt.show()
+    plt.show()
 
 def plot_correlation_matrix(df_corr: pd.DataFrame,
                             dim: tuple=(12, 8),
@@ -122,44 +122,43 @@ def plot_performance_curves(model_performance: pd.DataFrame,
                               max(model_performance['selection_performance']),
                               max(model_performance['validation_performance'])), 1)
 
-    with plt.style.context("seaborn-whitegrid"):
+    sns.set_style("ticks")
+    fig, ax = plt.subplots(figsize=dim)
 
-        fig, ax = plt.subplots(figsize=dim)
+    plt.plot(model_performance['train_performance'], marker=".",
+                markersize=20, linewidth=3, label="train",
+                color=colors["train"])
+    plt.plot(model_performance['selection_performance'], marker=".",
+                markersize=20, linewidth=3, label="selection",
+                color=colors["selection"])
+    plt.plot(model_performance['validation_performance'], marker=".",
+                markersize=20, linewidth=3, label="validation",
+                color=colors["validation"])
 
-        plt.plot(model_performance['train_performance'], marker=".",
-                 markersize=20, linewidth=3, label="train",
-                 color=colors["train"])
-        plt.plot(model_performance['selection_performance'], marker=".",
-                 markersize=20, linewidth=3, label="selection",
-                 color=colors["selection"])
-        plt.plot(model_performance['validation_performance'], marker=".",
-                 markersize=20, linewidth=3, label="validation",
-                 color=colors["validation"])
+    # Set x- and y-ticks
+    ax.set_xticks(np.arange(len(model_performance['last_added_predictor'])))
+    ax.set_xticklabels(model_performance['last_added_predictor'].tolist(),
+                        rotation=40, ha='right')
 
-        # Set x- and y-ticks
-        ax.set_xticks(np.arange(len(model_performance['last_added_predictor'])))
-        ax.set_xticklabels(model_performance['last_added_predictor'].tolist(),
-                           rotation=40, ha='right')
+    if model_type == "classification":
+        ax.set_yticks(np.arange(0.5, max_metric + 0.02, 0.05))
+    elif model_type == "regression":
+        # In regression, the scale of the y-axis can largely vary depending
+        # on the dataset, it is easier to just set the y-axis bounds,
+        # but not the tick distance.
+        ax.set_ylim(0, max_metric*1.1)
 
-        if model_type == "classification":
-            ax.set_yticks(np.arange(0.5, max_metric + 0.02, 0.05))
-        elif model_type == "regression":
-            # In regression, the scale of the y-axis can largely vary depending
-            # on the dataset, it is easier to just set the y-axis bounds,
-            # but not the tick distance.
-            ax.set_ylim(0, max_metric*1.1)
+    # Make pretty
+    ax.legend(loc='lower right')
+    fig.suptitle('Performance curves forward feature selection',
+                    fontsize=20)
+    plt.title("Metric: "+metric_name, fontsize=15, loc="left")
+    plt.ylabel('Model performance', fontsize=15)
 
-        # Make pretty
-        ax.legend(loc='lower right')
-        fig.suptitle('Performance curves forward feature selection',
-                     fontsize=20)
-        plt.title("Metric: "+metric_name, fontsize=15, loc="left")
-        plt.ylabel('Model performance', fontsize=15)
+    if path is not None:
+        plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        if path is not None:
-            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-
-        plt.show()
+    plt.show()
 
 def plot_variable_importance(df_variable_importance: pd.DataFrame,
                              title: str=None,
@@ -178,25 +177,26 @@ def plot_variable_importance(df_variable_importance: pd.DataFrame,
     path : str, optional
         Path to store the figure.
     """
-    with plt.style.context("seaborn-ticks"):
-        fig, ax = plt.subplots(figsize=dim)
-        ax = sns.barplot(x="importance", y="predictor",
-                         data=df_variable_importance,
-                         color="cornflowerblue")
-        if title:
-            ax.set_title(title, fontsize=20)
-        else:
-            ax.set_title("Variable importance", fontsize=20)
 
-        # Make pretty axis
-        sns.despine(ax=ax, right=True)
-        plt.ylabel('Predictor', fontsize=15)
-        plt.xlabel('Importance', fontsize=15)
+    sns.set_theme(style="ticks")
+    fig, ax = plt.subplots(figsize=dim)
+    ax = sns.barplot(x="importance", y="predictor",
+                        data=df_variable_importance,
+                        color="cornflowerblue")
+    if title:
+        ax.set_title(title, fontsize=20)
+    else:
+        ax.set_title("Variable importance", fontsize=20)
 
-        # Remove white lines from the second axis
-        ax.grid(False)
+    # Make pretty axis
+    sns.despine(ax=ax, right=True)
+    plt.ylabel('Predictor', fontsize=15)
+    plt.xlabel('Importance', fontsize=15)
 
-        if path is not None:
-            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+    # Remove white lines from the second axis
+    ax.grid(False)
 
-        plt.show()
+    if path is not None:
+        plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+    plt.show()
