@@ -1,8 +1,6 @@
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import logging
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
