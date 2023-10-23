@@ -1,9 +1,10 @@
 
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
+
+import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+import seaborn as sns
 
 import cobra.utils as utils
 
