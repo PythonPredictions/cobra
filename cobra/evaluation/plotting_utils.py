@@ -39,7 +39,7 @@ def plot_univariate_predictor_quality(df_metric: pd.DataFrame,
                  value_name=metric)
 
     # plot data
-    with plt.style.context("seaborn-ticks"):
+    with sns.axes_style("ticks"):
         fig, ax = plt.subplots(figsize=dim)
 
         ax = sns.barplot(x=metric, y="predictor", hue="split", data=df)
@@ -122,7 +122,7 @@ def plot_performance_curves(model_performance: pd.DataFrame,
                               max(model_performance['selection_performance']),
                               max(model_performance['validation_performance'])), 1)
 
-    with plt.style.context("seaborn-whitegrid"):
+    with sns.axes_style("whitegrid"):
 
         fig, ax = plt.subplots(figsize=dim)
 
@@ -178,7 +178,7 @@ def plot_variable_importance(df_variable_importance: pd.DataFrame,
     path : str, optional
         Path to store the figure.
     """
-    with plt.style.context("seaborn-ticks"):
+    with sns.axes_style("ticks"):
         fig, ax = plt.subplots(figsize=dim)
         ax = sns.barplot(x="importance", y="predictor",
                          data=df_variable_importance,

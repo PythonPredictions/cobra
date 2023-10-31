@@ -177,7 +177,7 @@ class ClassificationEvaluator():
 
         auc = float(self.scalar_metrics.loc["AUC"])
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -255,7 +255,7 @@ class ClassificationEvaluator():
 
         lifts = np.array(lifts)*inc_rate*100
 
-        with plt.style.context("seaborn-ticks"):
+        with sns.axes_style("ticks"):
             fig, ax = plt.subplots(figsize=dim)
 
             plt.bar(x_labels[::-1], lifts, align="center",
@@ -304,7 +304,7 @@ class ClassificationEvaluator():
 
         x_labels, lifts, _ = self.lift_curve
 
-        with plt.style.context("seaborn-ticks"):
+        with sns.axes_style("ticks"):
             fig, ax = plt.subplots(figsize=dim)
 
             plt.bar(x_labels[::-1], lifts, align="center",
@@ -345,7 +345,7 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         """
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
             fig, ax = plt.subplots(figsize=dim)
 
             ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
@@ -675,7 +675,7 @@ class RegressionEvaluator():
         y_true = self.y_true
         y_pred = self.y_pred
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -711,7 +711,7 @@ class RegressionEvaluator():
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 

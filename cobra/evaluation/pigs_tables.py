@@ -154,7 +154,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
         df_plot.sort_values(by=['avg_target'], ascending=False, inplace=True)
         df_plot.reset_index(inplace=True)
 
-    with plt.style.context("seaborn-ticks"):
+    with sns.axes_style("ticks"):
         fig, ax = plt.subplots(figsize=dim)
 
         # --------------------------
