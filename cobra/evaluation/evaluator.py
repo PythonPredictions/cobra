@@ -158,7 +158,7 @@ class ClassificationEvaluator():
                                                                   lift_at=lift_at), 2)
         })
 
-    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
         """Plot ROC curve of the model.
 
         Parameters
@@ -197,8 +197,8 @@ class ClassificationEvaluator():
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-
-        plt.show()
+        plt.close()
+        return fig
 
     def plot_confusion_matrix(self, path: str=None, dim: tuple=(12, 8),
                               labels: list=["0", "1"]):
@@ -232,9 +232,10 @@ class ClassificationEvaluator():
         if path:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        plt.close()
+        return fig
 
-    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
         """Plot cumulative response curve.
 
         Parameters
@@ -283,9 +284,10 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-            plt.show()
+        plt.close()
+        return fig
 
-    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
         """Plot lift per decile.
 
         Parameters
@@ -332,9 +334,10 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-            plt.show()
+        plt.close()
+        return fig
 
-    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
         """Plot cumulative gains per decile.
 
         Parameters
@@ -376,7 +379,8 @@ class ClassificationEvaluator():
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-            plt.show()
+        plt.close()
+        return fig
 
     @staticmethod
     def _find_optimal_cutoff(y_true: np.ndarray,
@@ -658,7 +662,7 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
         """Plot predictions from the model against actual values.
 
         Parameters
@@ -692,9 +696,10 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        plt.close()
+        return fig
 
-    def plot_qq(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_qq(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
         """Display a Q-Q plot from the standardized prediction residuals.
 
         Parameters
@@ -733,4 +738,5 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        plt.close()
+        return fig
