@@ -158,7 +158,7 @@ class ClassificationEvaluator():
                                                                   lift_at=lift_at), 2)
         })
 
-    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
+    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
         """Plot ROC curve of the model.
 
         Parameters
@@ -167,6 +167,13 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the ROC curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.roc_curve is None:
@@ -198,7 +205,7 @@ class ClassificationEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
         plt.close()
-        return fig
+        return fig, ax
 
     def plot_confusion_matrix(self, path: str=None, dim: tuple=(12, 8),
                               labels: list=["0", "1"]):
@@ -212,6 +219,13 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         labels : list, optional
             Optional list of labels, default "0" and "1".
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing confusion matrix
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.confusion_matrix is None:
@@ -233,9 +247,12 @@ class ClassificationEvaluator():
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.close()
-        return fig
+        return fig, ax
 
-    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
+    def plot_cumulative_response_curve(self,
+                                       path: str=None,
+                                       dim: tuple=(12, 8)
+                                       ) -> tuple[plt.Figure, plt.Axes]:
         """Plot cumulative response curve.
 
         Parameters
@@ -244,6 +261,13 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the cumulative response curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.lift_curve is None:
@@ -285,9 +309,9 @@ class ClassificationEvaluator():
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.close()
-        return fig
+        return fig, ax
 
-    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
+    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
         """Plot lift per decile.
 
         Parameters
@@ -296,6 +320,13 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object the livt curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.lift_curve is None:
@@ -335,9 +366,9 @@ class ClassificationEvaluator():
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.close()
-        return fig
+        return fig, ax
 
-    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
+    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
         """Plot cumulative gains per decile.
 
         Parameters
@@ -346,6 +377,13 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the cumulative gains curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         with sns.axes_style("whitegrid"):
@@ -380,7 +418,7 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
         plt.close()
-        return fig
+        return fig, ax
 
     @staticmethod
     def _find_optimal_cutoff(y_true: np.ndarray,
@@ -662,7 +700,7 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
+    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
         """Plot predictions from the model against actual values.
 
         Parameters
@@ -671,6 +709,13 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the predictions vs the actual values
+        ax : plt.Axes 
+            axes object linked to the figure
         """
         if self.y_true is None and self.y_pred is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
@@ -697,9 +742,9 @@ class RegressionEvaluator():
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.close()
-        return fig
+        return fig, ax
 
-    def plot_qq(self, path: str=None, dim: tuple=(12, 8)) -> plt.Figure:
+    def plot_qq(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
         """Display a Q-Q plot from the standardized prediction residuals.
 
         Parameters
@@ -708,6 +753,13 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object  containing the QQ-plot
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.qq is None:
@@ -739,4 +791,4 @@ class RegressionEvaluator():
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.close()
-        return fig
+        return fig, ax
