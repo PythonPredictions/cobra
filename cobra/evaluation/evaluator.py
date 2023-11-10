@@ -1,7 +1,7 @@
 
 import numpy as np
 import pandas as pd
-
+from typing import Tuple
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
@@ -158,7 +158,7 @@ class ClassificationEvaluator():
                                                                   lift_at=lift_at), 2)
         })
 
-    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot ROC curve of the model.
 
         Parameters
@@ -252,7 +252,7 @@ class ClassificationEvaluator():
     def plot_cumulative_response_curve(self,
                                        path: str=None,
                                        dim: tuple=(12, 8)
-                                       ) -> tuple[plt.Figure, plt.Axes]:
+                                       ) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative response curve.
 
         Parameters
@@ -311,7 +311,7 @@ class ClassificationEvaluator():
         plt.close()
         return fig, ax
 
-    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot lift per decile.
 
         Parameters
@@ -368,7 +368,7 @@ class ClassificationEvaluator():
         plt.close()
         return fig, ax
 
-    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative gains per decile.
 
         Parameters
@@ -700,7 +700,7 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot predictions from the model against actual values.
 
         Parameters
@@ -744,7 +744,7 @@ class RegressionEvaluator():
         plt.close()
         return fig, ax
 
-    def plot_qq(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+    def plot_qq(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Display a Q-Q plot from the standardized prediction residuals.
 
         Parameters

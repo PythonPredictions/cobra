@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from matplotlib.ticker import FuncFormatter
-
+from typing import Tuple
 import cobra.utils as utils
 
 def generate_pig_tables(basetable: pd.DataFrame,
@@ -107,7 +107,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
                    variable: str,
                    model_type: str,
                    column_order: list=None,
-                   dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+                   dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a Predictor Insights Graph (PIG), a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
     variable. When the target is a binary classification target,
