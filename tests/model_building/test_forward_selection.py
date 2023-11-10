@@ -1,4 +1,3 @@
-
 from contextlib import contextmanager
 import pytest
 import pandas as pd
@@ -6,9 +5,11 @@ import pandas as pd
 from cobra.model_building.models import LogisticRegressionModel, LinearRegressionModel
 from cobra.model_building.forward_selection import ForwardFeatureSelection
 
+
 @contextmanager
 def does_not_raise():
     yield
+
 
 def mock_data(add_split_col: bool=False, model_type="classification"):
     data = pd.DataFrame({"var1_enc": [0.42] * 10,
@@ -25,9 +26,11 @@ def mock_data(add_split_col: bool=False, model_type="classification"):
 
     return data
 
+
 def mock_model_num_pred(n_predictors, model_type="classification"):
     predictors = [f"var{i + 1}_enc" for i in range(n_predictors)]
     return mock_model(predictors, model_type)
+
 
 def mock_model(predictor_list, model_type="classification"):
     if model_type == "classification":
@@ -61,7 +64,9 @@ class TestForwardFeatureSelection:
             mock_model_num_pred(3, model_type=model_type)
         ]
 
-        def mock_evaluate(self, X, y, split, metric):  # on AUC scale, but gives the same for RMSE as it is a mock
+        def mock_evaluate(self, X, y,
+                          split, metric, metric_args, metric_kwargs):
+            # on AUC scale, but gives the same for RMSE as it is a mock
             if split == "train":
                 return 0.612
             else:
@@ -76,8 +81,7 @@ class TestForwardFeatureSelection:
 
         actual = (fw_selection
                   .compute_model_performances(data, "target",
-                                              splits=["train", "selection"],
-                                              metric=None))
+                                              splits=["train", "selection"]))
 
         expected = pd.DataFrame([
             {"predictors": ["var1_enc"],

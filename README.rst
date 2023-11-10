@@ -68,7 +68,17 @@ Documentation and extra material
 Contributing to Cobra
 =====================
 
-We'd love you to contribute to the development of Cobra! There are many ways in which you can contribute, the most common of which is to contribute to the source code or documentation of the project. However, there are many other ways you can contribute (report issues, improve code coverage by adding unit tests, ...).
-We use GitHub issues to track all bugs and feature requests. Feel free to open an issue in case you found a bug or in case you wish to see a new feature added.
+We'd love you to contribute to the development of Cobra!
+
+There are many ways in which you can contribute.
+
+* We much appreciate contributions to the source code or documentation of this
+  project.
+* However, there are many other ways you can contribute (report issues,
+  improve code coverage by adding unit tests,...).
+
+We use GitHub issues to track all bugs and feature requests.
+Feel free to open an issue in case you found a bug or in case you wish to see
+a new feature added.
 
 For more details, check out our `wiki <https://github.com/PythonPredictions/cobra/wiki/Contributing-guidelines-&-workflows>`_.
