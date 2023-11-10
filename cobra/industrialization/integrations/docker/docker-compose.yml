@@ -1,0 +1,7 @@
+version: '3'
+services:
+  cobra:
+    image: python:3.9-slim
+    volumes: ../../../../.:/cobra
+    working_dir: /cobra
+    command: pip install -r /cobra/requirements.txt
