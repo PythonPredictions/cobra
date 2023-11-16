@@ -66,6 +66,7 @@ def plot_univariate_predictor_quality(df_metric: pd.DataFrame,
 
         plt.gca().legend().set_title("")
 
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -183,6 +184,7 @@ def plot_performance_curves(model_performance: pd.DataFrame,
         if path is not None:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -231,5 +233,6 @@ def plot_variable_importance(df_variable_importance: pd.DataFrame,
         if path is not None:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
         plt.close()
         return fig, ax

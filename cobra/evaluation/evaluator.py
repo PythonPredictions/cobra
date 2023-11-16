@@ -204,6 +204,7 @@ class ClassificationEvaluator():
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -246,6 +247,7 @@ class ClassificationEvaluator():
         if path:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -308,6 +310,7 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -365,6 +368,7 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -417,6 +421,7 @@ class ClassificationEvaluator():
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -741,6 +746,7 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
         plt.close()
         return fig, ax
 
@@ -790,5 +796,6 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
         plt.close()
         return fig, ax

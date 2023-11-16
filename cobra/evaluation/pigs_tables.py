@@ -264,5 +264,6 @@ def plot_incidence(pig_tables: pd.DataFrame,
         plt.tight_layout()
         plt.margins(0.01)
 
+        plt.show()
         plt.close()
         return fig, ax
