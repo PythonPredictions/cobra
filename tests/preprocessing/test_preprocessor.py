@@ -357,13 +357,13 @@ class TestPreProcessor:
                     },
                 ).astype(
                     {
-                        "a": np.float64(),
-                        "b": np.float64(),
-                        "d": np.float64(),
-                        "e": np.float64(),
-                        "category_1": pd.CategoricalDtype(),
-                        "category_2": pd.CategoricalDtype(),
-                        "category_3": pd.CategoricalDtype(),
+                        "a": "float64",
+                        "b": "float64",
+                        "d": "float64",
+                        "e": "float64",
+                        "category_1": "category",
+                        "category_2": "category",
+                        "category_3": "category",
                     }
                 ),
                 pd.DataFrame(
@@ -376,11 +376,11 @@ class TestPreProcessor:
                     }
                 ).astype(
                     {
-                        "a": np.float64(),
-                        "d": np.float64(),
-                        "e": np.float64(),
-                        "category_1": pd.CategoricalDtype(),
-                        "category_2": pd.CategoricalDtype(),
+                        "a": "float64",
+                        "d": "float64",
+                        "e": "float64",
+                        "category_1": "category",
+                        "category_2": "category",
                     }
                 ),
             ),
