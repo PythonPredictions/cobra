@@ -145,14 +145,12 @@ def plot_incidence(pig_tables: pd.DataFrame,
                 'the same set of variables.')
 
         df_plot['label'] = df_plot['label'].astype('category')
-        df_plot['label'].cat.reorder_categories(column_order,
-                                                inplace=True)
+        df_plot['label'] = df_plot['label'].cat.reorder_categories(column_order)
 
-        df_plot.sort_values(by=['label'], ascending=True, inplace=True)
-        df_plot.reset_index(inplace=True)
+        df_plot = df_plot.sort_values(by=['label'], ascending=True).reset_index()
     else:
-        df_plot.sort_values(by=['avg_target'], ascending=False, inplace=True)
-        df_plot.reset_index(inplace=True)
+        df_plot = df_plot.sort_values(by=['avg_target'], ascending=False)
+        df_plot = df_plot.reset_index()
 
     with plt.style.context("seaborn-ticks"):
         fig, ax = plt.subplots(figsize=dim)
