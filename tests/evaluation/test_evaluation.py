@@ -10,8 +10,8 @@ def mock_data():
     d = {'variable': ['education', 'education', 'education', 'education'],
          'label': ['1st-4th', '5th-6th', '7th-8th', '9th'],
          'pop_size': [0.002, 0.004, 0.009, 0.019],
-         'avg_incidence': [0.23, 0.23, 0.23, 0.23],
-         'incidence': [0.047, 0.0434, 0.054, 0.069]}
+         'global_avg_target': [0.23, 0.23, 0.23, 0.23],
+         'avg_target': [0.047, 0.0434, 0.054, 0.069]}
     return pd.DataFrame(d)
 
 def mock_preds(n, seed = 505):
@@ -21,6 +21,11 @@ def mock_preds(n, seed = 505):
     y_pred = np.random.uniform(size=n)
 
     return y_true, y_pred
+
+
+
+
+
 
 class TestEvaluation:
 
@@ -127,3 +132,54 @@ class TestEvaluation:
         for metric in ["R2", "MAE", "MSE", "RMSE"]:
             assert evaluator.scalar_metrics[metric] is not None
         assert evaluator.qq is not None
+
+class TestClassificationEvaluator:
+    y_true, y_pred = mock_preds(50)
+    y_true = (y_true > 0.5).astype(int)  # convert to 0-1 labels
+
+    evaluator = ClassificationEvaluator(n_bins=5)
+    evaluator.fit(y_true, y_pred)
+
+    def test_plot_roc_curve(self):
+        self.evaluator.plot_roc_curve()
+    def test_plot_confusion_matrix(self):
+        self.evaluator.plot_confusion_matrix()
+    def test_plot_cumulative_response_curve(self):
+        self.evaluator.plot_cumulative_response_curve()
+    def test_plot_lift_curve(self):
+        self.evaluator.plot_lift_curve()
+    def test_plot_cumulative_gains(self):
+        self.evaluator.plot_cumulative_gains()
+
+class TestRegressionEvaluator:
+    y_true, y_pred = mock_preds(50)
+    evaluator = RegressionEvaluator()
+    evaluator.fit(y_true, y_pred)
+    def test_plot_predictions(self):
+        self.evaluator.plot_predictions()
+    def test_plot_qq(self):
+        self.evaluator.plot_qq()
+    
+
+
+    def test_compute_residuals_by_bin_uniform(self, example_evaluator):
+        # Test the function with "uniform" binning strategy
+        result_df = example_evaluator._compute_residuals_by_bin(nbins=10, binning_strat="uniform")
+        assert isinstance(result_df, pd.DataFrame)
+        assert len(result_df) == 10  # Check the number of bins
+
+    def test_compute_residuals_by_bin_quantile(self, example_evaluator):
+        # Test the function with "quantile" binning strategy
+        result_df = example_evaluator._compute_residuals_by_bin(nbins=10, binning_strat="quantile")
+        assert isinstance(result_df, pd.DataFrame)
+        assert len(result_df) == 10  # Check the number of bins
+
+
+
+@pytest.fixture
+def example_evaluator():
+    evaluator = RegressionEvaluator()
+    np.random.seed(42)
+    evaluator.y_true = np.random.rand(100)
+    evaluator.y_pred = np.random.rand(100)
+    return evaluator

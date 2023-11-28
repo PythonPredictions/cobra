@@ -1,7 +1,7 @@
 
 import numpy as np
 import pandas as pd
-
+from typing import Tuple
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
@@ -108,7 +108,7 @@ class ClassificationEvaluator():
 
         self.y_true = y_true
         self.y_pred = y_pred
-
+        
         self.roc_curve = {"fpr": fpr, "tpr": tpr, "thresholds": thresholds}
         self.confusion_matrix = confusion_matrix(y_true, y_pred_b)
         self.lift_curve = ClassificationEvaluator._compute_lift_per_bin(y_true, y_pred, self.n_bins)
@@ -158,7 +158,7 @@ class ClassificationEvaluator():
                                                                   lift_at=lift_at), 2)
         })
 
-    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot ROC curve of the model.
 
         Parameters
@@ -167,6 +167,13 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the ROC curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.roc_curve is None:
@@ -177,7 +184,7 @@ class ClassificationEvaluator():
 
         auc = float(self.scalar_metrics.loc["AUC"])
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -197,8 +204,9 @@ class ClassificationEvaluator():
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-
         plt.show()
+        plt.close()
+        return fig, ax
 
     def plot_confusion_matrix(self, path: str=None, dim: tuple=(12, 8),
                               labels: list=["0", "1"]):
@@ -212,6 +220,13 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         labels : list, optional
             Optional list of labels, default "0" and "1".
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing confusion matrix
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.confusion_matrix is None:
@@ -233,8 +248,13 @@ class ClassificationEvaluator():
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_response_curve(self,
+                                       path: str=None,
+                                       dim: tuple=(12, 8)
+                                       ) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative response curve.
 
         Parameters
@@ -243,6 +263,13 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the cumulative response curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.lift_curve is None:
@@ -255,7 +282,7 @@ class ClassificationEvaluator():
 
         lifts = np.array(lifts)*inc_rate*100
 
-        with plt.style.context("seaborn-ticks"):
+        with sns.axes_style("ticks"):
             fig, ax = plt.subplots(figsize=dim)
 
             plt.bar(x_labels[::-1], lifts, align="center",
@@ -283,9 +310,11 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-            plt.show()
+        plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot lift per decile.
 
         Parameters
@@ -294,6 +323,13 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object the livt curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.lift_curve is None:
@@ -304,7 +340,7 @@ class ClassificationEvaluator():
 
         x_labels, lifts, _ = self.lift_curve
 
-        with plt.style.context("seaborn-ticks"):
+        with sns.axes_style("ticks"):
             fig, ax = plt.subplots(figsize=dim)
 
             plt.bar(x_labels[::-1], lifts, align="center",
@@ -332,9 +368,11 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-            plt.show()
+        plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative gains per decile.
 
         Parameters
@@ -343,9 +381,16 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the cumulative gains curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
             fig, ax = plt.subplots(figsize=dim)
 
             ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
@@ -376,7 +421,9 @@ class ClassificationEvaluator():
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-            plt.show()
+        plt.show()
+        plt.close()
+        return fig, ax
 
     @staticmethod
     def _find_optimal_cutoff(y_true: np.ndarray,
@@ -590,10 +637,15 @@ class RegressionEvaluator():
 
         self.y_true = y_true
         self.y_pred = y_pred
+        
 
         # Compute qq info
         self.qq = RegressionEvaluator._compute_qq_residuals(y_true, y_pred)
 
+    @property
+    def residuals(self): 
+        return self.y_true - self.y_pred
+    
     @staticmethod
     def _compute_scalar_metrics(y_true: np.ndarray,
                                 y_pred: np.ndarray) -> pd.Series:
@@ -658,7 +710,45 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)):
+    def _compute_residuals_by_bin(self, nbins, binning_strat) -> pd.DataFrame:
+        """
+        Computes the mean residuals for each bin created based on the specified binning strategy.
+
+        Parameters
+        ----------
+        nbins : int
+            Number of bins to create.
+        binning_strat : str
+            Binning strategy. Should be one of ["uniform", "quantile"].
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing the mean residuals for each bin.
+
+        Raises
+        ------
+        ValueError
+            If an invalid binning strategy is provided.
+
+        Example
+        -------
+        ```python
+        result_df = model._compute_residuals_by_bin(nbins=10, binning_strat="uniform")
+        ```
+        """
+        df = pd.DataFrame({"y_true":self.y_true, "residuals":self.residuals}).sort_values("y_true")
+        
+        allowed_binning_strats = ["uniform", "quantile"]
+        if binning_strat == "uniform":
+            df["bins"] = pd.cut(df.y_true, bins=nbins)
+        elif binning_strat == "quantile":
+            df["bins"] = pd.qcut(df.y_true, q=nbins)
+        else:
+            raise ValueError(f"binning_strat: {binning_strat} unknown use one of the following: {allowed_binning_strats}")
+        return df.groupby("bins", observed=True).residuals.mean().reset_index()
+
+    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot predictions from the model against actual values.
 
         Parameters
@@ -667,6 +757,13 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the predictions vs the actual values
+        ax : plt.Axes 
+            axes object linked to the figure
         """
         if self.y_true is None and self.y_pred is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
@@ -675,7 +772,7 @@ class RegressionEvaluator():
         y_true = self.y_true
         y_pred = self.y_pred
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -693,8 +790,10 @@ class RegressionEvaluator():
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_qq(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_qq(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Display a Q-Q plot from the standardized prediction residuals.
 
         Parameters
@@ -703,6 +802,13 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object  containing the QQ-plot
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.qq is None:
@@ -711,7 +817,7 @@ class RegressionEvaluator():
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -734,3 +840,147 @@ class RegressionEvaluator():
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
         plt.show()
+        plt.close()
+        return fig, ax
+
+    def plot_qq_alternative(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+        """Display a Q-Q plot from the standardized prediction residuals.
+
+        Parameters
+        ----------
+        path : str, optional
+            Path to store the figure.
+        dim : tuple, optional
+            Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object  containing the QQ-plot
+        ax : plt.Axes 
+            axes object linked to the figure
+        """
+
+        if self.qq is None:
+            msg = ("This {} instance is not fitted yet. Call 'fit' with "
+                   "appropriate arguments before using this method.")
+
+            raise NotFittedError(msg.format(self.__class__.__name__))
+
+        with sns.axes_style("whitegrid"):
+
+            fig, ax = plt.subplots(figsize=dim)
+
+            x = self.qq["quantiles"]
+            y = self.qq["residuals"]
+
+            ax.plot(x, x, ls="--", label="perfect model", color="darkorange", linewidth=3)
+            ax.plot(x, y, label="current model", color="cornflowerblue", linewidth=3)
+
+            ax.set_xlabel("Theoretical quantiles", fontsize=15)
+            ax.set_xticks(range(int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")])))+1, 1))
+
+            ax.set_ylabel("Standardized residuals", fontsize=15)
+            ax.set_yticks(range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")])))+1, 1))
+
+            ax.legend(loc="best")
+            ax.set_title("Q-Q plot", fontsize=20)
+
+            if path:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+        plt.show()
+        plt.close()
+        return fig, ax
+
+    def plot_residuals(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+        """
+        Plots the residuals against true values and includes a horizontal line at y=0.
+
+        Parameters
+        ----------
+        path : str, optional
+            Path to store the figure as a PNG file.
+        dim : tuple, optional
+            Tuple specifying the dimensions (width, height) of the figure in inches.
+
+        Returns
+        -------
+        tuple[np.ndarray, np.ndarray]
+            Tuple containing the matplotlib Figure and Axes objects.
+
+        Raises
+        ------
+        None
+
+        Example
+        -------
+        ```python
+        model.plot_residuals(path="residuals_plot.png", dim=(12, 8))
+        ```
+        """
+        fig, ax = plt.subplots(figsize=dim)
+
+        ax.scatter(x=self.y_true, y=self.residuals, marker="2", label="residuals",)
+        ax.axhline(0,c='black',lw=1,ls='-.')
+        if path:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        plt.show()
+        plt.close()
+
+        return fig, ax
+
+    def plot_residuals_by_bin(self, nbins: int= 5, binning_strat: str = "uniform", path: str=None, dim: tuple=(12, 8)
+                              ) -> Tuple[plt.Figure, plt.Axes]:
+        """
+        Plots the average residuals per bin based on the specified binning strategy.
+
+        Parameters
+        ----------
+        nbins : int, optional
+            Number of bins to create.
+        binning_strat : str, optional
+            Binning strategy. Should be one of ["uniform", "quantile"].
+        path : str, optional
+            Path to store the figure as a PNG file.
+        dim : tuple, optional
+            Tuple specifying the dimensions (width, height) of the figure in inches.
+
+        Returns
+        -------
+        tuple[plt.Figure, plt.Axes]
+            Tuple containing the matplotlib Figure and Axes objects.
+
+        Example
+        -------
+        ```python
+        fig, ax = model.plot_residuals_by_bin(nbins=10, binning_strat="uniform", path="residuals_by_bin_plot.png", dim=(12, 8))
+        ```
+        """
+        self.residuals_by_bin = self._compute_residuals_by_bin(nbins, binning_strat)
+        
+        with sns.axes_style("whitegrid"):
+            fig, ax = plt.subplots(figsize=dim)
+
+            ax = ax.bar(x = self.residuals_by_bin.bins.apply(lambda x: x.mid),
+                        height = self.residuals_by_bin.residuals,
+                        width= self.residuals_by_bin.bins.apply(lambda x: x.length),
+                        align = 'center',
+                        label="average residuals",
+                        lw=1,
+                        color="lightblue",
+                        edgecolor = 'black'
+                        )
+            plt.axhline(0, color='black')
+            box_edges = self.residuals_by_bin.bins.apply(lambda x: x.left).tolist() + [self.residuals_by_bin.bins.iloc[-1].right]
+
+            plt.xticks(box_edges, rotation=90)
+            # plt.yticks(residual_means_per_bin.residuals)
+            plt.title("Average residual per bin")
+            plt.ylabel("residuals")
+            plt.xlabel("target")
+        if path:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        plt.show()
+        plt.close()
+        return fig, ax
