@@ -282,17 +282,13 @@ class TargetEncoder(BaseEstimator):
         # configured imputation strategy:
         if _data[new_column].isnull().sum() > 0:
             if self.imputation_strategy == "mean":
-                _data[new_column].fillna(self._global_mean,
-                                        inplace=True)
+                _data[new_column] = _data[new_column].fillna(self._global_mean)
             elif self.imputation_strategy == "min":
-                _data[new_column].fillna(_data[new_column].min(),
-                                        inplace=True)
+                _data[new_column] = _data[new_column].fillna(_data[new_column].min())
             elif self.imputation_strategy == "max":
-                _data[new_column].fillna(_data[new_column].max(),
-                                        inplace=True)
+                _data[new_column] = _data[new_column].fillna(_data[new_column].max())
             elif self.imputation_strategy == "median":
-                _data[new_column].fillna(_data[new_column].median(),
-                                        inplace=True)
+                _data[new_column] = _data[new_column].fillna(_data[new_column].median())
 
         return _data
 
