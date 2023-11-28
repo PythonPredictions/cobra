@@ -159,3 +159,27 @@ class TestRegressionEvaluator:
         self.evaluator.plot_predictions()
     def test_plot_qq(self):
         self.evaluator.plot_qq()
+    
+
+
+    def test_compute_residuals_by_bin_uniform(self, example_evaluator):
+        # Test the function with "uniform" binning strategy
+        result_df = example_evaluator._compute_residuals_by_bin(nbins=10, binning_strat="uniform")
+        assert isinstance(result_df, pd.DataFrame)
+        assert len(result_df) == 10  # Check the number of bins
+
+    def test_compute_residuals_by_bin_quantile(self, example_evaluator):
+        # Test the function with "quantile" binning strategy
+        result_df = example_evaluator._compute_residuals_by_bin(nbins=10, binning_strat="quantile")
+        assert isinstance(result_df, pd.DataFrame)
+        assert len(result_df) == 10  # Check the number of bins
+
+
+
+@pytest.fixture
+def example_evaluator():
+    evaluator = RegressionEvaluator()
+    np.random.seed(42)
+    evaluator.y_true = np.random.rand(100)
+    evaluator.y_pred = np.random.rand(100)
+    return evaluator
