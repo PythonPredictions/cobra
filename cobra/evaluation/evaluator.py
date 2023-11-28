@@ -711,7 +711,32 @@ class RegressionEvaluator():
         })
 
     def _compute_residuals_by_bin(self, nbins, binning_strat) -> pd.DataFrame:
-        
+        """
+        Computes the mean residuals for each bin created based on the specified binning strategy.
+
+        Parameters
+        ----------
+        nbins : int
+            Number of bins to create.
+        binning_strat : str
+            Binning strategy. Should be one of ["uniform", "quantile"].
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing the mean residuals for each bin.
+
+        Raises
+        ------
+        ValueError
+            If an invalid binning strategy is provided.
+
+        Example
+        -------
+        ```python
+        result_df = model._compute_residuals_by_bin(nbins=10, binning_strat="uniform")
+        ```
+        """
         df = pd.DataFrame({"y_true":self.y_true, "residuals":self.residuals}).sort_values("y_true")
         
         allowed_binning_strats = ["uniform", "quantile"]
@@ -871,6 +896,31 @@ class RegressionEvaluator():
         return fig, ax
 
     def plot_residuals(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+        """
+        Plots the residuals against true values and includes a horizontal line at y=0.
+
+        Parameters
+        ----------
+        path : str, optional
+            Path to store the figure as a PNG file.
+        dim : tuple, optional
+            Tuple specifying the dimensions (width, height) of the figure in inches.
+
+        Returns
+        -------
+        tuple[np.ndarray, np.ndarray]
+            Tuple containing the matplotlib Figure and Axes objects.
+
+        Raises
+        ------
+        None
+
+        Example
+        -------
+        ```python
+        model.plot_residuals(path="residuals_plot.png", dim=(12, 8))
+        ```
+        """
         fig, ax = plt.subplots(figsize=dim)
 
         ax.scatter(x=self.y_true, y=self.residuals, marker="2", label="residuals",)
@@ -884,7 +934,31 @@ class RegressionEvaluator():
 
     def plot_residuals_by_bin(self, nbins: int= 5, binning_strat: str = "uniform", path: str=None, dim: tuple=(12, 8)
                               ) -> tuple[plt.Figure, plt.Axes]:
-        
+        """
+        Plots the average residuals per bin based on the specified binning strategy.
+
+        Parameters
+        ----------
+        nbins : int, optional
+            Number of bins to create.
+        binning_strat : str, optional
+            Binning strategy. Should be one of ["uniform", "quantile"].
+        path : str, optional
+            Path to store the figure as a PNG file.
+        dim : tuple, optional
+            Tuple specifying the dimensions (width, height) of the figure in inches.
+
+        Returns
+        -------
+        tuple[plt.Figure, plt.Axes]
+            Tuple containing the matplotlib Figure and Axes objects.
+
+        Example
+        -------
+        ```python
+        fig, ax = model.plot_residuals_by_bin(nbins=10, binning_strat="uniform", path="residuals_by_bin_plot.png", dim=(12, 8))
+        ```
+        """
         self.residuals_by_bin = self._compute_residuals_by_bin(nbins, binning_strat)
         
         with sns.axes_style("whitegrid"):
