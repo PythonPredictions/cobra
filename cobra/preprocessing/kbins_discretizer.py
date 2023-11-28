@@ -331,7 +331,7 @@ class KBinsDiscretizer(BaseEstimator):
 
             # Replace NULL with "Missing"
             # Otherwise these will be ignored in groupby
-            data[column_name_bin].fillna("Missing", inplace=True)
+            data[column_name_bin] = data[column_name_bin].fillna("Missing")
 
         return data
 
