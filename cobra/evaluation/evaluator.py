@@ -108,7 +108,7 @@ class ClassificationEvaluator():
 
         self.y_true = y_true
         self.y_pred = y_pred
-
+        
         self.roc_curve = {"fpr": fpr, "tpr": tpr, "thresholds": thresholds}
         self.confusion_matrix = confusion_matrix(y_true, y_pred_b)
         self.lift_curve = ClassificationEvaluator._compute_lift_per_bin(y_true, y_pred, self.n_bins)
@@ -637,10 +637,15 @@ class RegressionEvaluator():
 
         self.y_true = y_true
         self.y_pred = y_pred
+        
 
         # Compute qq info
         self.qq = RegressionEvaluator._compute_qq_residuals(y_true, y_pred)
 
+    @property
+    def residuals(self): 
+        return self.y_true - self.y_pred
+    
     @staticmethod
     def _compute_scalar_metrics(y_true: np.ndarray,
                                 y_pred: np.ndarray) -> pd.Series:
@@ -704,6 +709,21 @@ class RegressionEvaluator():
             "quantiles": df["q_theoretical"].values,
             "residuals": df["z_res"].values,
         })
+
+    def _compute_residuals_by_bin(self, nbins, binning_strat) -> pd.DataFrame:
+        
+        df = pd.DataFrame({"y_true":self.y_true, "residuals":self.residuals}).sort_values("y_true")
+        
+        allowed_binning_strats = ["uniform", "quantile"]
+        match binning_strat:
+            case "uniform":
+                df["bins"] = pd.cut(df.y_true, bins=nbins)
+            case "quantile":
+                df["bins"] = pd.qcut(df.y_true, q=nbins)
+            case _:
+                raise ValueError(f"binning_strat: {binning_strat} unknown use one of the following: {allowed_binning_strats}")
+        
+        return df.groupby("bins", observed=True).residuals.mean().reset_index()
 
     def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """Plot predictions from the model against actual values.
@@ -796,6 +816,99 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        plt.show()
+        plt.close()
+        return fig, ax
+
+    def plot_qq_alternative(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+        """Display a Q-Q plot from the standardized prediction residuals.
+
+        Parameters
+        ----------
+        path : str, optional
+            Path to store the figure.
+        dim : tuple, optional
+            Tuple with width and length of the plot.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object  containing the QQ-plot
+        ax : plt.Axes 
+            axes object linked to the figure
+        """
+
+        if self.qq is None:
+            msg = ("This {} instance is not fitted yet. Call 'fit' with "
+                   "appropriate arguments before using this method.")
+
+            raise NotFittedError(msg.format(self.__class__.__name__))
+
+        with sns.axes_style("whitegrid"):
+
+            fig, ax = plt.subplots(figsize=dim)
+
+            x = self.qq["quantiles"]
+            y = self.qq["residuals"]
+
+            ax.plot(x, x, ls="--", label="perfect model", color="darkorange", linewidth=3)
+            ax.plot(x, y, label="current model", color="cornflowerblue", linewidth=3)
+
+            ax.set_xlabel("Theoretical quantiles", fontsize=15)
+            ax.set_xticks(range(int(np.floor(min(x))), int(np.ceil(max(x[x < float("inf")])))+1, 1))
+
+            ax.set_ylabel("Standardized residuals", fontsize=15)
+            ax.set_yticks(range(int(np.floor(min(y))), int(np.ceil(max(y[x < float("inf")])))+1, 1))
+
+            ax.legend(loc="best")
+            ax.set_title("Q-Q plot", fontsize=20)
+
+            if path:
+                plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+
+        plt.show()
+        plt.close()
+        return fig, ax
+
+    def plot_residuals(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+        fig, ax = plt.subplots(figsize=dim)
+
+        ax.scatter(x=self.y_true, y=self.residuals, marker="2", label="residuals",)
+        ax.axhline(0,c='black',lw=1,ls='-.')
+        if path:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        plt.show()
+        plt.close()
+
+        return fig, ax
+
+    def plot_residuals_by_bin(self, nbins: int= 5, binning_strat: str = "uniform", path: str=None, dim: tuple=(12, 8)
+                              ) -> tuple[plt.Figure, plt.Axes]:
+        
+        self.residuals_by_bin = self._compute_residuals_by_bin(nbins, binning_strat)
+        
+        with sns.axes_style("whitegrid"):
+            fig, ax = plt.subplots(figsize=dim)
+
+            ax = ax.bar(x = self.residuals_by_bin.bins.apply(lambda x: x.mid),
+                        height = self.residuals_by_bin.residuals,
+                        width= self.residuals_by_bin.bins.apply(lambda x: x.length),
+                        align = 'center',
+                        label="average residuals",
+                        lw=1,
+                        color="lightblue",
+                        edgecolor = 'black'
+                        )
+            plt.axhline(0, color='black')
+            box_edges = self.residuals_by_bin.bins.apply(lambda x: x.left).tolist() + [self.residuals_by_bin.bins.iloc[-1].right]
+
+            plt.xticks(box_edges, rotation=90)
+            # plt.yticks(residual_means_per_bin.residuals)
+            plt.title("Average residual per bin")
+            plt.ylabel("residuals")
+            plt.xlabel("target")
+        if path:
+            plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
         plt.show()
         plt.close()
         return fig, ax
