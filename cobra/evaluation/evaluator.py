@@ -740,14 +740,12 @@ class RegressionEvaluator():
         df = pd.DataFrame({"y_true":self.y_true, "residuals":self.residuals}).sort_values("y_true")
         
         allowed_binning_strats = ["uniform", "quantile"]
-        match binning_strat:
-            case "uniform":
-                df["bins"] = pd.cut(df.y_true, bins=nbins)
-            case "quantile":
-                df["bins"] = pd.qcut(df.y_true, q=nbins)
-            case _:
-                raise ValueError(f"binning_strat: {binning_strat} unknown use one of the following: {allowed_binning_strats}")
-        
+        if binning_strat == "uniform":
+            df["bins"] = pd.cut(df.y_true, bins=nbins)
+        elif binning_strat == "quantile":
+            df["bins"] = pd.qcut(df.y_true, q=nbins)
+        else:
+            raise ValueError(f"binning_strat: {binning_strat} unknown use one of the following: {allowed_binning_strats}")
         return df.groupby("bins", observed=True).residuals.mean().reset_index()
 
     def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
@@ -895,7 +893,7 @@ class RegressionEvaluator():
         plt.close()
         return fig, ax
 
-    def plot_residuals(self, path: str=None, dim: tuple=(12, 8)) -> tuple[plt.Figure, plt.Axes]:
+    def plot_residuals(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
         """
         Plots the residuals against true values and includes a horizontal line at y=0.
 
@@ -933,7 +931,7 @@ class RegressionEvaluator():
         return fig, ax
 
     def plot_residuals_by_bin(self, nbins: int= 5, binning_strat: str = "uniform", path: str=None, dim: tuple=(12, 8)
-                              ) -> tuple[plt.Figure, plt.Axes]:
+                              ) -> Tuple[plt.Figure, plt.Axes]:
         """
         Plots the average residuals per bin based on the specified binning strategy.
 
