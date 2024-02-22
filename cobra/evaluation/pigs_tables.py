@@ -107,7 +107,8 @@ def plot_incidence(pig_tables: pd.DataFrame,
                    variable: str,
                    model_type: str,
                    column_order: list=None,
-                   dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+                   dim: tuple=(12, 8),
+                   show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a Predictor Insights Graph (PIG), a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
     variable. When the target is a binary classification target,
@@ -130,6 +131,8 @@ def plot_incidence(pig_tables: pd.DataFrame,
         on the PIG.
     dim: tuple, default=(12, 8)
         Optional tuple to configure the width and length of the plot.
+    show: bool, default=True
+        Whether to show the plot or not.
 
     Retruns
     -------
@@ -264,6 +267,8 @@ def plot_incidence(pig_tables: pd.DataFrame,
         plt.tight_layout()
         plt.margins(0.01)
 
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
+        
         return fig, ax

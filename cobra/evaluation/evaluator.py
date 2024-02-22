@@ -158,7 +158,7 @@ class ClassificationEvaluator():
                                                                   lift_at=lift_at), 2)
         })
 
-    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot ROC curve of the model.
 
         Parameters
@@ -167,6 +167,8 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
 
         Retruns
         -------
@@ -204,12 +206,13 @@ class ClassificationEvaluator():
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
         return fig, ax
 
     def plot_confusion_matrix(self, path: str=None, dim: tuple=(12, 8),
-                              labels: list=["0", "1"]):
+                              labels: list=["0", "1"], show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot the confusion matrix.
 
         Parameters
@@ -220,6 +223,8 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         labels : list, optional
             Optional list of labels, default "0" and "1".
+        show : bool, optional
+            Whether to show the plot or not.
 
         Retruns
         -------
@@ -247,13 +252,15 @@ class ClassificationEvaluator():
         if path:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
         return fig, ax
 
     def plot_cumulative_response_curve(self,
                                        path: str=None,
-                                       dim: tuple=(12, 8)
+                                       dim: tuple=(12, 8),
+                                       show: bool=True
                                        ) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative response curve.
 
@@ -263,6 +270,8 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
 
         Retruns
         -------
@@ -310,11 +319,12 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
         return fig, ax
 
-    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot lift per decile.
 
         Parameters
@@ -323,6 +333,8 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
 
         Retruns
         -------
@@ -368,11 +380,12 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
         return fig, ax
 
-    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative gains per decile.
 
         Parameters
@@ -381,6 +394,8 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
 
         Retruns
         -------
@@ -421,7 +436,8 @@ class ClassificationEvaluator():
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
         return fig, ax
 
@@ -705,7 +721,7 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+    def plot_predictions(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot predictions from the model against actual values.
 
         Parameters
@@ -714,6 +730,8 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
 
         Retruns
         -------
@@ -746,11 +764,12 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
         return fig, ax
 
-    def plot_qq(self, path: str=None, dim: tuple=(12, 8)) -> Tuple[plt.Figure, plt.Axes]:
+    def plot_qq(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Display a Q-Q plot from the standardized prediction residuals.
 
         Parameters
@@ -759,6 +778,8 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
 
         Retruns
         -------
@@ -796,6 +817,7 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
         plt.close()
         return fig, ax
