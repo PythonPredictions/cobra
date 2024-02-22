@@ -1,7 +1,7 @@
 
 import numpy as np
 import pandas as pd
-
+from typing import Tuple
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
@@ -158,7 +158,7 @@ class ClassificationEvaluator():
                                                                   lift_at=lift_at), 2)
         })
 
-    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_roc_curve(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot ROC curve of the model.
 
         Parameters
@@ -167,6 +167,15 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the ROC curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.roc_curve is None:
@@ -177,7 +186,7 @@ class ClassificationEvaluator():
 
         auc = float(self.scalar_metrics.loc["AUC"])
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -197,11 +206,13 @@ class ClassificationEvaluator():
 
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
-
-        plt.show()
+        if show:
+            plt.show()
+        plt.close()
+        return fig, ax
 
     def plot_confusion_matrix(self, path: str=None, dim: tuple=(12, 8),
-                              labels: list=["0", "1"]):
+                              labels: list=["0", "1"], show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot the confusion matrix.
 
         Parameters
@@ -212,6 +223,15 @@ class ClassificationEvaluator():
             Tuple with width and length of the plot.
         labels : list, optional
             Optional list of labels, default "0" and "1".
+        show : bool, optional
+            Whether to show the plot or not.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing confusion matrix
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.confusion_matrix is None:
@@ -232,9 +252,16 @@ class ClassificationEvaluator():
         if path:
             plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_cumulative_response_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_response_curve(self,
+                                       path: str=None,
+                                       dim: tuple=(12, 8),
+                                       show: bool=True
+                                       ) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative response curve.
 
         Parameters
@@ -243,6 +270,15 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the cumulative response curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.lift_curve is None:
@@ -255,7 +291,7 @@ class ClassificationEvaluator():
 
         lifts = np.array(lifts)*inc_rate*100
 
-        with plt.style.context("seaborn-ticks"):
+        with sns.axes_style("ticks"):
             fig, ax = plt.subplots(figsize=dim)
 
             plt.bar(x_labels[::-1], lifts, align="center",
@@ -283,9 +319,12 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        if show:
             plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_lift_curve(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot lift per decile.
 
         Parameters
@@ -294,6 +333,15 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object the livt curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.lift_curve is None:
@@ -304,7 +352,7 @@ class ClassificationEvaluator():
 
         x_labels, lifts, _ = self.lift_curve
 
-        with plt.style.context("seaborn-ticks"):
+        with sns.axes_style("ticks"):
             fig, ax = plt.subplots(figsize=dim)
 
             plt.bar(x_labels[::-1], lifts, align="center",
@@ -332,9 +380,12 @@ class ClassificationEvaluator():
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
+        if show:
             plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_cumulative_gains(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot cumulative gains per decile.
 
         Parameters
@@ -343,9 +394,18 @@ class ClassificationEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the cumulative gains curve
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
             fig, ax = plt.subplots(figsize=dim)
 
             ax.plot(self.cumulative_gains[0]*100, self.cumulative_gains[1]*100,
@@ -376,7 +436,10 @@ class ClassificationEvaluator():
 
             if path is not None:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
+        if show:
             plt.show()
+        plt.close()
+        return fig, ax
 
     @staticmethod
     def _find_optimal_cutoff(y_true: np.ndarray,
@@ -658,7 +721,7 @@ class RegressionEvaluator():
             "residuals": df["z_res"].values,
         })
 
-    def plot_predictions(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_predictions(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot predictions from the model against actual values.
 
         Parameters
@@ -667,6 +730,15 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object containing the predictions vs the actual values
+        ax : plt.Axes 
+            axes object linked to the figure
         """
         if self.y_true is None and self.y_pred is None:
             msg = ("This {} instance is not fitted yet. Call 'fit' with "
@@ -675,7 +747,7 @@ class RegressionEvaluator():
         y_true = self.y_true
         y_pred = self.y_pred
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -692,9 +764,12 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
+        plt.close()
+        return fig, ax
 
-    def plot_qq(self, path: str=None, dim: tuple=(12, 8)):
+    def plot_qq(self, path: str=None, dim: tuple=(12, 8), show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
         """Display a Q-Q plot from the standardized prediction residuals.
 
         Parameters
@@ -703,6 +778,15 @@ class RegressionEvaluator():
             Path to store the figure.
         dim : tuple, optional
             Tuple with width and length of the plot.
+        show : bool, optional
+            Whether to show the plot or not.
+
+        Retruns
+        -------
+        fig : plt.Figure
+            figure object  containing the QQ-plot
+        ax : plt.Axes 
+            axes object linked to the figure
         """
 
         if self.qq is None:
@@ -711,7 +795,7 @@ class RegressionEvaluator():
 
             raise NotFittedError(msg.format(self.__class__.__name__))
 
-        with plt.style.context("seaborn-whitegrid"):
+        with sns.axes_style("whitegrid"):
 
             fig, ax = plt.subplots(figsize=dim)
 
@@ -733,4 +817,7 @@ class RegressionEvaluator():
             if path:
                 plt.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
-        plt.show()
+        if show:
+            plt.show()
+        plt.close()
+        return fig, ax
