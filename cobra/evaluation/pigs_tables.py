@@ -48,6 +48,15 @@ def generate_pig_tables(basetable: pd.DataFrame,
         for column_name in sorted(preprocessed_predictors)
         if column_name not in no_predictor
     ]
+
+    if len(pigs) == 0:
+        raise ValueError(
+            "No preprocessed predictors were provided to generate_pig_tables. "
+            "Make sure you ran preprocessor.transform(...) successfully and "
+            "that preprocessed_predictors contains columns ending in '_bin' "
+            "or '_processed'."
+        )
+
     output = pd.concat(pigs, ignore_index=True)
     return output
 
@@ -145,8 +154,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
                 'the same set of variables.')
 
         df_plot['label'] = df_plot['label'].astype('category')
-        df_plot['label'].cat.reorder_categories(column_order,
-                                                inplace=True)
+        df_plot['label'] = df_plot['label'].cat.reorder_categories(column_order)
 
         df_plot.sort_values(by=['label'], ascending=True, inplace=True)
         df_plot.reset_index(inplace=True)
@@ -154,7 +162,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
         df_plot.sort_values(by=['avg_target'], ascending=False, inplace=True)
         df_plot.reset_index(inplace=True)
 
-    with plt.style.context("seaborn-ticks"):
+    with plt.style.context("seaborn-v0_8-ticks"):
         fig, ax = plt.subplots(figsize=dim)
 
         # --------------------------

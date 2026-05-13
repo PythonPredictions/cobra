@@ -204,6 +204,28 @@ class TestPreProcessor:
             )
         pd.testing.assert_frame_equal(calculated, expected, check_dtype=False, check_categorical=False)
 
+    def test_get_continuous_and_discrete_columns_modern_pandas_dtypes(self):
+
+        input_df = pd.DataFrame(
+            {
+                "ID": [1, 2, 3, 4],
+                "Target": [0, 1, 0, 1],
+                "category_string": pd.Series(["a", "b", "a", "b"], dtype="string"),
+                "category_bool": [True, False, True, False],
+                "low_card_numeric": [1, 1, 2, 2],
+                "continuous_numeric": [1.1, 2.2, 3.3, 4.4],
+            }
+        )
+
+        preprocessor = PreProcessor.from_params(model_type="classification")
+
+        continuous_vars, discrete_vars = preprocessor.get_continuous_and_discrete_columns(
+            input_df, "ID", "Target"
+        )
+
+        assert discrete_vars == ["category_string", "category_bool", "low_card_numeric"]
+        assert continuous_vars == ["continuous_numeric"]
+
     @pytest.mark.parametrize(
     ("input, expected"),
     [
