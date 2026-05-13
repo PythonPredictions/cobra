@@ -249,30 +249,42 @@ class PreProcessor(BaseEstimator):
                 "id_col_name is equal to None. If there is no id column ignore this warning"
             )
 
-        # find continuous_vars and discrete_vars in the dateframe
-        col_dtypes = df.dtypes
+        excluded_columns = {id_col_name, target_column_name}
+
         discrete_vars = [
             col
-            for col in col_dtypes[col_dtypes == object].index.tolist()
-            if col not in [id_col_name, target_column_name]
+            for col in df.columns
+            if col not in excluded_columns
+            and (
+                pd.api.types.is_object_dtype(df[col])
+                or pd.api.types.is_string_dtype(df[col])
+                or isinstance(df[col].dtype, pd.CategoricalDtype)
+                or pd.api.types.is_bool_dtype(df[col])
+            )
         ]
 
         for col in df.columns:
-            if col not in discrete_vars and col not in [
-                id_col_name,
-                target_column_name,
-            ]:  # omit discrete because a string, and target
-                val_counts = df[col].nunique()
-                if (
-                    val_counts > 1 and val_counts <= 10
-                ):  # the column contains less than 10 different values
-                    discrete_vars.append(col)
+            if col in discrete_vars or col in excluded_columns:
+                continue
+            if not pd.api.types.is_numeric_dtype(df[col]):
+                continue
+            if pd.api.types.is_bool_dtype(df[col]):
+                continue
 
-        continuous_vars = list(
-            set(df.columns)
-            - set(discrete_vars)
-            - set([id_col_name, target_column_name])
-        )
+            val_counts = df[col].nunique()
+            if (
+                val_counts > 1 and val_counts <= 10
+            ):  # the column contains less than 10 different values
+                discrete_vars.append(col)
+
+        continuous_vars = [
+            col
+            for col in df.columns
+            if col not in excluded_columns
+            and col not in discrete_vars
+            and pd.api.types.is_numeric_dtype(df[col])
+            and not pd.api.types.is_bool_dtype(df[col])
+        ]
         log.warning(
             f"""Cobra automaticaly assumes that following variables are 
             discrete: {discrete_vars}

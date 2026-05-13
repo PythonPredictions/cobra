@@ -110,3 +110,4 @@ ENV/
 *.pptx
 *.ppt
 .idea/
+.DS_Store

@@ -23,12 +23,13 @@ setup(
     license="MIT",
     author="Python Predictions",
     author_email="cobra@pythonpredictions.com",
+    python_requires=">=3.10",
     install_requires=[
-        "numpy>=1.19.4",
-        "pandas>=1.1.5,<2.0.0",
-        "scipy>=1.5.4",
-        "scikit-learn>=0.24.1",
-        "matplotlib>=3.4.3",
-        "seaborn>=0.11.0",
+        "numpy>=1.26.0",
+        "pandas>=2.1.0",
+        "scipy>=1.11.2",
+        "scikit-learn>=1.2.0",
+        "matplotlib>=3.8.0",
+        "seaborn>=0.13.2",
         "tqdm>=4.62.2"]
 )
