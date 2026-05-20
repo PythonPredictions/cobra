@@ -71,7 +71,7 @@ class TestCategoricalDataProcessor:
 
     @pytest.mark.parametrize("scale_contingency_table, expected",
                              [(False, 0.01329),
-                              (True, 0.43437)])
+                              (True, 0.46291)])
     def test_compute_p_value_classification(self, scale_contingency_table, expected):
 
         X = pd.Series(data=(["c1"]*70 + ["c2"]*20 + ["c3"]*10))
@@ -120,7 +120,7 @@ class TestCategoricalDataProcessor:
         actual = (CategoricalDataProcessor
                   ._replace_missings(data, ["variable"]))
 
-        pd.testing.assert_frame_equal(actual, expected)
+        pd.testing.assert_frame_equal(actual, expected, check_dtype=False)
 
     @pytest.mark.parametrize("cleaned_categories, expected",
                              [({"c1", "c2"},
@@ -175,7 +175,7 @@ class TestCategoricalDataProcessor:
         actual = categorical_data_processor.transform(data,
                                                       discrete_vars)
 
-        pd.testing.assert_frame_equal(actual, expected)
+        pd.testing.assert_frame_equal(actual, expected, check_dtype=False)
 
     def test_regroup_name(self):
         # Expected

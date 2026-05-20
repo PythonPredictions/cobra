@@ -208,12 +208,17 @@ class TestPreProcessor:
 
         input_df = pd.DataFrame(
             {
-                "ID": [1, 2, 3, 4],
-                "Target": [0, 1, 0, 1],
-                "category_string": pd.Series(["a", "b", "a", "b"], dtype="string"),
-                "category_bool": [True, False, True, False],
-                "low_card_numeric": [1, 1, 2, 2],
-                "continuous_numeric": [1.1, 2.2, 3.3, 4.4],
+                "ID": list(range(11)),
+                "Target": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                "category_string": pd.Series(
+                    ["a", "b", "a", "b", "a", "b", "a", "b", "a", "b", "a"],
+                    dtype="string",
+                ),
+                "category_bool": [True, False, True, False, True, False,
+                                  True, False, True, False, True],
+                "low_card_numeric": [1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2],
+                "continuous_numeric": [1.1, 2.2, 3.3, 4.4, 5.5, 6.6,
+                                       7.7, 8.8, 9.9, 10.1, 11.2],
             }
         )
 
