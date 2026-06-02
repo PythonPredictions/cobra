@@ -29,7 +29,9 @@ class LogisticRegressionModel:
 
     def __init__(self):
         self.logit = LogisticRegression(fit_intercept=True, C=1e9,
-                                        penalty='l2', solver='liblinear',
+                                        # penalty='l2',
+                                        l1_ratio=0,
+                                        solver='liblinear',
                                         random_state=42)
         self._is_fitted = False
         # placeholder to keep track of a list of predictors
