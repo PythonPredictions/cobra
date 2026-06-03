@@ -110,3 +110,5 @@ ENV/
 *.pptx
 *.ppt
 .idea/
+.DS*
+pyproject.toml
