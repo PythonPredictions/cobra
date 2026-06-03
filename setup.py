@@ -25,7 +25,7 @@ setup(
     author_email="cobra@pythonpredictions.com",
     python_requires=">=3.10",
     install_requires=[
-        "numpy>=1.26.0",
+        "numpy>=2.0.0",
         "pandas>=2.1.0",
         "scipy>=1.11.2",
         "scikit-learn>=1.2.0",
