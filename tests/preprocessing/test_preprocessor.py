@@ -204,6 +204,33 @@ class TestPreProcessor:
             )
         pd.testing.assert_frame_equal(calculated, expected, check_dtype=False, check_categorical=False)
 
+    def test_get_continuous_and_discrete_columns_modern_pandas_dtypes(self):
+
+        input_df = pd.DataFrame(
+            {
+                "ID": list(range(11)),
+                "Target": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                "category_string": pd.Series(
+                    ["a", "b", "a", "b", "a", "b", "a", "b", "a", "b", "a"],
+                    dtype="string",
+                ),
+                "category_bool": [True, False, True, False, True, False,
+                                  True, False, True, False, True],
+                "low_card_numeric": [1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2],
+                "continuous_numeric": [1.1, 2.2, 3.3, 4.4, 5.5, 6.6,
+                                       7.7, 8.8, 9.9, 10.1, 11.2],
+            }
+        )
+
+        preprocessor = PreProcessor.from_params(model_type="classification")
+
+        continuous_vars, discrete_vars = preprocessor.get_continuous_and_discrete_columns(
+            input_df, "ID", "Target"
+        )
+
+        assert discrete_vars == ["category_string", "category_bool", "low_card_numeric"]
+        assert continuous_vars == ["continuous_numeric"]
+
     @pytest.mark.parametrize(
     ("input, expected"),
     [
@@ -357,13 +384,13 @@ class TestPreProcessor:
                     },
                 ).astype(
                     {
-                        "a": np.float64(),
-                        "b": np.float64(),
-                        "d": np.float64(),
-                        "e": np.float64(),
-                        "category_1": pd.CategoricalDtype(),
-                        "category_2": pd.CategoricalDtype(),
-                        "category_3": pd.CategoricalDtype(),
+                        "a": "float64",
+                        "b": "float64",
+                        "d": "float64",
+                        "e": "float64",
+                        "category_1": "category",
+                        "category_2": "category",
+                        "category_3": "category",
                     }
                 ),
                 pd.DataFrame(
@@ -376,11 +403,11 @@ class TestPreProcessor:
                     }
                 ).astype(
                     {
-                        "a": np.float64(),
-                        "d": np.float64(),
-                        "e": np.float64(),
-                        "category_1": pd.CategoricalDtype(),
-                        "category_2": pd.CategoricalDtype(),
+                        "a": "float64",
+                        "d": "float64",
+                        "e": "float64",
+                        "category_1": "category",
+                        "category_2": "category",
                     }
                 ),
             ),

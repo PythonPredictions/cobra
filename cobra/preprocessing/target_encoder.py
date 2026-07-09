@@ -270,29 +270,25 @@ class TargetEncoder(BaseEstimator):
         _data = data.copy()
         new_column = TargetEncoder._clean_column_name(column_name)
 
-        # Convert dtype to float, because when the original dtype
-        # is of type "category", the resulting dtype would otherwise also be of
-        # type "category":
-        _data[new_column] = (_data[column_name].map(self._mapping[column_name])
-                            .astype("float"))
+        # Convert dtype to float up front so encoded values are written into
+        # a fresh float Series, which avoids dtype collisions on newer pandas.
+        encoded = _data[column_name].map(self._mapping[column_name]).astype("float")
 
         # In case of categorical data, it could be that new categories will
         # emerge which were not present in the train set, so this will result
         # in missing values, which should be replaced according to the
         # configured imputation strategy:
-        if _data[new_column].isnull().sum() > 0:
+        if encoded.isnull().sum() > 0:
             if self.imputation_strategy == "mean":
-                _data[new_column].fillna(self._global_mean,
-                                        inplace=True)
+                encoded = encoded.fillna(self._global_mean)
             elif self.imputation_strategy == "min":
-                _data[new_column].fillna(_data[new_column].min(),
-                                        inplace=True)
+                encoded = encoded.fillna(encoded.min())
             elif self.imputation_strategy == "max":
-                _data[new_column].fillna(_data[new_column].max(),
-                                        inplace=True)
+                encoded = encoded.fillna(encoded.max())
             elif self.imputation_strategy == "median":
-                _data[new_column].fillna(_data[new_column].median(),
-                                        inplace=True)
+                encoded = encoded.fillna(encoded.median())
+
+        _data[new_column] = encoded
 
         return _data
 

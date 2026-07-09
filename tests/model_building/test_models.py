@@ -94,11 +94,10 @@ class TestLogisticRegressionModel:
                 "dual": False,
                 "fit_intercept": True,
                 "intercept_scaling": 1,
-                "l1_ratio": None,
+                "l1_ratio": 0,
                 "max_iter": 100,
-                "multi_class": "auto",
                 "n_jobs": None,
-                "penalty": "l2",
+                "penalty": "deprecated",
                 "random_state": 42,
                 "solver": "liblinear",
                 "tol": 0.0001,
@@ -123,9 +122,8 @@ class TestLogisticRegressionModel:
                 "dual": False,
                 "fit_intercept": True,
                 "intercept_scaling": 1,
-                "l1_ratio": None,
+                "l1_ratio": 0.0,
                 "max_iter": 100,
-                "multi_class": "auto",
                 "n_jobs": None,
                 "penalty": "l2",
                 "random_state": 42,
@@ -225,7 +223,8 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "positive": False
+                "positive": False,
+                "tol": 1e-06
             }
         }
 
@@ -243,7 +242,8 @@ class TestLinearRegressionModel:
                 "copy_X": True,
                 "fit_intercept": True,
                 "n_jobs": None,
-                "positive": False
+                "positive": False,
+                "tol": 1e-06
             },
             "coef_": [[0.5, 0.75]],
             "intercept_": [-3]
