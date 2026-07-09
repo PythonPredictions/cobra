@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from matplotlib.ticker import FuncFormatter
-
+from typing import Tuple
 import cobra.utils as utils
 
 def generate_pig_tables(basetable: pd.DataFrame,
@@ -48,6 +48,15 @@ def generate_pig_tables(basetable: pd.DataFrame,
         for column_name in sorted(preprocessed_predictors)
         if column_name not in no_predictor
     ]
+
+    if len(pigs) == 0:
+        raise ValueError(
+            "No preprocessed predictors were provided to generate_pig_tables. "
+            "Make sure you ran preprocessor.transform(...) successfully and "
+            "that preprocessed_predictors contains columns ending in '_bin' "
+            "or '_processed'."
+        )
+
     output = pd.concat(pigs, ignore_index=True)
     return output
 
@@ -107,7 +116,8 @@ def plot_incidence(pig_tables: pd.DataFrame,
                    variable: str,
                    model_type: str,
                    column_order: list=None,
-                   dim: tuple=(12, 8)):
+                   dim: tuple=(12, 8),
+                   show: bool=True) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a Predictor Insights Graph (PIG), a graph in which the mean
     target value is plotted for a number of bins constructed from a predictor
     variable. When the target is a binary classification target,
@@ -130,6 +140,15 @@ def plot_incidence(pig_tables: pd.DataFrame,
         on the PIG.
     dim: tuple, default=(12, 8)
         Optional tuple to configure the width and length of the plot.
+    show: bool, default=True
+        Whether to show the plot or not.
+
+    Retruns
+    -------
+    fig : plt.Figure
+        figure object contining the PIG
+    ax : plt.Axes 
+        axes object linked to the figure
     """
     if model_type not in ["classification", "regression"]:
         raise ValueError("An unexpected value was set for the model_type "
@@ -145,8 +164,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
                 'the same set of variables.')
 
         df_plot['label'] = df_plot['label'].astype('category')
-        df_plot['label'].cat.reorder_categories(column_order,
-                                                inplace=True)
+        df_plot['label'] = df_plot['label'].cat.reorder_categories(column_order)
 
         df_plot.sort_values(by=['label'], ascending=True, inplace=True)
         df_plot.reset_index(inplace=True)
@@ -154,7 +172,7 @@ def plot_incidence(pig_tables: pd.DataFrame,
         df_plot.sort_values(by=['avg_target'], ascending=False, inplace=True)
         df_plot.reset_index(inplace=True)
 
-    with plt.style.context("seaborn-ticks"):
+    with sns.axes_style("ticks"):
         fig, ax = plt.subplots(figsize=dim)
 
         # --------------------------
@@ -257,5 +275,8 @@ def plot_incidence(pig_tables: pd.DataFrame,
         plt.tight_layout()
         plt.margins(0.01)
 
-        # Show
-        plt.show()
+        if show:
+            plt.show()
+        plt.close()
+        
+        return fig, ax

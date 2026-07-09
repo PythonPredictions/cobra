@@ -420,6 +420,10 @@ class CategoricalDataProcessor(BaseEstimator):
             temp = data[column_names]
         else:
             temp = data.copy()
+
+        # Cast to object first so mixed/string replacements remain valid
+        # for numeric and boolean categorical columns under newer pandas.
+        temp = temp.astype(object)
         temp = temp.fillna("Missing")
         temp = temp.replace(regex, "")
         temp = temp.replace("", "Missing")
@@ -462,7 +466,7 @@ class CategoricalDataProcessor(BaseEstimator):
 
         if model_type == "classification":
             contingency_table = pd.crosstab(index=df["other_categories"], columns=df["y"],
-                                            margins=False)
+                                            margins=False).astype(np.float64)
 
             # if true, we scale the "other" categories
             if scale_contingency_table:
@@ -471,7 +475,8 @@ class CategoricalDataProcessor(BaseEstimator):
 
                 contingency_table.iloc[1, 0] = (1-incidence_mean) * size_other_cats
                 contingency_table.iloc[1, 1] = incidence_mean * size_other_cats
-                contingency_table = contingency_table.values.astype(np.int64)
+
+            contingency_table = contingency_table.to_numpy(dtype=np.float64)
 
             pval = stats.chi2_contingency(contingency_table, correction=False)[1]
 
